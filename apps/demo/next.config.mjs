@@ -6,6 +6,8 @@ const nextConfig = {
   images: { unoptimized: true },
   // Don't write an AGENTS.md into the demo on `next dev`.
   agentRules: false,
+  // No floating Next.js badge over the editor's toolbars in development.
+  devIndicators: false,
 };
 
 export default nextConfig;

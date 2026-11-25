@@ -77,7 +77,7 @@ async function pressSaveShortcut() {
 
 test('loads through the transport when no initial state is given', async () => {
   const { transport, calls } = fakeTransport(editorState());
-  const { container, unmount } = await mount(<StoryEditor slug="field-notes-that-travel" transport={transport} />);
+  const { container, unmount } = await mount(<StoryEditor continuousMode={false} slug="field-notes-that-travel" transport={transport} />);
   try {
     assert.deepEqual(calls.map((call) => call.method), ['load']);
     assert.match(text(container), /Field notes that travel/);
@@ -87,7 +87,7 @@ test('loads through the transport when no initial state is given', async () => {
 
 test('loads under StrictMode, where React mounts twice in development', async () => {
   const { transport, calls } = fakeTransport(editorState());
-  const { container, unmount } = await mount(<StrictMode><StoryEditor slug="field-notes-that-travel" transport={transport} /></StrictMode>);
+  const { container, unmount } = await mount(<StrictMode><StoryEditor continuousMode={false} slug="field-notes-that-travel" transport={transport} /></StrictMode>);
   try {
     assert.ok(calls.some((call) => call.method === 'load'));
     assert.doesNotMatch(text(container), /Loading the editor/);
@@ -97,7 +97,7 @@ test('loads under StrictMode, where React mounts twice in development', async ()
 
 test('an edit marks the story unsaved, and ⌘S saves it through the transport', async () => {
   const { transport, calls } = fakeTransport(editorState());
-  const { container, unmount } = await mount(<StoryEditor slug="field-notes-that-travel" transport={transport} initialState={editorState()} />);
+  const { container, unmount } = await mount(<StoryEditor continuousMode={false} slug="field-notes-that-travel" transport={transport} initialState={editorState()} />);
   try {
     assert.equal(calls.length, 0, 'an initial state skips the first load');
     await editTitle(container, 'Field notes that stay');
@@ -118,7 +118,7 @@ test('a save conflict shows a plain message and keeps the unsaved work', async (
   const { transport } = fakeTransport(editorState(), {
     async saveDraft() { throw new DraftConflictError('Someone saved a newer draft'); },
   });
-  const { container, unmount } = await mount(<StoryEditor slug="field-notes-that-travel" transport={transport} initialState={editorState()} />);
+  const { container, unmount } = await mount(<StoryEditor continuousMode={false} slug="field-notes-that-travel" transport={transport} initialState={editorState()} />);
   try {
     await editTitle(container, 'Field notes, edited twice');
     await pressSaveShortcut();
@@ -132,7 +132,7 @@ test('a save conflict shows a plain message and keeps the unsaved work', async (
 test('a 409 from a fetch transport reads the same way', async () => {
   const conflict = Object.assign(new Error('This story has a newer draft'), { status: 409, body: { error: 'This story has a newer draft', code: 'CONFLICT' } });
   const { transport } = fakeTransport(editorState(), { async saveDraft() { throw conflict; } });
-  const { container, unmount } = await mount(<StoryEditor slug="field-notes-that-travel" transport={transport} initialState={editorState()} />);
+  const { container, unmount } = await mount(<StoryEditor continuousMode={false} slug="field-notes-that-travel" transport={transport} initialState={editorState()} />);
   try {
     await editTitle(container, 'Field notes, again');
     await pressSaveShortcut();
@@ -143,7 +143,7 @@ test('a 409 from a fetch transport reads the same way', async () => {
 
 test('publish sends the saved version to the transport', async () => {
   const { transport, calls } = fakeTransport(editorState());
-  const { container, unmount } = await mount(<StoryEditor slug="field-notes-that-travel" transport={transport} initialState={editorState()} />);
+  const { container, unmount } = await mount(<StoryEditor continuousMode={false} slug="field-notes-that-travel" transport={transport} initialState={editorState()} />);
   try {
     const publish = [...container.querySelectorAll('button')].find((button) => /publish/i.test(button.textContent?.trim() ?? ''));
     assert.ok(publish, `a publish control is on the bar: ${[...container.querySelectorAll('button')].map((b) => b.textContent?.trim()).filter(Boolean).join(' | ')}`);
@@ -170,7 +170,7 @@ test('an ended session opens the sign-in dialog and retries the save after sign-
   };
   let signIn: (() => void) | null = null;
   const { container, unmount } = await mount(
-    <StoryEditor slug="field-notes-that-travel" transport={transport} initialState={editorState()}
+    <StoryEditor continuousMode={false} slug="field-notes-that-travel" transport={transport} initialState={editorState()}
       renderSignIn={({ onSignedIn }) => { signIn = onSignedIn; return <button type="button" onClick={onSignedIn}>Sign in here</button>; }} />,
   );
   try {
@@ -191,7 +191,7 @@ test('a story that moved follows its new address through navigate', async () => 
     async load() { throw Object.assign(new Error('Moved'), { status: 409, body: { error: 'Moved', code: 'STORY_MOVED', movedTo: 'field-notes-renamed' } }); },
   });
   const { unmount } = await mount(
-    <StoryEditor slug="field-notes-that-travel" transport={transport} navigate={(href) => visited.push(href)} routes={{ editor: (slug) => `/edit/${slug}` }} />,
+    <StoryEditor continuousMode={false} slug="field-notes-that-travel" transport={transport} navigate={(href) => visited.push(href)} routes={{ editor: (slug) => `/edit/${slug}` }} />,
   );
   try {
     assert.deepEqual(visited, ['/edit/field-notes-renamed']);

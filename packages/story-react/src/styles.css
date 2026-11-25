@@ -4,6 +4,50 @@
  * tokens.css, so a host themes the reader by setting `--story-*` variables.
  */
 
+/* ─── Base ─────────────────────────────────────────────────────────── */
+/* The reset and base type the original CMS ran under (Tailwind v4's
+ * preflight plus the site's own base layer), scoped to the reader's and the
+ * editor's own elements so the host page keeps its own. Every selector sits
+ * in :where(), so it carries no specificity and any class in these
+ * stylesheets, or in yours, wins over it. */
+:where([class*="story-"], [class*="story-"] *),
+:where([class*="story-"], [class*="story-"] *)::before,
+:where([class*="story-"], [class*="story-"] *)::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0 solid;
+}
+:where([class*="story-"], [class*="story-"] *):is(h1, h2, h3, h4, h5, h6) { font-size: inherit; font-weight: inherit; }
+:where([class*="story-"], [class*="story-"] *):is(a) { color: inherit; text-decoration: inherit; }
+:where([class*="story-"], [class*="story-"] *):is(b, strong) { font-weight: bolder; }
+:where([class*="story-"], [class*="story-"] *):is(code, kbd, samp, pre) { font-family: var(--story-font-code); font-size: 1em; }
+:where([class*="story-"], [class*="story-"] *):is(ol, ul, menu) { list-style: none; }
+:where([class*="story-"], [class*="story-"] *):is(img, svg, video, canvas, audio, iframe, embed, object) { display: block; vertical-align: middle; }
+:where([class*="story-"], [class*="story-"] *):is(img, video) { max-width: 100%; height: auto; }
+:where([class*="story-"], [class*="story-"] *):is(table) { border-collapse: collapse; border-color: inherit; text-indent: 0; }
+:where([class*="story-"], [class*="story-"] *):is(hr) { height: 0; color: inherit; border-top-width: 1px; }
+:where([class*="story-"], [class*="story-"] *):is(textarea) { resize: vertical; }
+:where([class*="story-"], [class*="story-"] *)::placeholder { opacity: 1; color: color-mix(in oklab, currentcolor 50%, transparent); }
+:where([class*="story-"], [class*="story-"] *):is([hidden]:not([hidden="until-found"])) { display: none !important; }
+:where([class*="story-"], [class*="story-"] *):is(button, a, input, select, textarea, [role="button"]) { touch-action: manipulation; }
+
+/* The site's base type, after the reset as it was there. */
+:where([class*="story-"], [class*="story-"] *):is(h1, h2, h3, h4, h5, h6) {
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+:where([class*="story-"], [class*="story-"] *):is(h1) { letter-spacing: -0.03em; }
+:where([class*="story-"], [class*="story-"] *):is(h1, h2, h3) { font-family: var(--story-font-serif); font-weight: 400; letter-spacing: -0.01em; }
+:where([class*="story-"], [class*="story-"] *):is(p, li, blockquote, dd, figcaption) { text-wrap: pretty; }
+:where([class*="story-"], [class*="story-"] *):is(p) { margin-bottom: var(--story-rhythm-minor); line-height: 1.5; }
+:where([class*="story-"], [class*="story-"] *):is(p:last-child) { margin-bottom: 0; }
+:where([class*="story-"], [class*="story-"] *):is(img) { opacity: 1; transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+:where([class*="story-"], [class*="story-"] *):is(img[data-loading="true"]) { opacity: 0; }
+
 /* ─── storyStyles ─────────────────────────────────────────── */
 /* The story as a long read: a hero, STAR at a glance, four chapters on a
  * reading measure, and media that breaks the measure when the work needs room.

@@ -310,7 +310,7 @@ export interface StoryEditorProps {
    *  that saves in the tab: `{ badge: 'Demo', note: 'Saves stay in this tab' }`. */
   label?: { badge: string; note: string };
   initialView?: WorkspaceView;
-  /** Start in continuous writing instead of block tools. */
+  /** Start in continuous writing (the default) or, with false, block tools. */
   continuousMode?: boolean;
   /** Open Story settings on load. */
   initialSettingsOpen?: boolean;
@@ -346,7 +346,7 @@ export default function StoryEditor({
   onThemeChange,
   label,
   initialView = 'edit',
-  continuousMode: initialContinuousMode = false,
+  continuousMode: initialContinuousMode = true,
   initialSettingsOpen = false,
   initialNotice,
   onStateChange,

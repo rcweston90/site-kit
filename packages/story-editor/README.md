@@ -64,7 +64,7 @@ The editor is a client component. It never calls `fetch`, never reads the addres
 | `theme`, `onThemeChange` | `'light' \| 'dark'` | Light or dark for the writing surface. The toggle shows only when both are given. Put the chosen value on `<html data-theme>` so the page background follows it (the demo's `Editor.tsx` shows how). |
 | `label` | `{ badge, note }` | A small tag beside the title and a line in the More menu, for example `{ badge: 'Demo', note: 'Saves stay in this tab' }`. |
 | `initialView` | `'edit' \| 'preview'` | Which view opens first. Default `'edit'`. |
-| `continuousMode` | `boolean` | Open in continuous writing instead of block tools. |
+| `continuousMode` | `boolean` | Opens in continuous writing, as the original CMS does. Pass `false` to open in block tools. |
 | `initialSettingsOpen` | `boolean` | Open Story settings on load. |
 | `initialNotice` | `string` | A one-off line for the status area on first load. |
 | `onStateChange` | `(state) => void` | Called with every state the transport answers. |

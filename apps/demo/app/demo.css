@@ -1,5 +1,20 @@
 /* The demo's own page chrome. The story itself is styled by the packages. */
-body { margin: 0; background: var(--story-background); color: var(--story-foreground); font-family: var(--story-font-sans); }
+/* The demo's theme: Geist for the sans (and the label voice, which follows it). */
+:root { --story-font-sans: 'Geist Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
+
+/* The page type the editor and reader inherit, as the original sets it. */
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--story-background);
+  color: var(--story-foreground);
+  font-family: var(--story-font-sans);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: var(--story-tracking-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
 .demo-index { max-width: 44rem; margin: 0 auto; padding: var(--story-rhythm-major) var(--story-rhythm-minor); }
 .demo-index__eyebrow { color: var(--story-foreground-muted); font-size: var(--story-text-sm); margin: 0 0 var(--story-rhythm-half); }

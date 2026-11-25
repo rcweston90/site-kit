@@ -112,9 +112,25 @@ Every colour, font, space, radius, surface and shadow the reader draws with is a
 
 Light is the default. Dark applies under `[data-theme="dark"]`, or with the system preference when the page sets no `data-theme` of its own. The defaults use system font stacks; no font files ship with the package.
 
+`--story-font-mono` is the label voice (kickers, meta, fact labels), and by default it follows `--story-font-sans`, as in the original. Code uses `--story-font-code`.
+
+The reader and the editor take their body type from the page, as they did in the original. For the same look, set this on `body` (the demo does):
+
+```css
+body {
+  font-family: var(--story-font-sans);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: var(--story-tracking-body);
+  -webkit-font-smoothing: antialiased;
+}
+```
+
+`styles.css` also carries the reset the original ran under (border-box sizing, zeroed margins, unstyled lists and headings), scoped to `story-` elements and with no specificity, so it never touches the rest of your page and any class wins over it.
+
 | Group | Tokens |
 | --- | --- |
-| Type | `--story-font-sans`, `--story-font-serif`, `--story-font-mono`, `--story-font-code`, `--story-text-xs`, `--story-text-sm`, `--story-text-base`, `--story-text-lg` |
+| Type | `--story-font-sans`, `--story-font-serif`, `--story-font-mono`, `--story-font-code`, `--story-tracking-body`, `--story-text-xs`, `--story-text-sm`, `--story-text-base`, `--story-text-lg` |
 | Rhythm | `--story-rhythm-half` (12px), `--story-rhythm-minor` (24px, the baseline), `--story-rhythm-minor-2` (48px), `--story-rhythm-major` (72px), `--story-space` (4px, the fine step inside controls) |
 | Radii | `--story-radius-sm`, `--story-radius-control`, `--story-radius-md`, `--story-radius-lg` |
 | Ink | `--story-foreground`, `--story-foreground-muted`, `--story-foreground-subtle`, `--story-accent`, `--story-accent-secondary`, `--story-accent-secondary-text`, `--story-accent-glow`, `--story-on-accent`, `--story-link-current`, `--story-link-weight`, `--story-link-active` |

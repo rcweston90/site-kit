@@ -25,6 +25,7 @@ export default {
         { role: 'Positioning', name: 'Floating UI', note: 'Places the selection toolbar and slash menu', href: 'https://floating-ui.com', packages: ['@floating-ui/dom'], where: 'packages/story-editor' },
         { role: 'Postgres client', name: 'node-postgres', note: 'The optional Postgres document store (a peer dependency)', href: 'https://node-postgres.com', packages: ['pg'], where: 'packages/story-server · apps/demo' },
         { role: 'S3 signing', name: 'aws4fetch', note: 'Signs requests for the optional S3-compatible media store (a peer dependency)', href: 'https://github.com/mhart/aws4fetch', packages: ['aws4fetch'], where: 'packages/story-server' },
+        { role: 'Demo typeface', name: 'Geist', note: 'The demo’s stand-in for the original’s private typeface, picked to match its width and light weights (SIL Open Font License), via Fontsource', href: 'https://vercel.com/font', packages: ['@fontsource-variable/geist'], where: 'apps/demo' },
         { role: 'Demo framework', name: 'Next.js', note: 'Runs the local demo app; the packages themselves import no framework', href: 'https://nextjs.org', packages: ['next'], where: 'apps/demo' },
       ],
     },

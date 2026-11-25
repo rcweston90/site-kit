@@ -17,8 +17,14 @@
   /* Type: system stacks, no font files. */
   --story-font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --story-font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', serif;
-  --story-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  /* The label voice: kickers, meta, fact labels, quote names. The original
+     sets these in its sans, tracked and uppercased by the classes that use
+     it. Point it at a monospace stack for a typewriter feel. Code blocks use
+     --story-font-code. */
+  --story-font-mono: var(--story-font-sans);
   --story-font-code: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  /* Body tracking, a touch tight, as the original. */
+  --story-tracking-body: -0.15px;
   --story-text-xs: 0.8125rem;
   --story-text-sm: 0.875rem;
   --story-text-base: 1rem;

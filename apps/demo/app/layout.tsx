@@ -1,4 +1,9 @@
 import type { ReactNode } from 'react';
+// Geist stands in for the original's private typeface: an open-licence
+// grotesk that matches its widths and light weights, so lines break where
+// they did. Swap it by setting --story-font-sans in your theme.
+import '@fontsource-variable/geist/wght.css';
+import '@fontsource-variable/geist/wght-italic.css';
 import '@rcweston/story-react/tokens.css';
 import '@rcweston/story-react/styles.css';
 import '@rcweston/save-kit/styles.css';
