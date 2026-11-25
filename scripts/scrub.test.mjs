@@ -40,7 +40,8 @@ test('each kind of leak fails', () => {
     '.env.local': 'X=1',
     'CLAUDE.md': '# notes',
     'img/shot.png': 'x',
-    'src/key.ts': 'const k = "AKIAABCDEFGHIJKLMNOP";',
+    // Built at runtime so secret scanners don't flag this fake fixture.
+    'src/key.ts': `const k = "${'AK' + 'IA'}ABCDEFGHIJKLMNOP";`,
     'src/pem.ts': '-----BEGIN RSA PRIVATE KEY-----',
     'src/env.ts': 'process.env.POSTGRES_URL',
     'src/host.ts': 'https://abc123.public.blob.vercel-storage.com/x.png',
