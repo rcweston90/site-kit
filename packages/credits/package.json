@@ -1,0 +1,24 @@
+{
+  "name": "@rcweston/credits",
+  "version": "0.1.0",
+  "description": "Credits as data, checked in CI: a build fails when a dependency isn't credited.",
+  "license": "MIT",
+  "author": "Charlie Weston",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./cli": { "types": "./dist/cli.d.ts", "import": "./dist/cli.js" },
+    "./package.json": "./package.json"
+  },
+  "bin": { "credits-check": "./bin/credits-check.mjs" },
+  "files": ["dist", "bin", "README.md", "LICENSE"],
+  "engines": { "node": ">=20" },
+  "keywords": ["credits", "attribution", "dependencies", "licenses", "ci", "open-source"],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsx --test 'test/*.test.ts'",
+    "self-check": "pnpm build && node bin/credits-check.mjs --config ../../credits.config.mjs --package package.json --package packages/credits/package.json --package packages/save-kit/package.json --package packages/xray/package.json"
+  }
+}

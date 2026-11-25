@@ -1,0 +1,80 @@
+/*
+ * save-kit's default look. Every value is a custom property, so a theme only
+ * sets the variables. Skip this file entirely and style the .sk-* classes
+ * yourself if you'd rather.
+ */
+:root {
+  --save-kit-font: inherit;
+  --save-kit-font-size: 0.875rem;
+  --save-kit-line-height: 1.5rem;
+  --save-kit-fg: CanvasText;
+  --save-kit-muted: color-mix(in srgb, CanvasText 64%, Canvas);
+  --save-kit-bg: Canvas;
+  --save-kit-border: color-mix(in srgb, CanvasText 16%, Canvas);
+  /* Red pulled toward the text colour, so it stays readable on light and dark. */
+  --save-kit-error: color-mix(in srgb, #d92d20 75%, var(--save-kit-fg));
+  --save-kit-focus: Highlight;
+  --save-kit-radius: 0.5rem;
+  --save-kit-gap: 0.75rem;
+  --save-kit-target: 2.75rem; /* 44px touch targets */
+  --save-kit-toast-bg: var(--save-kit-fg);
+  --save-kit-toast-fg: var(--save-kit-bg);
+  --save-kit-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+  --save-kit-z: 50;
+}
+
+.sk-status { display: flex; min-width: 0; flex-wrap: wrap; align-items: center; column-gap: 0.5rem; }
+.sk-status-line { margin: 0; font-family: var(--save-kit-font); font-size: var(--save-kit-font-size); line-height: var(--save-kit-line-height); color: var(--save-kit-muted); }
+.sk-status-line[data-tone='error'] { color: var(--save-kit-error); }
+
+.sk-link-button {
+  display: inline-flex; min-height: var(--save-kit-target); align-items: center; padding: 0 0.25rem;
+  border: 0; border-radius: 0.25rem; background: none; cursor: pointer;
+  font: 500 var(--save-kit-font-size) / var(--save-kit-line-height) var(--save-kit-font);
+  color: var(--save-kit-fg); text-decoration: underline; text-decoration-color: var(--save-kit-border); text-underline-offset: 4px;
+}
+.sk-link-button:hover { text-decoration-color: currentColor; }
+.sk-link-button:focus-visible, .sk-toast-button:focus-visible { outline: 2px solid var(--save-kit-focus); outline-offset: 2px; }
+
+.sk-save-bar { position: sticky; bottom: 0; z-index: 10; border-top: 1px solid var(--save-kit-border); background: var(--save-kit-bg); padding: 0.75rem 0; }
+.sk-save-bar-inner { display: flex; flex-wrap: wrap; align-items: center; gap: var(--save-kit-gap); max-width: var(--save-kit-bar-width, 48rem); margin: 0 auto; }
+.sk-save-bar-trailing { margin-left: auto; display: flex; flex-wrap: wrap; align-items: center; gap: var(--save-kit-gap); }
+
+.sk-kept { display: flex; flex-wrap: wrap; align-items: center; column-gap: 0.5rem; font-family: var(--save-kit-font); font-size: var(--save-kit-font-size); line-height: var(--save-kit-line-height); color: var(--save-kit-muted); }
+
+.sk-toast-region {
+  pointer-events: none; position: fixed; left: 0; right: 0; z-index: var(--save-kit-z);
+  bottom: calc(var(--save-kit-bar-height, 0px) + 1.5rem);
+  display: flex; justify-content: center; padding: 0 1rem;
+}
+.sk-toast-live { max-width: 36rem; }
+.sk-toast {
+  pointer-events: auto; display: flex; align-items: center; gap: var(--save-kit-gap);
+  padding: 0.75rem 0.5rem 0.75rem 1rem; border-radius: var(--save-kit-radius);
+  background: var(--save-kit-toast-bg); color: var(--save-kit-toast-fg); box-shadow: var(--save-kit-shadow);
+  font-family: var(--save-kit-font); font-size: var(--save-kit-font-size); line-height: var(--save-kit-line-height);
+}
+.sk-toast-text { min-width: 0; }
+.sk-toast-button {
+  display: inline-flex; min-height: var(--save-kit-target); flex-shrink: 0; align-items: center; padding: 0 0.5rem;
+  border: 0; border-radius: 0.25rem; background: none; color: inherit; cursor: pointer;
+  font: 600 var(--save-kit-font-size) / var(--save-kit-line-height) var(--save-kit-font);
+  text-decoration: underline; text-underline-offset: 4px;
+}
+
+.sk-dialog {
+  width: calc(100% - 2rem); max-width: 28rem; margin: auto; padding: 0;
+  border: 1px solid var(--save-kit-border); border-radius: var(--save-kit-radius);
+  background: var(--save-kit-bg); color: var(--save-kit-fg); box-shadow: var(--save-kit-shadow);
+}
+.sk-dialog::backdrop { background: rgb(0 0 0 / 0.4); }
+.sk-dialog-body { padding: 1.5rem; }
+.sk-dialog-title { margin: 0; font: 600 1.25rem / 2.25rem var(--save-kit-font); }
+.sk-dialog-description { margin: 0.75rem 0 0; font-size: var(--save-kit-font-size); line-height: var(--save-kit-line-height); color: var(--save-kit-muted); }
+.sk-dialog-sign-in { margin-top: 1.5rem; }
+.sk-dialog-actions { margin-top: 0.75rem; display: flex; justify-content: flex-end; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .sk-toast { animation: sk-toast-in 160ms ease-out; }
+}
+@keyframes sk-toast-in { from { opacity: 0; transform: translateY(8px); } }

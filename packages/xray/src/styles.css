@@ -1,0 +1,1088 @@
+/* @rcweston/xray — the on-page spacing inspector and its baseline grid.
+
+   Every class is prefixed `xr-`. Every colour, font and size is a custom
+   property: set the public `--xray-*` properties anywhere above the page
+   (`:root` is fine) to theme it, or pass `palette` to <XRay>. The internal
+   `--xr-*` properties below read them, with fallbacks that work on a page
+   that defines none of them.
+
+   Every surface is a manual popover, so it renders in the top layer (above
+   navigation, players and modals) with no z-index. Popovers arrive with UA
+   styles (centred, bordered, Canvas background); each block below resets
+   what it needs. The panel's own rows are --xr-row and its controls
+   --xr-control, independent of the rhythm the page is measured against. */
+
+.xr-launcher,
+.xr-dock,
+.xr-overlay,
+.xr-grid {
+  --xr-content: var(--xray-content, #3b82f6);
+  --xr-padding: var(--xray-padding, #22c55e);
+  --xr-margin: var(--xray-margin, #f97316);
+  --xr-border: var(--xray-border, #eab308);
+  --xr-frame: var(--xray-frame, #f97316);
+  --xr-off: var(--xray-off, #dc2626);
+  --xr-line: var(--xray-line, #1f2328);
+  --xr-wash: var(--xray-wash, #ffffff);
+  --xr-panel: var(--xray-panel, #16181d);
+  --xr-on-panel: var(--xray-on-panel, #f4f5f7);
+  --xr-on-panel-muted: var(--xray-on-panel-muted, #a3a8b3);
+  --xr-on-panel-divider: var(--xray-on-panel-divider, rgba(255, 255, 255, 0.12));
+  --xr-on-content: var(--xray-on-content, #ffffff);
+  --xr-font: var(--xray-font, ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace);
+  --xr-shadow: var(--xray-shadow, 0 12px 32px rgba(0, 0, 0, 0.28), 0 2px 6px rgba(0, 0, 0, 0.18));
+  --xr-row: var(--xray-row, 24px);
+  --xr-space: var(--xray-space, 12px);
+  --xr-control: var(--xray-control, 48px);
+}
+
+.xr-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.xr-kbd {
+  font: inherit;
+  color: var(--xr-on-panel-muted);
+}
+
+/* ── Launcher ────────────────────────────────────────────────────────────── */
+
+/* A glass pill at the bottom-left (the grid's label owns the bottom-right):
+   just the mark at rest, the name and shortcut on hover or focus. */
+.xr-launcher {
+  position: fixed;
+  inset: auto auto var(--xr-row) var(--xr-row);
+  display: inline-flex;
+  align-items: center;
+  height: var(--xr-control);
+  margin: 0;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 9999px;
+  font-family: var(--xr-font);
+  font-size: 13px;
+  line-height: var(--xr-row);
+  color: var(--xr-on-panel);
+  background: color-mix(in srgb, var(--xr-panel) 88%, transparent);
+  backdrop-filter: blur(16px) saturate(1.4);
+  box-shadow: var(--xr-shadow), inset 0 0 0 1px var(--xr-on-panel-divider);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.xr-launcher-label {
+  display: inline-flex;
+  gap: 8px;
+  max-width: 0;
+  margin-left: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 0;
+  transition: max-width 220ms cubic-bezier(0.2, 0.8, 0.2, 1), margin-left 220ms cubic-bezier(0.2, 0.8, 0.2, 1), opacity 160ms ease;
+}
+
+.xr-launcher:hover .xr-launcher-label,
+.xr-launcher:focus-visible .xr-launcher-label {
+  max-width: 12ch;
+  margin-left: 10px;
+  opacity: 1;
+}
+
+.xr-launcher-label kbd {
+  font: inherit;
+  color: var(--xr-on-panel-muted);
+}
+
+.xr-launcher:focus-visible,
+.xr-icon-button:focus-visible,
+.xr-tool:focus-visible,
+.xr-tab:focus-visible,
+.xr-text-button:focus-visible,
+.xr-crumb button:focus-visible,
+.xr-issue:focus-visible {
+  outline: 2px solid var(--xr-on-panel);
+  outline-offset: 2px;
+}
+
+/* ── Canvas ──────────────────────────────────────────────────────────────── */
+
+/* The drawing surface: the whole viewport, never a hit target. */
+.xr-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: visible;
+  background: transparent;
+  pointer-events: none;
+}
+
+/* ── Dock ────────────────────────────────────────────────────────────────── */
+
+.xr-dock {
+  position: fixed;
+  inset: auto auto var(--xr-row) var(--xr-row);
+  display: flex;
+  flex-direction: column;
+  width: min(26rem, calc(100vw - 2 * var(--xr-space)));
+  max-height: calc(100dvh - 2 * var(--xr-row));
+  margin: 0;
+  padding: 0 16px;
+  overflow: visible;
+  border: 0;
+  border-radius: 14px;
+  font-family: var(--xr-font);
+  font-size: 13px;
+  line-height: var(--xr-row);
+  color: var(--xr-on-panel);
+  /* Opaque, not a backdrop blur: the canvas beneath redraws every frame,
+     and re-blurring it each time cost ~11ms a frame in profiling. */
+  background: var(--xr-panel);
+  box-shadow: var(--xr-shadow), inset 0 0 0 1px var(--xr-on-panel-divider);
+  transition: opacity 180ms ease, translate 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@starting-style {
+  .xr-dock:popover-open {
+    opacity: 0;
+    translate: 0 8px;
+  }
+}
+
+.xr-dock[data-side='right'] {
+  inset: auto var(--xr-row) var(--xr-row) auto;
+}
+
+/* Dragged somewhere: left and top come inline; let go of the corner. */
+.xr-dock[data-moved] {
+  right: auto;
+  bottom: auto;
+}
+
+@media (max-width: 639px) {
+  .xr-dock,
+  .xr-dock[data-side='right'] {
+    inset: auto var(--xr-space) var(--xr-space) var(--xr-space);
+    width: auto;
+  }
+
+  .xr-launcher {
+    inset: auto auto var(--xr-space) var(--xr-space);
+  }
+
+  /* A phone has no keyboard for the shortcuts, and the dock spans the
+     width, so neither the shortcut sheet nor the side switch earns room. */
+  .xr-icon-button.xr-wide-only,
+  .xr-tool.xr-wide-only {
+    display: none;
+  }
+}
+
+.xr-probe {
+  display: none;
+}
+
+.xr-spacer {
+  flex: 1;
+}
+
+/* Header: one control tall — mark, breakpoint, controls. */
+.xr-head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  gap: 8px;
+  height: var(--xr-control);
+  margin-right: -8px;
+}
+
+.xr-mark {
+  color: var(--xr-content);
+  filter: brightness(1.5);
+}
+
+.xr-chip2 {
+  flex: none;
+  white-space: nowrap;
+}
+
+.xr-chip2 {
+  padding: 0 8px;
+  border-radius: 9999px;
+  color: var(--xr-on-panel-muted);
+  background: var(--xr-on-panel-divider);
+  font-variant-numeric: tabular-nums;
+}
+
+.xr-icon-button {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: var(--xr-control);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: var(--xr-on-panel-muted);
+  background: transparent;
+  cursor: pointer;
+}
+
+.xr-icon-button::before,
+.xr-tool::before {
+  content: '';
+  position: absolute;
+  inset: 8px 2px;
+  border-radius: 8px;
+  background: transparent;
+  transition: background-color 120ms ease;
+}
+
+.xr-icon-button > svg,
+.xr-tool > svg {
+  position: relative;
+}
+
+.xr-icon-button:hover,
+.xr-icon-button[aria-pressed='true'] {
+  color: var(--xr-on-panel);
+}
+
+.xr-icon-button:hover::before,
+.xr-tool:hover::before {
+  background: var(--xr-on-panel-divider);
+}
+
+.xr-flipped {
+  transform: rotate(180deg);
+}
+
+/* Dividers are inset shadows, not borders, so every row stays on a whole
+   row height. */
+.xr-identity,
+.xr-tabs,
+.xr-toolbar {
+  box-shadow: inset 0 1px 0 var(--xr-on-panel-divider);
+}
+
+.xr-identity {
+  flex: none;
+  padding: var(--xr-space) 0;
+}
+
+/* End-aligned, so an overflowing path loses its outermost ancestors first. */
+.xr-crumbs {
+  display: flex;
+  justify-content: flex-end;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--xr-on-panel-muted);
+  mask-image: linear-gradient(to right, transparent, var(--xr-on-panel) 24px);
+}
+
+.xr-crumb {
+  flex: none;
+}
+
+.xr-crumb button {
+  margin: 0;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 4px;
+  font: inherit;
+  color: inherit;
+  background: none;
+  cursor: pointer;
+}
+
+.xr-crumb button:hover {
+  color: var(--xr-on-panel);
+  background: var(--xr-on-panel-divider);
+}
+
+.xr-crumb button[aria-current] {
+  color: var(--xr-on-panel);
+}
+
+.xr-sep {
+  padding: 0 4px;
+  opacity: 0.5;
+}
+
+/* The answer in a line: chips of the space around it and its padding. */
+.xr-sentence {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 6px;
+  margin: 0;
+}
+
+.xr-fact {
+  padding: 0 6px;
+  border-radius: 6px;
+  white-space: nowrap;
+  color: var(--xr-on-panel-muted);
+  background: var(--xr-on-panel-divider);
+}
+
+.xr-fact .xr-value {
+  color: var(--xr-on-panel);
+}
+
+.xr-fact-strong {
+  color: var(--xr-on-panel);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xr-margin) 70%, transparent);
+}
+
+.xr-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+}
+
+.xr-role {
+  flex: none;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-weight: 600;
+  color: var(--xr-on-content);
+  background: var(--xr-content);
+}
+
+.xr-name-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.xr-size {
+  flex: none;
+  color: var(--xr-on-panel-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tabs: control-height hit areas, a smaller pill drawn inside them. */
+.xr-tabs {
+  display: grid;
+  flex: none;
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.xr-tab {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  place-content: center;
+  gap: 6px;
+  height: var(--xr-control);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  color: var(--xr-on-panel-muted);
+  background: none;
+  cursor: pointer;
+}
+
+.xr-tab::before {
+  content: '';
+  position: absolute;
+  inset: 6px 2px;
+  border-radius: 8px;
+  transition: background-color 120ms ease;
+}
+
+.xr-tab > * {
+  position: relative;
+}
+
+.xr-tab:hover {
+  color: var(--xr-on-panel);
+}
+
+.xr-tab[aria-selected='true'] {
+  color: var(--xr-on-panel);
+  font-weight: 600;
+}
+
+.xr-tab[aria-selected='true']::before {
+  background: var(--xr-on-panel-divider);
+  box-shadow: inset 0 0 0 1px var(--xr-on-panel-divider);
+}
+
+.xr-badge {
+  min-width: 2ch;
+  padding: 0 5px;
+  border-radius: 9999px;
+  font-weight: 600;
+  color: var(--xr-on-panel);
+  background: var(--xr-off);
+}
+
+/* A steady height across tabs, so the panel doesn't jump as you switch;
+   it gives way on short windows. */
+.xr-badge.xr-badge-warn {
+  color: var(--xr-panel);
+  background: var(--xr-border);
+}
+
+.xr-body {
+  flex: 0 1 auto;
+  height: calc(var(--xr-row) * 12);
+  min-height: 0;
+  padding: var(--xr-space) 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  box-shadow: inset 0 1px 0 var(--xr-on-panel-divider);
+}
+
+.xr-empty {
+  margin: 0;
+  color: var(--xr-on-panel-muted);
+}
+
+/* ── Values ──────────────────────────────────────────────────────────────── */
+
+.xr-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.xr-token {
+  color: var(--xr-on-panel-muted);
+}
+
+/* Off the rhythm: the one loud colour in the dock. */
+.xr-off {
+  padding: 0 4px;
+  border-radius: 4px;
+  color: var(--xr-on-panel);
+  background: var(--xr-off);
+  font-variant-numeric: tabular-nums;
+}
+
+.xr-warn {
+  padding: 0 4px;
+  border-radius: 4px;
+  color: var(--xr-on-panel);
+  background: color-mix(in srgb, var(--xr-border) 55%, transparent);
+}
+
+.xr-zero {
+  opacity: 0.35;
+}
+
+.xr-facts {
+  display: grid;
+  grid-template-columns: 10ch 1fr;
+  margin: var(--xr-space) 0 0;
+}
+
+.xr-facts dt,
+.xr-keys dt {
+  color: var(--xr-on-panel-muted);
+}
+
+.xr-facts dd,
+.xr-keys dd {
+  margin: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── Spacing ─────────────────────────────────────────────────────────────── */
+
+/* The spacing table: four sides across, one row per kind of space. */
+.xr-sides {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.xr-sides thead td {
+  width: 10ch;
+}
+
+.xr-sides th,
+.xr-sides td {
+  height: var(--xr-row);
+  padding: 0;
+  font-weight: 400;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.xr-sides thead th {
+  color: var(--xr-on-panel-muted);
+}
+
+.xr-sides tbody th {
+  text-align: left;
+}
+
+.xr-sides tbody tr:hover {
+  background: var(--xr-on-panel-divider);
+}
+
+.xr-swatch {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 2px;
+  vertical-align: 1px;
+}
+
+.xr-swatch-padding { background: color-mix(in srgb, var(--xr-padding) 55%, transparent); }
+.xr-swatch-margin { background: color-mix(in srgb, var(--xr-margin) 55%, transparent); }
+
+.xr-mode-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: var(--xr-space);
+}
+
+/* A segmented switch: a full control would crowd the table, so these are
+   one row tall (24px by default, the WCAG 2.2 AA target minimum). */
+.xr-segmented {
+  display: inline-flex;
+  border-radius: 8px;
+  background: var(--xr-on-panel-divider);
+}
+
+.xr-segment {
+  height: var(--xr-row);
+  margin: 0;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  line-height: var(--xr-row);
+  color: var(--xr-on-panel-muted);
+  background: none;
+  cursor: pointer;
+}
+
+.xr-segment[aria-checked='true'] {
+  color: var(--xr-on-content);
+  background: var(--xr-content);
+  font-weight: 600;
+}
+
+.xr-segment:focus-visible {
+  outline: 2px solid var(--xr-on-panel);
+  outline-offset: 1px;
+}
+
+.xr-swatch-inside { background: var(--xr-padding); box-shadow: inset 0 0 0 2px var(--xr-panel); }
+.xr-swatch-around { background: var(--xr-on-panel-muted); }
+.xr-swatch-box { background: var(--xr-content); }
+.xr-swatch-letters { background: color-mix(in srgb, var(--xr-margin) 70%, transparent); }
+
+.xr-legend {
+  display: grid;
+  grid-template-columns: 11ch 1fr;
+  margin: 0 0 var(--xr-space);
+}
+
+.xr-legend dt {
+  white-space: nowrap;
+}
+
+.xr-legend dd {
+  margin: 0;
+  color: var(--xr-on-panel-muted);
+}
+
+.xr-section {
+  margin-top: var(--xr-space);
+  padding-top: var(--xr-space);
+  box-shadow: inset 0 1px 0 var(--xr-on-panel-divider);
+}
+
+.xr-mode-row + .xr-section {
+  margin-top: 0;
+  padding-top: 0;
+  box-shadow: none;
+}
+
+.xr-section + .xr-sides {
+  margin-top: var(--xr-space);
+}
+
+.xr-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.xr-caption {
+  margin: 0;
+  color: var(--xr-on-panel-muted);
+  font-weight: 400;
+}
+
+.xr-changes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.xr-changes li {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.xr-code {
+  padding: 0 4px;
+  border-radius: 4px;
+  font: inherit;
+  color: var(--xr-on-panel);
+  background: var(--xr-on-panel-divider);
+}
+
+.xr-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.xr-bp {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.xr-bp th,
+.xr-bp td {
+  height: var(--xr-row);
+  padding: 0 4px 0 0;
+  font-weight: 400;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.xr-bp thead th {
+  color: var(--xr-on-panel-muted);
+}
+
+.xr-bp tr[aria-current] th,
+.xr-bp tr[aria-current] td {
+  background: var(--xr-on-panel-divider);
+}
+
+/* ── Type ────────────────────────────────────────────────────────────────── */
+
+.xr-specimen {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.xr-specimen-glyph {
+  flex: none;
+  min-width: 2.2em;
+  font-size: 36px;
+  line-height: var(--xr-control);
+  text-align: center;
+  border-radius: 8px;
+  background: var(--xr-on-panel-divider);
+}
+
+/* ── Colour ──────────────────────────────────────────────────────────────── */
+
+.xr-swatches {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.xr-swatch-row {
+  display: grid;
+  grid-template-columns: 14px 8ch 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.xr-chip {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  box-shadow: inset 0 0 0 1px var(--xr-on-panel-divider), 0 0 0 1px var(--xr-on-panel-divider);
+}
+
+.xr-swatch-label {
+  color: var(--xr-on-panel-muted);
+}
+
+.xr-swatch-token {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.xr-contrast {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: var(--xr-space);
+}
+
+.xr-ratio {
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.xr-pass,
+.xr-fail {
+  padding: 0 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.xr-pass {
+  color: var(--xr-on-panel);
+  background: color-mix(in srgb, var(--xr-padding) 55%, transparent);
+}
+
+.xr-fail {
+  color: var(--xr-on-panel);
+  background: var(--xr-off);
+}
+
+/* ── Audit ───────────────────────────────────────────────────────────────── */
+
+.xr-audit-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.xr-issues {
+  margin: var(--xr-space) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.xr-issue {
+  display: grid;
+  grid-template-columns: 4ch 9ch 9ch 1fr;
+  white-space: nowrap;
+  width: 100%;
+  margin: 0;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 4px;
+  font: inherit;
+  color: var(--xr-on-panel-muted);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.xr-issue:hover,
+.xr-issue[aria-current] {
+  color: var(--xr-on-panel);
+  background: var(--xr-on-panel-divider);
+}
+
+.xr-issue-no {
+  color: var(--xr-on-panel-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.xr-issue-value,
+.xr-issue-kind {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.xr-issue-value {
+  color: var(--xr-on-panel);
+  font-variant-numeric: tabular-nums;
+}
+
+.xr-issue-where {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.xr-issue-wide {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  margin: 0;
+  padding: 0 4px;
+  border: 0;
+  border-radius: 4px;
+  font: inherit;
+  color: var(--xr-on-panel);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.xr-issue-wide > * {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.xr-issue-wide:hover {
+  background: var(--xr-on-panel-divider);
+}
+
+.xr-issue-wide:focus-visible {
+  outline: 2px solid var(--xr-on-panel);
+  outline-offset: 2px;
+}
+
+.xr-rules,
+.xr-rule-nodes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.xr-rules > li + li {
+  margin-top: var(--xr-space);
+}
+
+.xr-rule {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+}
+
+.xr-rule-no {
+  color: var(--xr-on-panel-muted);
+}
+
+.xr-rule-help {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--xr-on-panel);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-decoration: underline;
+  text-decoration-color: var(--xr-on-panel-divider);
+  text-underline-offset: 3px;
+}
+
+.xr-rule-help:focus-visible {
+  outline: 2px solid var(--xr-on-panel);
+  outline-offset: 2px;
+}
+
+.xr-impact {
+  flex: none;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.xr-impact-critical,
+.xr-impact-serious {
+  color: var(--xr-on-panel);
+  background: var(--xr-off);
+}
+
+.xr-impact-moderate,
+.xr-impact-minor {
+  color: var(--xr-panel);
+  background: var(--xr-border);
+}
+
+.xr-rule-nodes {
+  padding-left: 3ch;
+}
+
+/* ── Shortcuts ───────────────────────────────────────────────────────────── */
+
+.xr-keys {
+  display: grid;
+  grid-template-columns: 11ch 1fr;
+  margin: 0 0 var(--xr-space);
+}
+
+.xr-keys dt {
+  color: var(--xr-on-panel);
+}
+
+.xr-text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  font: inherit;
+  color: var(--xr-on-panel-muted);
+  background: var(--xr-on-panel-divider);
+  cursor: pointer;
+}
+
+.xr-text-button:hover {
+  color: var(--xr-on-panel);
+}
+
+/* ── Toolbar ─────────────────────────────────────────────────────────────── */
+
+.xr-toolbar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  height: var(--xr-control);
+  margin: 0 -6px;
+}
+
+.xr-tool {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: var(--xr-control);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: var(--xr-on-panel-muted);
+  background: none;
+  cursor: pointer;
+}
+
+.xr-tool::before {
+  inset: 8px 4px;
+}
+
+.xr-tool[aria-pressed='true'] {
+  color: var(--xr-on-panel);
+}
+
+.xr-tool[aria-pressed='true']::before {
+  background: color-mix(in srgb, var(--xr-content) 45%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--xr-content) 80%, transparent);
+}
+
+/* ── Toast ───────────────────────────────────────────────────────────────── */
+
+.xr-toast {
+  position: absolute;
+  bottom: calc(100% + var(--xr-space));
+  left: 0;
+  padding: 0 12px;
+  border-radius: 9999px;
+  line-height: var(--xr-control);
+  white-space: nowrap;
+  color: var(--xr-on-panel);
+  background: var(--xr-panel);
+  box-shadow: var(--xr-shadow), inset 0 0 0 1px var(--xr-on-panel-divider);
+  opacity: 0;
+  translate: 0 4px;
+  pointer-events: none;
+  transition: opacity 160ms ease, translate 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.xr-toast:empty {
+  visibility: hidden;
+}
+
+.xr-toast[data-shown] {
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* Motion is decoration here: with reduced motion everything simply appears. */
+@media (prefers-reduced-motion: reduce) {
+  .xr-launcher-label,
+  .xr-dock,
+  .xr-toast,
+  .xr-icon-button::before,
+  .xr-tool::before,
+  .xr-tab::before {
+    transition: none;
+  }
+}
+
+/* ── Baseline grid ───────────────────────────────────────────────────────── */
+
+/* Baseline-grid overlay — the rhythm made visible. Minor lines every
+   --xr-grid-minor, a heavier line every --xr-grid-major (both set inline from
+   the rhythm config), scrolled in lockstep with the document so lines land
+   on the same content on every frame. Toggle: ⌥G or ?rhythm=1. */
+.xr-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000; /* above page content; the inspector itself is in the top layer */
+  pointer-events: none;
+  /* White lines under `difference` read on every surface — light page, dark
+     page and saturated bands alike — without per-theme tuning. */
+  --xr-grid-line-minor: var(--xray-grid-minor-line, rgba(255, 255, 255, 0.22));
+  --xr-grid-line-major: var(--xray-grid-major-line, rgba(255, 255, 255, 0.55));
+}
+
+.xr-grid-lines {
+  position: absolute;
+  inset: 0;
+  mix-blend-mode: difference;
+  background-image:
+    repeating-linear-gradient(to bottom, var(--xr-grid-line-major) 0 1px, transparent 1px var(--xr-grid-major, 72px)),
+    repeating-linear-gradient(to bottom, var(--xr-grid-line-minor) 0 1px, transparent 1px var(--xr-grid-minor, 24px));
+}
+
+.xr-grid-label {
+  position: absolute;
+  right: var(--xr-row);
+  bottom: var(--xr-row);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--xr-space);
+  height: var(--xr-row);
+  padding: 0 var(--xr-space);
+  font-family: var(--xr-font);
+  font-size: 11px;
+  line-height: var(--xr-row);
+  letter-spacing: 0.04em;
+  color: var(--xr-on-panel);
+  background: var(--xr-panel);
+  border-radius: 4px;
+  box-shadow: var(--xr-shadow);
+  white-space: nowrap;
+}
+
+.xr-grid-label kbd {
+  font: inherit;
+  color: var(--xr-on-panel-muted);
+}

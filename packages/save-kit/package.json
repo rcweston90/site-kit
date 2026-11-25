@@ -1,0 +1,50 @@
+{
+  "name": "@rcweston/save-kit",
+  "version": "0.1.0",
+  "description": "The save layer for React admin screens: failures in plain words, delete with Undo, kept edits, a leave guard, ⌘S, and signing back in over the page.",
+  "license": "MIT",
+  "author": "Charlie Weston",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "react",
+    "save",
+    "autosave",
+    "undo",
+    "forms",
+    "admin",
+    "cms",
+    "ux-writing"
+  ],
+  "peerDependencies": {
+    "react": "^18.3 || ^19"
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && cp src/styles.css dist/styles.css",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsx --test 'test/*.test.ts' 'test/*.test.tsx'"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^30.0.0",
+    "@types/react": "^19.3.3",
+    "@types/react-dom": "^19.3.0",
+    "jsdom": "^26.1.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  }
+}

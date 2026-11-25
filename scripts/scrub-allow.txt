@@ -1,0 +1,2 @@
+# Known-safe scrub hits, one per line: "path" or "path:line", with why.
+scripts/scrub.test.mjs  # planted leaks that prove the check fails; fake names and keys only
