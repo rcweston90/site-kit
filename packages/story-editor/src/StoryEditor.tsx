@@ -470,8 +470,14 @@ export default function StoryEditor({
     if (loadedSlugRef.current === slug) return;
     loadedSlugRef.current = slug;
     const controller = new AbortController();
-    void loadState(controller.signal, initialNotice);
-    return () => controller.abort();
+    let settled = false;
+    void loadState(controller.signal, initialNotice).finally(() => { settled = true; });
+    return () => {
+      // A cleanup before the load lands (React's development double mount
+      // does this) forgets the slug, so the next run loads it again.
+      if (!settled && loadedSlugRef.current === slug) loadedSlugRef.current = null;
+      controller.abort();
+    };
   }, [initialNotice, loadState, slug]);
 
   useEffect(() => {

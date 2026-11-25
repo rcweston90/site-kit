@@ -61,7 +61,7 @@ The editor is a client component. It never calls `fetch`, never reads the addres
 | `media` | `MediaResolveOptions` | Where uploaded media loads from. |
 | `company` | `StoryCompany \| null` | The company as your app knows it. The story's own `company` stays plain text. |
 | `renderSignIn` | `({ onSignedIn }) => ReactNode` | Your sign-in form, shown over the page when a request finds the session ended. Call `onSignedIn` and the request that failed runs again. |
-| `theme`, `onThemeChange` | `'light' \| 'dark'` | Light or dark for the writing surface. The toggle shows only when both are given. |
+| `theme`, `onThemeChange` | `'light' \| 'dark'` | Light or dark for the writing surface. The toggle shows only when both are given. Put the chosen value on `<html data-theme>` so the page background follows it (the demo's `Editor.tsx` shows how). |
 | `label` | `{ badge, note }` | A small tag beside the title and a line in the More menu, for example `{ badge: 'Demo', note: 'Saves stay in this tab' }`. |
 | `initialView` | `'edit' \| 'preview'` | Which view opens first. Default `'edit'`. |
 | `continuousMode` | `boolean` | Open in continuous writing instead of block tools. |

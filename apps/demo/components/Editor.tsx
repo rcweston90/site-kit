@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { StoryEditor } from '@rcweston/story-editor';
 import { createFetchTransport } from '@rcweston/story-server/client';
@@ -38,8 +38,15 @@ export function Editor({ slug, openEditing }: { slug: string; openEditing: boole
   const router = useRouter();
   const transport = useMemo(() => createFetchTransport({ baseUrl: '/api/story' }), []);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  // The theme goes on <html> so the page background follows it, not just
+  // the editor's own surfaces.
+  useEffect(() => {
+    const root = document.documentElement;
+    root.dataset.theme = theme;
+    return () => { delete root.dataset.theme; };
+  }, [theme]);
   return (
-    <div data-theme={theme}>
+    <div>
       <StoryEditor
         slug={slug}
         transport={transport}

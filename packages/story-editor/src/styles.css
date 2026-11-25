@@ -4,6 +4,17 @@
  * is prefixed `story-editor-`; every design value reads a `--story-*` token.
  */
 
+/* ─── Control reset ───────────────────────────────────────────────────────────────────────────── */
+/* The editor's controls start from a blank slate, so the browser's default
+   button and field styles never show through. :where() keeps this at zero
+   specificity: every rule below, and any rule of the host page, wins. */
+:where(button, input, select, textarea):where([class*="story-editor-"], [class*="story-editor-"] *) {
+  margin: 0; padding: 0; border: 0 solid; background-color: transparent; background-image: none;
+  font: inherit; letter-spacing: inherit; color: inherit; border-radius: 0;
+}
+:where(button):where([class*="story-editor-"], [class*="story-editor-"] *) { cursor: pointer; }
+:where(button:disabled):where([class*="story-editor-"], [class*="story-editor-"] *) { cursor: default; }
+
 /* ─── Editor chrome (component rules below take precedence) ─────────────────────────────────── */
 /* Editor chrome: semantic classes for the layout the editor draws around the story. */
 .story-editor-authoring-command-menu__stack { display: grid; height: calc(var(--story-space) * 7); width: calc(var(--story-space) * 7); flex-shrink: 0; place-items: center; border-radius: var(--story-radius-control); border-width: 1px; border-style: solid; border-color: var(--story-border); color: var(--story-foreground-muted); }
@@ -393,6 +404,8 @@
 .story-editor-editor__part-2 { white-space: normal; }
 
 .story-editor-editor__label-2 { padding-top: var(--story-rhythm-half); }
+/* The host's note can run long: let it wrap in sentence case. */
+[class].story-editor-editor__label-2 { max-width: 18rem; white-space: normal; overflow: visible; text-overflow: clip; text-transform: none; letter-spacing: normal; line-height: 1.4; }
 
 .story-editor-editor__part-3 [data-publication-highlight] { outline-style: solid; outline-width: 2px; outline-offset: 4px; outline-color: var(--story-accent); }
 

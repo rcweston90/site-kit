@@ -1,7 +1,7 @@
 import { dom } from './setup-dom.ts';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { act } from 'react';
+import { act, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import type { ReactElement } from 'react';
 import { DraftConflictError, type EditorTransport, type Story, type StoryEditorState } from '@rcweston/story-core';
@@ -82,6 +82,16 @@ test('loads through the transport when no initial state is given', async () => {
     assert.deepEqual(calls.map((call) => call.method), ['load']);
     assert.match(text(container), /Field notes that travel/);
     assert.match(text(container), /Saved/);
+  } finally { unmount(); }
+});
+
+test('loads under StrictMode, where React mounts twice in development', async () => {
+  const { transport, calls } = fakeTransport(editorState());
+  const { container, unmount } = await mount(<StrictMode><StoryEditor slug="field-notes-that-travel" transport={transport} /></StrictMode>);
+  try {
+    assert.ok(calls.some((call) => call.method === 'load'));
+    assert.doesNotMatch(text(container), /Loading the editor/);
+    assert.match(text(container), /Field notes that travel/);
   } finally { unmount(); }
 });
 
