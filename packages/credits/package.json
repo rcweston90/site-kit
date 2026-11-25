@@ -19,6 +19,6 @@
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "tsx --test 'test/*.test.ts'",
-    "self-check": "pnpm build && node bin/credits-check.mjs --config ../../credits.config.mjs --package package.json --package packages/credits/package.json --package packages/save-kit/package.json --package packages/xray/package.json"
+    "self-check": "pnpm build && node bin/credits-check.mjs --config ../../credits.config.mjs --package package.json --package packages/credits/package.json --package packages/save-kit/package.json --package packages/xray/package.json --package packages/story-core/package.json --package packages/story-server/package.json --package packages/story-react/package.json --package packages/story-editor/package.json --package apps/demo/package.json"
   }
 }

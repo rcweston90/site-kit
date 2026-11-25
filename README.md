@@ -1,6 +1,26 @@
 # site-kit
 
-Three small, MIT-licensed packages pulled out of a personal site's CMS, each useful on its own.
+MIT-licensed packages pulled out of a personal site's CMS: a whole story CMS (content model, storage, reader and in-place editor) and three small packages that are useful on their own.
+
+## The story CMS
+
+Long-form stories with chapters and rich blocks, edited in place on the real page, saved as append-only versions and published by pointer. Storage, media and sign-in sit behind adapters, so it runs on Postgres or in memory, keeps uploads on S3-compatible storage or local disk, and mounts in any framework that speaks web `Request` and `Response`.
+
+| Package | What it does | Depends on |
+| --- | --- | --- |
+| [`@rcweston/story-core`](packages/story-core) | The content model, validation, publish readiness, renames and the contract every other part implements. Pure TypeScript. | nothing |
+| [`@rcweston/story-server`](packages/story-server) | Request handlers plus adapters: memory and Postgres stores with explicit migrations, memory, local-disk and S3 media, a passcode sign-in. | story-core; `pg` and `aws4fetch` only if you use them |
+| [`@rcweston/story-react`](packages/story-react) | The reader: the story page and every part of it, themed with `--story-*` tokens, custom blocks from your own registry. | React, Lucide |
+| [`@rcweston/story-editor`](packages/story-editor) | The in-place editor: block tools and continuous writing over the reader's own components, talking to any backend through one transport. | React, Tiptap, Radix UI, save-kit |
+
+[`apps/demo`](apps/demo) runs all of it locally with made-up stories:
+
+```sh
+pnpm install && pnpm build
+pnpm --filter @rcweston/story-demo dev   # http://localhost:3000, editor at /admin
+```
+
+## Small packages
 
 | Package | What it does | Depends on |
 | --- | --- | --- |

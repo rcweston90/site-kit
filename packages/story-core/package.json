@@ -1,0 +1,31 @@
+{
+  "name": "@rcweston/story-core",
+  "version": "0.1.0",
+  "description": "A typed story document: blocks, validation, content hashes, publish readiness and slug renames. No dependencies.",
+  "license": "MIT",
+  "author": "Charlie Weston",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsx --test 'test/*.test.ts'"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0"
+  }
+}

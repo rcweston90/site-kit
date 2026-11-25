@@ -1,0 +1,180 @@
+/*
+ * @rcweston/story-react: the token contract.
+ *
+ * Every colour, font, space, radius and surface the reader (and the editor)
+ * draws with is one of these custom properties. Import this file for the
+ * defaults, then override any of them on :root, on a theme selector, or on
+ * the story's own root (`.story-story`).
+ *
+ * Light is the default. Dark applies under `[data-theme="dark"]`, or with the
+ * system preference when the page sets no `data-theme` of its own.
+ *
+ * The rhythm is a 12px half step: 12px, 24px (the baseline every line box
+ * sits on), 48px and 72px.
+ */
+
+:root {
+  /* Type: system stacks, no font files. */
+  --story-font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --story-font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', serif;
+  --story-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  --story-font-code: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+  --story-text-xs: 0.8125rem;
+  --story-text-sm: 0.875rem;
+  --story-text-base: 1rem;
+  --story-text-lg: 1.125rem;
+
+  /* Rhythm: a 12px half step on a 24px baseline. */
+  --story-rhythm-half: 0.75rem;
+  --story-rhythm-minor: 1.5rem;
+  --story-rhythm-minor-2: 3rem;
+  --story-rhythm-major: 4.5rem;
+  /* The fine step for padding and gaps inside controls (the editor's chrome
+     multiplies it: 2 is 8px, 3 is 12px). */
+  --story-space: 0.25rem;
+
+  /* Radii. */
+  --story-radius-sm: 4px;
+  --story-radius-control: 6px; /* fields and small controls in the editor */
+  --story-radius-md: 8px;
+  --story-radius-lg: 12px;
+
+  /* Ink. */
+  --story-foreground: #292929;
+  --story-foreground-muted: #5d5d5d;
+  --story-foreground-subtle: #9e9e9e;
+  --story-accent: #0055cc;
+  --story-accent-secondary: #fa9619;
+  --story-accent-secondary-text: #955405;
+  --story-accent-glow: rgba(0, 85, 204, 0.06);
+  --story-on-accent: #ffffff;
+  --story-link-current: var(--story-accent);
+  --story-link-weight: 500;
+  --story-link-active: var(--story-foreground);
+
+  /* Surfaces. */
+  --story-background: #f8f9fb;
+  --story-background-secondary: #f1f2f4;
+  --story-card: #fafafa;
+  --story-well: color-mix(in srgb, black 5%, var(--story-background));
+  --story-border: #e8e8e8;
+  --story-border-hover: #d8d8d8;
+  --story-surface-warm: #f9f6ee;
+  --story-surface-cool: #e9f2ff;
+  --story-surface-amber: #fcdeb9;
+  --story-surface-dark: #063d5b;
+  --story-surface-panel: #1a1a1a;
+  --story-surface-panel-elevated: #0f0f0f;
+  --story-on-panel: #ffffff;
+  --story-on-panel-muted: rgba(255, 255, 255, 0.65);
+  --story-on-panel-divider: rgba(255, 255, 255, 0.06);
+  --story-on-panel-accent: var(--story-accent-secondary);
+
+  /* Status. */
+  --story-success: #16a34a;
+  --story-warning: #ca8a04;
+  --story-error: #dc2626;
+  --story-info: #0055cc;
+  --story-error-text: #b91c1c;
+  --story-warning-text: #8a5a00;
+  --story-success-text: #166534;
+
+  /* Palette steps a few components mix from. */
+  --story-neutral-50: #fafafa;
+  --story-neutral-500: #777777;
+  --story-neutral-700: #404040;
+  --story-neutral-900: #1a1a1a;
+  --story-teal-500: #0a6e96;
+  --story-teal-800: #042a3d;
+  --story-orange-400: #faad4a;
+  --story-orange-500: #fa9619;
+  --story-orange-800: #804806;
+  --story-blue-400: #3385ff;
+  --story-blue-700: #004099;
+
+  /* Text highlights (the inline `==marked==` colours). */
+  --story-highlight-orange: color-mix(in srgb, #fa9619 28%, transparent);
+  --story-highlight-yellow: color-mix(in srgb, #facc15 40%, transparent);
+  --story-highlight-red: color-mix(in srgb, #dc2626 16%, transparent);
+  --story-highlight-green: color-mix(in srgb, #16a34a 20%, transparent);
+  --story-highlight-teal: color-mix(in srgb, #0a6e96 18%, transparent);
+  --story-highlight-blue: color-mix(in srgb, #0066ff 16%, transparent);
+  --story-highlight-purple: color-mix(in srgb, #0066ff 10%, var(--story-highlight-red));
+  --story-highlight-grey: color-mix(in srgb, #777777 18%, transparent);
+
+  /* Elevation. */
+  --story-shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --story-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --story-shadow-md: 0 4px 8px -2px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --story-shadow-lg: 0 12px 24px -6px rgba(0, 0, 0, 0.10), 0 4px 8px -4px rgba(0, 0, 0, 0.05);
+  --story-shadow-xl: 0 24px 48px -12px rgba(0, 0, 0, 0.16), 0 8px 16px -8px rgba(0, 0, 0, 0.07);
+  --story-shadow-key: var(--story-shadow-xs);
+  --story-shadow-key-hover: var(--story-shadow-sm);
+  --story-shadow-well: inset 0 2px 4px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(0, 0, 0, 0.06), 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+[data-theme="dark"] {
+  --story-foreground: #e7e9ec;
+  --story-foreground-muted: #9ba2aa;
+  --story-foreground-subtle: #747c86;
+  --story-accent: #4d93f0;
+  --story-accent-secondary-text: #fbc47a;
+  --story-accent-glow: rgba(77, 147, 240, 0.14);
+  --story-on-accent: #0f1216;
+  --story-background: #0f1216;
+  --story-background-secondary: #171b21;
+  --story-card: #171b22;
+  --story-border: rgba(255, 255, 255, 0.10);
+  --story-border-hover: rgba(255, 255, 255, 0.22);
+  --story-surface-warm: #1c1813;
+  --story-surface-cool: #131a24;
+  --story-surface-amber: #2a2113;
+  --story-surface-dark: #0a2e44;
+  --story-surface-panel: #0a0c0f;
+  --story-surface-panel-elevated: #06070a;
+  --story-error-text: #f87171;
+  --story-warning-text: #fbbf24;
+  --story-success-text: #4ade80;
+  --story-highlight-yellow: color-mix(in srgb, #facc15 16%, transparent);
+  --story-highlight-red: color-mix(in srgb, #dc2626 28%, transparent);
+  --story-highlight-green: color-mix(in srgb, #16a34a 24%, transparent);
+  --story-highlight-blue: color-mix(in srgb, #3385ff 24%, transparent);
+  --story-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --story-shadow-lg: 0 12px 24px -6px rgba(0, 0, 0, 0.5);
+  --story-shadow-xl: 0 24px 48px -12px rgba(0, 0, 0, 0.6);
+  --story-shadow-well: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --story-foreground: #e7e9ec;
+    --story-foreground-muted: #9ba2aa;
+    --story-foreground-subtle: #747c86;
+    --story-accent: #4d93f0;
+    --story-accent-secondary-text: #fbc47a;
+    --story-accent-glow: rgba(77, 147, 240, 0.14);
+    --story-on-accent: #0f1216;
+    --story-background: #0f1216;
+    --story-background-secondary: #171b21;
+    --story-card: #171b22;
+    --story-border: rgba(255, 255, 255, 0.10);
+    --story-border-hover: rgba(255, 255, 255, 0.22);
+    --story-surface-warm: #1c1813;
+    --story-surface-cool: #131a24;
+    --story-surface-amber: #2a2113;
+    --story-surface-dark: #0a2e44;
+    --story-surface-panel: #0a0c0f;
+    --story-surface-panel-elevated: #06070a;
+    --story-error-text: #f87171;
+    --story-warning-text: #fbbf24;
+    --story-success-text: #4ade80;
+    --story-highlight-yellow: color-mix(in srgb, #facc15 16%, transparent);
+    --story-highlight-red: color-mix(in srgb, #dc2626 28%, transparent);
+    --story-highlight-green: color-mix(in srgb, #16a34a 24%, transparent);
+    --story-highlight-blue: color-mix(in srgb, #3385ff 24%, transparent);
+    --story-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+    --story-shadow-lg: 0 12px 24px -6px rgba(0, 0, 0, 0.5);
+    --story-shadow-xl: 0 24px 48px -12px rgba(0, 0, 0, 0.6);
+    --story-shadow-well: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+  }
+}

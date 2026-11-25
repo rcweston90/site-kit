@@ -37,8 +37,9 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Build first: packages typecheck and test against each other's built output.
+      - run: pnpm build
       - run: pnpm typecheck
       - run: pnpm test
-      - run: pnpm build
       - name: Credits check (a new dependency needs a credit)
         run: pnpm credits

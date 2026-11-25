@@ -13,7 +13,7 @@
     "test": "node --test scripts/*.test.mjs && pnpm -r test",
     "scrub": "node scripts/scrub.mjs",
     "credits": "pnpm --filter @rcweston/credits run self-check",
-    "check": "pnpm scrub && pnpm typecheck && pnpm test && pnpm build && pnpm credits"
+    "check": "pnpm scrub && pnpm build && pnpm typecheck && pnpm test && pnpm credits"
   },
   "devDependencies": {
     "@types/node": "^22.20.7",

@@ -5,3 +5,5 @@ coverage/
 .DS_Store
 .env*
 .scrub-local.txt
+.next/
+next-env.d.ts

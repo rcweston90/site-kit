@@ -1,0 +1,2782 @@
+/*
+ * @rcweston/story-react: the reader's stylesheet.
+ * Every class is prefixed `story-`. Every design value reads a token from
+ * tokens.css, so a host themes the reader by setting `--story-*` variables.
+ */
+
+/* ─── storyStyles ─────────────────────────────────────────── */
+/* The story as a long read: a hero, STAR at a glance, four chapters on a
+ * reading measure, and media that breaks the measure when the work needs room.
+ * One vocabulary throughout: 6px radii,
+ * inset hairlines, the faint blue "study paper" behind artwork, mono display
+ * with tight tracking, blue sans numerals for outcomes. */
+
+.story-story { --story-ease: cubic-bezier(.16, 1, .3, 1); }
+
+/* The editor opts into the same media tokens without taking reader layout
+   or editor/workspace selection rules from the story root. */
+:is(.story-story, .story-media-environment) {
+  /* The plate media sits on. Default is a faint tint of the accent. */
+  --story-mat: color-mix(in srgb, var(--story-accent) 4%, var(--story-background));
+  --story-mat-edge: var(--story-border);
+  /* Text that sits on the mat itself (captions inside a full-width band). */
+  --story-mat-ink: var(--story-foreground-muted);
+}
+/* Inline marks that need more than the browser's default, for every piece of
+   rich text in a story: the reader's (StoryRichText) and the editor canvas's
+   (Tiptap's own <mark>, <code> and <u>), which render inside this same root. */
+
+/* A tint behind the words, orange unless the author picked another; the text
+   keeps its colour. Contrast per theme is with the tokens (globals.css). */
+:is(.story-story, .story-prose-highlights) mark {
+  padding-inline: .15em;
+  border-radius: 3px;
+  background: var(--story-highlight-orange);
+  color: inherit;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+:is(.story-story, .story-prose-highlights) mark[data-color='yellow'] { background: var(--story-highlight-yellow); }
+:is(.story-story, .story-prose-highlights) mark[data-color='red'] { background: var(--story-highlight-red); }
+:is(.story-story, .story-prose-highlights) mark[data-color='green'] { background: var(--story-highlight-green); }
+:is(.story-story, .story-prose-highlights) mark[data-color='teal'] { background: var(--story-highlight-teal); }
+:is(.story-story, .story-prose-highlights) mark[data-color='blue'] { background: var(--story-highlight-blue); }
+:is(.story-story, .story-prose-highlights) mark[data-color='purple'] { background: var(--story-highlight-purple); }
+:is(.story-story, .story-prose-highlights) mark[data-color='grey'] { background: var(--story-highlight-grey); }
+
+/* The line in the text's own colour, at a link's weight and offset; a link
+   draws its line in the accent (styles.css). */
+:is(.story-story, .story-prose-highlights) u {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+/* Never below the 13px floor, even inside a 13px caption. A code block's
+   <pre> sets its own (styles.css). */
+:is(.story-story, .story-prose-highlights) :not(pre) > code {
+  padding: .1em .3em;
+  border-radius: 4px;
+  background: var(--story-background-secondary);
+  font-family: var(--story-font-mono);
+  font-size: max(13px, .875em);
+  overflow-wrap: anywhere;
+}
+
+/* A block dragged by its ⋮⋮ grip lands where this line is drawn
+   (EditorBlockHandle). Inset, so nothing around it moves while dragging. */
+/* A run of blocks selected together (shift-click, ⇧↑ / ⇧↓): a tint and a
+   rail on each, the same accent as the single selection's. */
+.story-story [data-story-multi-selected] {
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--story-accent) 7%, transparent);
+  box-shadow: -12px 0 0 color-mix(in srgb, var(--story-accent) 7%, transparent), inset 3px 0 0 var(--story-accent);
+}
+
+.story-story [data-story-block-drop='before'] { box-shadow: inset 0 3px 0 var(--story-accent); }
+.story-story [data-story-block-drop='after'] { box-shadow: inset 0 -3px 0 var(--story-accent); }
+
+:is(.story-story, .story-media-environment)[data-tone='cool'] { --story-mat: var(--story-surface-cool); }
+:is(.story-story, .story-media-environment)[data-tone='warm'] { --story-mat: var(--story-surface-warm); }
+:is(.story-story, .story-media-environment)[data-tone='panel'] {
+  --story-mat: var(--story-surface-panel);
+  --story-mat-edge: var(--story-on-panel-divider);
+  --story-mat-ink: var(--story-on-panel-muted);
+}
+
+
+
+/* Keep the compact chapter rail in the margin on phones. A small reserved
+   gutter is calmer than letting the active dot sit over the last word of a
+   line; larger layouts already have enough outer margin. */
+@media (max-width: 767px) {
+  /* Keep the rail outside the reading measure without spending a desktop
+     gutter on a phone. The left edge stays aligned while the compact rail
+     returns twelve pixels to the content column. */
+  .story-page {
+    padding-left: 20px;
+    padding-right: 32px;
+  }
+}
+/* In the reader the rail sits on the sheet's edge rather than in a window
+   margin, so the story keeps clear of it. The gutter is the same expanded or
+   not, so Expand never reflows the story under the reader's morph. */
+@media (min-width: 768px) {
+  .story-story[data-embedded] .story-page { padding-inline: 56px; }
+}
+
+/* --- Media -------------------------------------------------------------- */
+
+.story-frame { position: relative; border-radius: 6px; }
+
+/* An aligned gallery ratio belongs to the outside of its frame, not to
+   its file. Per-item mat padding remains editable inside the same footprint. */
+.story-gallery-auto > .story-frame {
+  aspect-ratio: 1.6;
+  box-sizing: border-box;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+}
+.story-gallery-auto > .story-mat { padding: min(var(--story-mat-padding, var(--story-rhythm-minor)), 15%); }
+.story-gallery-auto > .story-frame > .story-box { min-width: 0; min-height: 0; }
+.story-gallery-auto > .story-frame > .story-box > .story-media { height: 100%; }
+@media (min-width: 768px) {
+  .story-gallery-auto { display: grid; grid-template-rows: subgrid; grid-row: span 2; }
+  .story-gallery-auto > .story-frame { grid-row: 2; }
+}
+
+/* Product UI sits on a plate with a margin of paper around it — the plate is
+   the "frame", so the screenshot never needs fake browser chrome. The margin
+   is the story's (--story-mat-padding) unless the media sets its own
+   (`matPadding`, as data-padding); set on the plate itself, that wins over
+   any story's. Each step is a rhythm unit, so the plate stays on the grid. */
+:is(.story-story, .story-media-environment) { --story-mat-padding: var(--story-rhythm-minor); }
+.story-mat {
+  background: var(--story-mat);
+  box-shadow: inset 0 0 0 1px var(--story-mat-edge);
+  padding: var(--story-mat-padding, var(--story-rhythm-minor));
+}
+.story-mat[data-padding='small'] { --story-mat-padding: var(--story-rhythm-half); }
+.story-mat[data-padding='medium'],
+.story-mat[data-padding='large'] { --story-mat-padding: var(--story-rhythm-minor); }
+@media (min-width: 768px) {
+  :is(.story-story, .story-media-environment) { --story-mat-padding: calc(var(--story-rhythm-minor) * 2); }
+  .story-mat[data-padding='small'] { --story-mat-padding: var(--story-rhythm-minor); }
+  .story-mat[data-padding='medium'] { --story-mat-padding: calc(var(--story-rhythm-minor) * 2); }
+  .story-mat[data-padding='large'] { --story-mat-padding: var(--story-rhythm-major); }
+}
+
+
+
+.story-bleed { overflow: hidden; }
+.story-edge, .story-edge .story-media { border-radius: 0; }
+
+/* The container the media box measures itself against (100cqw). */
+.story-box { container-type: inline-size; }
+
+.story-media {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--story-background-secondary);
+}
+/* Image alpha reveals the chosen matte or page, not the player fallback. */
+.story-media[data-media-kind='image'] { background: transparent; }
+.story-youtube-embed { display: block; width: 100%; height: 100%; border: 0; }
+
+/* A YouTube video before its click: the still sits where the player will
+   (placed inline by embedFramingStyle), and the whole frame is the button. */
+.story-embed-still { display: block; overflow: hidden; }
+.story-embed-still-image { object-fit: cover; }
+.story-embed-button {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+/* Inside the box: the media's overflow clip would hide an outer ring. */
+.story-embed-button:focus-visible { outline: 2px solid var(--story-accent); outline-offset: -2px; }
+
+/* The play chip speaks MotionToggle's language (the round button on every
+   loop elsewhere): panel surface, hairline edge, accent on hover. Centred and
+   a size up, since this one starts a video with sound. */
+.story-embed-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border: 1px solid var(--story-on-panel-divider);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--story-surface-panel) 84%, transparent);
+  color: var(--story-on-panel);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--story-surface-panel) 24%, transparent);
+  backdrop-filter: blur(6px);
+  transform: translate(-50%, -50%);
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease, transform 160ms ease;
+  pointer-events: none;
+}
+/* Lucide's triangle sits left of centre; nudge it to look centred. */
+.story-embed-play svg { translate: 1px 0; }
+@media (hover: hover) {
+  .story-embed-button:hover .story-embed-play {
+    border-color: var(--story-accent);
+    background: var(--story-surface-panel);
+    color: var(--story-neutral-50);
+  }
+}
+.story-embed-button:active .story-embed-play { transform: translate(-50%, -50%) scale(.94); }
+@media (prefers-reduced-motion: reduce) {
+  .story-embed-play { transition: none; }
+}
+@media (forced-colors: active) {
+  .story-embed-play { border-color: CanvasText; background: Canvas; color: CanvasText; }
+}
+.story-document-embed { display: block; width: 100%; height: 100%; border: 0; }
+.story-mat .story-media,
+.story-inset .story-media {
+  box-shadow: 0 0 0 1px var(--story-mat-edge), var(--story-shadow-lg);
+}
+
+/* Appearance belongs to an unclipped shell. The inner viewport clips media,
+   while the author's outline and shadow stay outside every source type. */
+.story-frame[data-appearance] { overflow: visible; }
+.story-frame[data-appearance] .story-box { border-radius: var(--media-radius, 6px); }
+.story-frame[data-appearance] .story-media { border-radius: var(--media-radius, 6px); box-shadow: none; }
+.story-frame.story-edge[data-appearance] .story-box,
+.story-frame.story-edge[data-appearance] .story-media { border-radius: var(--media-radius, 0px); }
+.story-mat[data-appearance] .story-box,
+.story-inset[data-appearance] .story-box { box-shadow: 0 0 0 1px var(--story-mat-edge), var(--story-shadow-lg); }
+
+.story-media-heading {
+  margin: 0;
+  padding-bottom: var(--story-rhythm-half);
+  width: 100%;
+  max-width: none;
+  font: 600 13px/24px var(--story-font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--story-foreground-muted);
+  text-wrap: pretty;
+}
+
+.story-caption {
+  margin: 0;
+  padding-top: var(--story-rhythm-half);
+  padding-bottom: var(--story-rhythm-half);
+  width: 100%;
+  max-width: none;
+  font: 400 13px/24px var(--story-font-mono);
+  color: var(--story-foreground-muted);
+  text-wrap: pretty;
+}
+
+/* Click to enlarge ------------------------------------------------------- */
+
+.story-zoom-trigger {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+.story-zoom-trigger:focus-visible { outline: 3px solid var(--story-accent); outline-offset: -3px; }
+
+.story-lightbox {
+  width: 100vw;
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--story-on-panel);
+  overflow: hidden;
+}
+.story-lightbox::backdrop {
+  background: color-mix(in srgb, var(--story-surface-panel) 92%, transparent);
+  backdrop-filter: blur(4px);
+}
+.story-lightbox[open] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  animation: story-lightbox-in 160ms var(--story-ease, ease-out);
+}
+.story-lightbox-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--story-rhythm-half);
+  padding: var(--story-rhythm-half);
+  padding-top: max(var(--story-rhythm-half), env(safe-area-inset-top));
+  padding-left: max(var(--story-rhythm-half), env(safe-area-inset-left));
+  padding-right: max(var(--story-rhythm-half), env(safe-area-inset-right));
+}
+.story-lightbox-zoom { display: flex; align-items: center; }
+.story-lightbox-zoom-value {
+  min-width: 48px;
+  font: 400 13px/24px var(--story-font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--story-on-panel-muted);
+  text-align: center;
+}
+.story-lightbox-control {
+  min-width: 48px;
+  padding: var(--story-rhythm-half);
+  border: 0;
+  border-radius: 999px;
+  font: 500 13px/24px var(--story-font-mono);
+  color: var(--story-on-panel);
+  background: transparent;
+  cursor: pointer;
+}
+.story-lightbox-control:hover:not(:disabled) { background: var(--story-on-panel-divider); }
+.story-lightbox-control:disabled { color: var(--story-on-panel-muted); cursor: default; }
+.story-lightbox-control:focus-visible { outline: 2px solid var(--story-accent); outline-offset: 2px; }
+.story-lightbox-figure {
+  margin: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-width: 0;
+  min-height: 0;
+  padding-bottom: max(var(--story-rhythm-half), env(safe-area-inset-bottom));
+}
+.story-lightbox-viewport {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-x pan-y pinch-zoom;
+}
+.story-lightbox-viewport[data-pannable="true"] { cursor: grab; }
+.story-lightbox-viewport[data-pannable="true"]:active { cursor: grabbing; }
+.story-lightbox-viewport:focus-visible { outline: 2px solid var(--story-accent); outline-offset: -2px; }
+/* Auto margins centre small images without making overflow at the start unreachable. */
+.story-lightbox-canvas { display: flex; width: max-content; min-width: 100%; min-height: 100%; }
+.story-lightbox-image {
+  display: block;
+  flex: none;
+  max-width: none;
+  max-height: none;
+  width: auto;
+  height: auto;
+  margin: auto;
+  object-fit: contain;
+  user-select: none;
+}
+/* A cached or freshly decoded high-resolution source must not flash at its
+   intrinsic size while the viewport and source dimensions are measured. */
+.story-lightbox-image[data-sized="false"] { visibility: hidden; }
+.story-lightbox-caption {
+  margin: 0;
+  max-height: 24dvh;
+  overflow: auto;
+  padding: var(--story-rhythm-half) var(--story-rhythm-minor);
+  font: 400 13px/24px var(--story-font-mono);
+  color: var(--story-on-panel-muted);
+  text-align: center;
+}
+
+@keyframes story-lightbox-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Development-only states ------------------------------------------------ */
+
+.story-slot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  border-radius: 6px;
+  color: var(--story-foreground);
+  background:
+    repeating-linear-gradient(135deg, transparent 0 11px, color-mix(in srgb, var(--story-accent-secondary) 16%, transparent) 11px 12px),
+    var(--story-background);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--story-accent-secondary) 55%, transparent);
+  overflow: hidden;
+}
+.story-slot-body {
+  max-width: 46ch;
+  padding: var(--story-rhythm-minor);
+  text-align: left;
+  background: var(--story-background);
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px var(--story-border);
+}
+.story-slot-label {
+  margin: 0;
+  font: 700 13px/24px var(--story-font-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--story-accent-secondary-text);
+}
+.story-slot-brief { margin: 0; font: 500 15px/24px var(--story-font-sans); }
+.story-slot-source {
+  margin: 0;
+  font: 400 13px/24px var(--story-font-mono);
+  color: var(--story-foreground-muted);
+  overflow-wrap: anywhere;
+}
+/* Editor only: an empty slot takes a dropped file. The ring and tint are
+   paint, not layout, so the page doesn't move while a file is dragged over. */
+.story-slot[data-drop] { transition: background-color 140ms ease, box-shadow 140ms ease; }
+.story-slot[data-drop='over'] {
+  background: color-mix(in srgb, var(--story-accent) 8%, var(--story-background));
+  box-shadow: inset 0 0 0 2px var(--story-accent);
+}
+.story-slot[data-drop='busy'] { cursor: progress; }
+/* A phone has nothing to drag from, so it isn't offered dropping. */
+.story-slot-touch-hint { display: none; }
+@media (hover: none) and (pointer: coarse) {
+  .story-slot-drop-hint { display: none; }
+  .story-slot-touch-hint { display: inline; }
+}
+.story-slot-status {
+  margin: 0;
+  font: 400 13px/24px var(--story-font-sans);
+  color: var(--story-foreground);
+  overflow-wrap: anywhere;
+}
+/* A file previewed from memory in the fixture editor: quieter than the draft
+   badge, because nothing about the file itself is wrong. */
+.story-preview-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+  max-width: calc(100% - 24px);
+  padding: 0 8px;
+  border-radius: 4px;
+  font: 500 13px/24px var(--story-font-sans);
+  color: var(--story-foreground-muted);
+  background: var(--story-background);
+  box-shadow: 0 0 0 1px var(--story-border);
+}
+.story-draft-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+  padding: 0 8px;
+  border-radius: 4px;
+  font: 700 13px/24px var(--story-font-mono);
+  letter-spacing: .04em;
+  color: var(--story-neutral-900);
+  background: var(--story-orange-400);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-slot[data-drop] { transition: none; }
+  .story-lightbox[open] { animation: none; }
+}
+
+
+/* ─── blockStyles ─────────────────────────────────────────── */
+/* Chapter blocks — see StoryBlocks.tsx for the column plan.
+ * Every line box is a multiple of 12px and every gap a rhythm unit, so the
+ * page stays on the 24px baseline (⌥G shows the overlay). */
+
+.story-block-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: var(--story-block-gap, calc(var(--story-rhythm-minor) * 2));
+}
+
+@media (max-width: 767px) {
+  /* The desktop composition uses 48px between independent blocks. On a
+     single-column phone that reads as an extra blank paragraph, so one
+     baseline is the default; authored spacers still add deliberate room. */
+  .story-block-grid { row-gap: var(--story-block-gap, var(--story-rhythm-minor)); }
+}
+
+/* Editorial invitation to continue the conversation. */
+.story-block-follow-up {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--story-rhythm-minor);
+  /* 2 × minor: --story-rhythm-minor-2 was never defined, which voided this whole
+     declaration and left the panel with no padding at all. */
+  padding: calc(var(--story-rhythm-minor) * 2) clamp(1.25rem, 4vw, 3rem);
+  border-block: 1px solid var(--story-border);
+  background: var(--story-background-secondary);
+}
+
+.story-block-follow-up-header {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(16rem, 4fr);
+  align-items: start;
+  gap: var(--story-rhythm-minor);
+  padding-inline: var(--story-rhythm-minor);
+}
+
+.story-block-follow-up-header h3 {
+  margin: 0;
+  max-width: 22ch;
+  font-family: var(--story-font-sans);
+  font-size: clamp(1.5rem, 2.5vw, 2.25rem);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -.02em;
+}
+
+.story-block-follow-up-header p,
+.story-block-follow-up-copy p {
+  margin: 0;
+  color: var(--story-foreground-muted);
+  font-size: 1rem;
+  line-height: 1.5rem;
+}
+
+.story-block-follow-up-items {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-block: 1px solid var(--story-border);
+}
+
+.story-block-follow-up-item {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  min-height: 12rem;
+  gap: var(--story-rhythm-half);
+  padding: var(--story-rhythm-minor) var(--story-rhythm-minor);
+  color: inherit;
+  text-decoration: none;
+}
+
+.story-block-follow-up-item + .story-block-follow-up-item { border-inline-start: 1px solid var(--story-border); }
+.story-block-follow-up-icon { flex: 0 0 auto; width: 1.25rem; height: 1.25rem; color: var(--story-accent); }
+.story-block-follow-up-media { width: 100%; }
+.story-block-follow-up-copy { display: grid; gap: var(--story-rhythm-half); }
+.story-block-follow-up-title { display: flex; align-items: center; gap: .625rem; min-height: 2.75rem; padding-block: var(--story-rhythm-half); }
+.story-block-follow-up-copy h4 { min-width: 0; margin: 0; font-family: var(--story-font-sans); font-size: 1.125rem; font-weight: 600; line-height: 1.5rem; letter-spacing: -.01em; }
+.story-block-follow-up-copy h4 a,
+.story-block-follow-up-link-label { color: inherit; text-decoration: none; }
+.story-block-follow-up-link-label { display: inline-flex; align-items: center; gap: .5rem; min-height: 2.75rem; color: var(--story-accent); font-size: .875rem; font-weight: 600; line-height: 1.5rem; }
+.story-block-follow-up-link-label svg,
+.story-block-follow-up-cta svg { width: 1rem; height: 1rem; }
+.story-block-follow-up-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: .5rem;
+  min-height: 3rem;
+  padding: var(--story-rhythm-half) var(--story-rhythm-minor);
+  border: 1px solid var(--story-border);
+  color: var(--story-foreground);
+  font-weight: 600;
+  text-decoration: none;
+}
+.story-block-follow-up-cta:focus-visible { outline: 2px solid var(--story-accent); outline-offset: 4px; }
+.story-block-follow-up-copy h4 a:focus-visible,
+.story-block-follow-up-link-label:focus-visible { outline: 2px solid var(--story-accent); outline-offset: 4px; }
+
+@media (hover: hover) {
+  .story-block-follow-up-copy h4 a:hover,
+  .story-block-follow-up-link-label:hover,
+  .story-block-follow-up-cta:hover { color: var(--story-accent); }
+}
+
+@media (max-width: 63.99rem) {
+  .story-block-follow-up-header { grid-template-columns: 1fr; align-items: start; }
+  .story-block-follow-up-items { grid-template-columns: 1fr; }
+  .story-block-follow-up-item { min-height: 0; }
+  .story-block-follow-up-item + .story-block-follow-up-item { border-inline-start: 0; border-block-start: 1px solid var(--story-border); }
+}
+
+/* --- Prose -------------------------------------------------------------- */
+
+.story-block-prose { max-width: 40rem; min-width: 0; }
+[data-columns='one'] .story-block-prose,
+[data-columns='two'] .story-block-prose { max-width: none; }
+/* Adjacent chapter body blocks that meet at a list read as one text flow.
+   Do not tighten independent prose, media, section or explicit spacer gaps. */
+.story-block-grid > .story-block-prose + :is(.story-block-prose-list, .story-block-prose:has(> .story-block-prose-list:first-child)),
+.story-block-grid > :is(.story-block-prose-list, .story-block-prose:has(> .story-block-prose-list:last-child)) + .story-block-prose {
+  margin-block-start: min(0px, calc(var(--story-rhythm-minor) - var(--story-block-gap, var(--story-rhythm-minor) * 2)));
+}
+.story-block-prose[data-story-block-anchor] { --story-list-item-gap: 0px; }
+.story-block-prose p {
+  margin: 0;
+  font: 400 16px/24px var(--story-font-sans);
+  color: var(--story-foreground);
+}
+.story-block-prose p + p { margin-top: var(--story-rhythm-minor); }
+:is(.story-block-prose, .story-block-callout-body, .story-block-insight-body) :is(h2, h3, h4, h5, h6) { margin: var(--story-rhythm-minor) 0 0; max-width: 40rem; color: var(--story-foreground); font-family: var(--story-font-sans); text-wrap: balance; }
+:is(.story-block-prose, .story-block-callout-body, .story-block-insight-body) h2 { font-size: clamp(26px, 2.6vw, 32px); line-height: 36px; font-weight: 600; letter-spacing: -.025em; }
+:is(.story-block-prose, .story-block-callout-body, .story-block-insight-body) h3 { font-size: clamp(22px, 2.2vw, 28px); line-height: 1.3; font-weight: 600; letter-spacing: -.02em; }
+:is(.story-block-prose, .story-block-callout-body, .story-block-insight-body) h4 { font-size: clamp(18px, 1.8vw, 22px); line-height: 1.45; font-weight: 600; letter-spacing: -.015em; }
+:is(.story-block-prose, .story-block-callout-body, .story-block-insight-body) h5 { font-size: 16px; line-height: 24px; font-weight: 600; }
+:is(.story-block-prose, .story-block-callout-body, .story-block-insight-body) h6 { font-size: 14px; line-height: 24px; font-weight: 600; letter-spacing: .015em; }
+:is(.story-block-prose, .story-block-callout-body, .story-block-insight-body) :is(h2, h3, h4, h5, h6) + p { margin-top: var(--story-rhythm-half); }
+/* Large text, a paragraph style any paragraph can take. The editor renders
+   its large paragraphs with this class too, so the canvas matches. */
+.story-block-prose .story-block-lede { font-weight: 500; }
+.story-block-prose-list {
+  margin-block: 0;
+  padding-left: var(--story-rhythm-minor);
+}
+/* Preflight strips list markers, which left bullets and numbered lists
+   reading identically. ProseMirror's lists carry this class too. */
+ul.story-block-prose-list { list-style: disc; }
+ol.story-block-prose-list { list-style: decimal; }
+.story-block-prose-list li,
+.story-block-callout-body[data-callout-body] li { padding-left: var(--story-rhythm-half); }
+.story-block-prose-list li {
+  font: 400 16px/24px var(--story-font-sans);
+  color: var(--story-foreground);
+}
+.story-block-prose-list li:is([data-large='true'], :has(> p[data-large='true'])) {
+  font-size: 20px;
+  line-height: 36px;
+  letter-spacing: -.01em;
+}
+.story-block-prose-list li > p[data-large='true'] { font: inherit; }
+.story-block-prose-list li > .story-block-prose-list {
+  margin-block-start: var(--story-rhythm-half);
+  padding-inline-start: var(--story-rhythm-half);
+}
+.story-block-prose-list li > ul.story-block-prose-list { list-style-type: circle; }
+.story-block-prose-list li > ul.story-block-prose-list ul.story-block-prose-list { list-style-type: square; }
+@media (max-width: 640px) {
+  .story-block-prose-list li:is([data-large='true'], :has(> p[data-large='true'])) {
+    font-size: 18px;
+    line-height: 24px;
+  }
+}
+
+/* The native canvas callout has the same list, but wraps each item in a
+   ProseMirror paragraph and does not carry the reader's list class. */
+.story-block-prose-list li + li { margin-top: var(--story-list-item-gap, var(--story-rhythm-half)); }
+.story-block-callout-body[data-callout-body] li + li { margin-top: var(--story-rhythm-half); }
+/* The site-wide .tiptap.ProseMirror list rules (written for the blog editor)
+   would space and mute the editor's list items; hold them to the reader's. */
+.story-block-authoring-prose .ProseMirror .story-block-prose-list { margin-block: 0; }
+.story-block-authoring-prose .ProseMirror .story-block-prose-list li { margin-bottom: 0; color: var(--story-foreground); }
+/* A list among paragraphs is spaced like one: a baseline from body text, a
+   half under a subheading, as a paragraph would be. */
+.story-block-prose :is(p, h2, h3, h4, h5, h6) + .story-block-prose-list,
+.story-block-prose .story-block-prose-list + p,
+.story-block-authoring-prose .ProseMirror :is(p, h2, h3, h4, h5, h6) + .story-block-prose-list { margin-top: var(--story-rhythm-minor); }
+.story-block-prose :is(h2, h3, h4, h5, h6) + .story-block-prose-list,
+.story-block-authoring-prose .ProseMirror :is(h3, h4) + .story-block-prose-list { margin-top: var(--story-rhythm-half); }
+/* The words keep the text colour; the line is the accent, which is what
+   tells a link from underlined words (.story u, drawn in the text colour). */
+.story-block-prose a,
+[data-story-reader] .story-block-callout-body a[data-story-prose-link] {
+  color: var(--story-link-current, inherit);
+  text-decoration-line: underline;
+  text-decoration-color: var(--story-link-current, var(--story-link-active, var(--story-accent)));
+  text-decoration-thickness: var(--story-link-weight, 1px);
+  text-underline-offset: 3px;
+}
+
+.story-block-subhead {
+  margin: 0;
+  max-width: 40rem;
+  font: 600 20px/36px var(--story-font-sans);
+  letter-spacing: -.015em;
+  color: var(--story-foreground);
+}
+
+/* A subhead and the block it introduces: a half-step apart, not a block gap. */
+.story-block-headed { display: grid; grid-template-columns: minmax(0, 1fr); row-gap: var(--story-rhythm-half); min-width: 0; }
+.story-block-headed > .story-block-subhead { padding-top: var(--story-rhythm-half); }
+
+/* A prose block and the notes that follow it travel as one row, so a note
+   always sits beside the paragraph it annotates. */
+.story-block-with-notes { display: grid; grid-template-columns: minmax(0, 1fr); row-gap: var(--story-rhythm-minor); }
+.story-block-notes { display: grid; row-gap: var(--story-rhythm-minor); align-content: start; }
+
+.story-block-note {
+  margin: 0;
+  max-width: 40rem;
+  padding-left: 24px;
+  position: relative;
+}
+.story-block-note::before {
+  /* The orange node from the generative marks — a margin mark, not a stripe. */
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--story-accent-secondary);
+}
+.story-block-note p {
+  margin: 0;
+  font: 400 15px/24px var(--story-font-sans);
+  color: var(--story-foreground-muted);
+  text-wrap: pretty;
+}
+
+/* --- Callout ------------------------------------------------------------ */
+
+/* A callout is a filled card: its tone tints the surface, not an edge. The
+   border stays transparent so Outline and Dark panel don't shift the box.
+   Retired `accent` (a left stripe) renders as this fill. */
+.story-block-callout {
+  --callout-accent: var(--story-foreground-muted);
+  --callout-surface: color-mix(in srgb, var(--story-foreground) 4%, var(--story-card));
+  width: min(100%, 46rem);
+  padding: var(--story-rhythm-minor);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--callout-surface);
+  color: var(--story-foreground);
+}
+.story-block-callout[data-tone='info'] {
+  --callout-accent: var(--story-info);
+  --callout-surface: color-mix(in srgb, var(--story-info) 7%, var(--story-card));
+}
+.story-block-callout[data-tone='success'] {
+  --callout-accent: var(--story-success);
+  --callout-surface: color-mix(in srgb, var(--story-success) 7%, var(--story-card));
+}
+.story-block-callout[data-tone='warning'] {
+  --callout-accent: var(--story-warning);
+  --callout-surface: color-mix(in srgb, var(--story-warning) 8%, var(--story-card));
+}
+.story-block-callout[data-presentation='outline'] {
+  --callout-surface: transparent;
+  border-color: var(--story-border-hover);
+}
+.story-block-callout[data-presentation='panel'] {
+  --callout-surface: var(--story-surface-panel);
+  border-color: var(--story-on-panel-divider);
+  color: var(--story-on-panel);
+  box-shadow: var(--story-shadow-sm);
+}
+.story-block-callout[data-presentation='panel'] .story-block-callout-title { color: var(--story-on-panel); }
+.story-block-callout[data-presentation='panel'] .story-block-callout-body :is(p, li, h2, h3, h4, h5, h6),
+.story-block-callout[data-presentation='panel'] .story-block-callout-content .ProseMirror :is(p, li) { color: var(--story-on-panel-muted); }
+.story-block-callout-content { min-width: 0; }
+.story-block-callout-header {
+  display: flex;
+  align-items: center;
+  gap: .625rem;
+  margin-bottom: var(--story-rhythm-half);
+}
+.story-block-callout-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  color: var(--callout-accent);
+}
+.story-block-callout-title {
+  margin: 0;
+  font: 600 20px/36px var(--story-font-sans);
+  letter-spacing: -.01em;
+}
+.story-block-callout-body { margin: 0; }
+.story-block-callout-body p,
+.story-block-callout-content .ProseMirror p {
+  margin: 0;
+  font: 400 15px/24px var(--story-font-sans);
+  color: var(--story-foreground-muted);
+}
+/* List items read as the callout's text, among its paragraphs or alone. */
+.story-block-callout-body li,
+.story-block-callout-content .ProseMirror li {
+  font: 400 15px/24px var(--story-font-sans);
+  color: var(--story-foreground-muted);
+}
+/* Match native body formatting and the published Callout, including
+   standalone paragraphs and large list rows. The title is separate. */
+.story-block-callout .story-block-callout-body p[data-large='true'],
+.story-block-callout .story-block-callout-body li[data-large='true'] {
+  font-size: 20px;
+  line-height: 36px;
+  letter-spacing: -.01em;
+}
+.story-block-callout .story-block-callout-body li:has(> p[data-large='true'])::marker { font-size: 20px; }
+@media (max-width: 640px) {
+  .story-block-callout .story-block-callout-body p[data-large='true'],
+  .story-block-callout .story-block-callout-body li[data-large='true'] { font-size: 18px; line-height: var(--story-rhythm-minor); }
+  .story-block-callout .story-block-callout-body li:has(> p[data-large='true'])::marker { font-size: 18px; }
+}
+.story-block-callout-body p + p,
+.story-block-callout-content .ProseMirror p + p { margin-top: var(--story-rhythm-half); }
+.story-block-callout-body ul,
+.story-block-callout-body ol,
+.story-block-callout-content .ProseMirror ul,
+.story-block-callout-content .ProseMirror ol { margin-block: 0; }
+/* A list among a callout's paragraphs is spaced like one of them. */
+.story-block-callout-body :is(p, ul, ol) + :is(ul, ol),
+.story-block-callout-body :is(ul, ol) + p,
+.story-block-callout-content .ProseMirror :is(p, ul, ol) + :is(ul, ol),
+.story-block-callout-content .ProseMirror :is(ul, ol) + p { margin-top: var(--story-rhythm-half); }
+
+/* --- Media -------------------------------------------------------------- */
+
+.story-block-media-text, .story-block-media-wide { margin: 0; min-width: 0; }
+.story-block-media-text { max-width: 46rem; }
+.story-block-media-centered { margin-inline: auto; }
+
+/* A band spans the page it's on; its contents return to the page column.
+   `cqw` is the nearest size container's width: the editor's canvas or
+   preview, where the page is narrower than the window. On the public page
+   there is none, and it falls back to the viewport. */
+.story-block-band {
+  width: 100cqw;
+  margin-left: calc(50% - 50cqw);
+  padding-block: var(--story-rhythm-major);
+  background: var(--story-mat);
+  box-shadow: inset 0 1px 0 var(--story-mat-edge), inset 0 -1px 0 var(--story-mat-edge);
+}
+.story-block-band-inner { max-width: 72rem; margin-inline: auto; padding-inline: 24px; }
+/* Words that sit on the plate itself take its ink, so a dark mat (or a
+   custom one) keeps its heading and caption legible. */
+.story-block-band figcaption,
+.story-block-band figure > :is(h2, h3, h4),
+.story-block-gallery-plate figure > :is(h2, h3, h4) { color: var(--story-mat-ink); }
+.story-block-band[data-frame='bleed'] { padding-block: 0; background: none; box-shadow: none; }
+.story-block-band[data-frame='bleed'] .story-block-band-inner { max-width: none; padding-inline: 0; }
+
+/* --- Image group: a row or a stack (the grid is under Gallery below) ----- */
+
+.story-block-group { margin: 0; min-width: 0; }
+.story-block-group-items { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--story-rhythm-minor); }
+.story-block-group[data-layout='vertical'] .story-block-group-items { gap: calc(var(--story-rhythm-minor) * 2); }
+.story-block-group-item { min-width: 0; }
+.story-block-group-add { margin-top: var(--story-rhythm-minor); }
+.story-block-group-caption {
+  margin: 0;
+  padding-block: var(--story-rhythm-half);
+  max-width: 64ch;
+  font: 400 13px/24px var(--story-font-mono);
+  color: var(--story-foreground-muted);
+}
+
+/* --- The call ------------------------------------------------------------ */
+
+.story-block-decision-wrap { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--story-rhythm-minor); min-width: 0; }
+.story-block-decision-media { margin: 0; min-width: 0; }
+
+.story-block-decision {
+  min-width: 0;
+  max-width: 46rem;
+  padding: var(--story-rhythm-minor);
+  border-radius: 6px;
+  background: var(--story-card);
+  box-shadow: inset 0 0 0 1px var(--story-border);
+}
+.story-block-decision-label {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 var(--story-rhythm-minor);
+  font: 700 13px/24px var(--story-font-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--story-accent-secondary-text);
+}
+.story-block-decision-meta { font-weight: 400; letter-spacing: .04em; text-transform: none; color: var(--story-foreground-muted); }
+.story-block-decision-options { margin: 0; padding: 0; list-style: none; display: grid; }
+.story-block-decision-option { font-weight: 600; }
+.story-block-decision-call {
+  margin: 0;
+  padding-bottom: var(--story-rhythm-half);
+  font: 600 20px/36px var(--story-font-sans);
+  letter-spacing: -.015em;
+  color: var(--story-foreground);
+  text-wrap: balance;
+}
+.story-block-decision-why { margin: 0; padding-top: var(--story-rhythm-half); display: grid; }
+.story-block-decision-why > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  padding-block: var(--story-rhythm-half);
+  box-shadow: inset 0 1px 0 var(--story-border);
+}
+.story-block-decision-why dt {
+  font: 700 13px/24px var(--story-font-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--story-foreground-muted);
+}
+.story-block-decision-why dd { margin: 0; font: 400 16px/24px var(--story-font-sans); color: var(--story-foreground); }
+
+.story-block-decision-editorial {
+  max-width: none;
+  min-width: 0;
+  padding: var(--story-rhythm-half);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--story-accent) 3%, var(--story-card));
+  box-shadow: inset 0 0 0 1px var(--story-border);
+}
+.story-block-decision-editorial-head { display: grid; min-width: 0; }
+.story-block-decision-editorial-call {
+  margin: 0;
+  padding-top: var(--story-rhythm-half);
+  max-width: 28ch;
+  font: 600 30px/36px var(--story-font-sans);
+  letter-spacing: -.03em;
+  color: var(--story-foreground);
+  text-wrap: balance;
+}
+.story-block-decision-editorial-inputs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  margin-top: var(--story-rhythm-minor);
+}
+.story-block-decision-editorial-input {
+  min-width: 0;
+  padding-block: var(--story-rhythm-half);
+  box-shadow: inset 0 1px 0 var(--story-border);
+}
+.story-block-decision-editorial-input[data-tradeoff] {
+  margin-top: var(--story-rhythm-half);
+  padding: var(--story-rhythm-half);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--story-accent-secondary) 8%, var(--story-card));
+  box-shadow: inset 0 0 0 1px var(--story-border);
+}
+/* Labels only: in the editor the value is a contenteditable span inside the
+   same element, and it must keep the reader's sentence-case body type. */
+.story-block-decision-editorial-input span:not([contenteditable]),
+.story-block-decision-ownership span:not([contenteditable]) {
+  display: block;
+  font: 700 13px/24px var(--story-font-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--story-foreground-muted);
+}
+.story-block-decision-editorial-input p {
+  margin: var(--story-rhythm-half) 0 0;
+  font: 400 16px/24px var(--story-font-sans);
+  color: var(--story-foreground);
+}
+.story-block-decision-mechanism {
+  list-style: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  margin: var(--story-rhythm-minor) 0 0;
+  padding: var(--story-rhythm-half);
+  border-radius: 6px;
+  background: var(--story-surface-panel);
+  box-shadow: inset 0 0 0 1px var(--story-on-panel-divider);
+}
+.story-block-decision-mechanism li {
+  position: relative;
+  min-width: 0;
+  padding-block: var(--story-rhythm-half);
+  box-shadow: inset 0 1px 0 var(--story-on-panel-divider);
+}
+.story-block-decision-mechanism li:not(:last-child)::after {
+  content: '↓';
+  position: absolute;
+  right: 0;
+  top: var(--story-rhythm-half);
+  color: var(--story-on-panel-accent);
+  font: 400 13px/24px var(--story-font-mono);
+}
+.story-block-decision-mechanism span:not([contenteditable]) {
+  display: block;
+  font: 400 13px/24px var(--story-font-mono);
+  color: var(--story-on-panel-muted);
+}
+.story-block-decision-mechanism strong {
+  display: block;
+  font: 600 16px/24px var(--story-font-sans);
+  color: var(--story-on-panel);
+}
+.story-block-decision-ownership {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--story-rhythm-half);
+  margin: var(--story-rhythm-minor) 0 0;
+  padding-top: var(--story-rhythm-half);
+  box-shadow: inset 0 1px 0 var(--story-border);
+  font: 400 13px/24px var(--story-font-mono);
+  color: var(--story-foreground-muted);
+}
+/* --- Insight --------------------------------------------------------------
+ * A headline finding with its points as labelled columns. Layout, surface and
+ * title width are the author's choices (data-layout / data-surface /
+ * data-title-width); the parts below read the --insight-* colours, so a
+ * surface only restates those. */
+
+.story-block-insight {
+  --insight-ink: var(--story-foreground);
+  --insight-muted: var(--story-foreground-muted);
+  --insight-rule: var(--story-border);
+  --insight-highlight: color-mix(in srgb, var(--story-accent-secondary) 8%, var(--story-card));
+  --insight-well: var(--story-surface-panel);
+  min-width: 0;
+  padding: var(--story-rhythm-half);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--story-accent) 3%, var(--story-card));
+  box-shadow: inset 0 0 0 1px var(--story-border);
+  color: var(--insight-ink);
+}
+.story-block-insight[data-surface='panel'] {
+  --insight-ink: var(--story-on-panel);
+  --insight-muted: var(--story-on-panel-muted);
+  --insight-rule: color-mix(in srgb, var(--story-on-panel) 14%, transparent);
+  --insight-highlight: color-mix(in srgb, var(--story-accent-secondary) 14%, var(--story-surface-panel));
+  --insight-well: var(--story-surface-panel-elevated);
+  background: var(--story-surface-panel);
+  box-shadow: inset 0 0 0 1px var(--story-on-panel-divider);
+}
+/* No box: the card's parts sit straight on the page column. */
+.story-block-insight[data-surface='open'] {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.story-block-insight-head { display: grid; min-width: 0; }
+/* The author's line above the title. A pill with the brand hex: sentence
+   case, so it never reads as one of the column headings. The ring is a
+   shadow, so the pill keeps the 24px line box. */
+.story-block-insight-label {
+  justify-self: start;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  margin: 0;
+  padding: 0 12px 0 10px;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px var(--insight-rule);
+  font: 500 13px/24px var(--story-font-sans);
+  color: var(--insight-ink);
+}
+.story-block-insight-label-mark { flex: none; width: 10px; height: 10px; fill: var(--story-accent-secondary); }
+.story-block-insight-label-text { min-width: 0; }
+.story-block-insight-title {
+  margin: 0;
+  max-width: 28ch;
+  font: 600 30px/36px var(--story-font-sans);
+  letter-spacing: -.03em;
+  color: var(--insight-ink);
+  text-wrap: balance;
+}
+.story-block-insight[data-title-width='full'] .story-block-insight-title { max-width: none; }
+/* Label, title: a half-step apart, and a half-step under, so the pair still
+   sums to baselines. */
+.story-block-insight-label + .story-block-insight-title { padding-block: var(--story-rhythm-half); }
+
+.story-block-insight-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: var(--story-rhythm-minor);
+}
+.story-block-insight-column {
+  min-width: 0;
+  padding-block: var(--story-rhythm-half);
+  box-shadow: inset 0 1px 0 var(--insight-rule);
+}
+.story-block-insight-column[data-highlight] {
+  padding: var(--story-rhythm-half);
+  border-radius: 6px;
+  background: var(--insight-highlight);
+  box-shadow: inset 0 0 0 1px var(--insight-rule);
+}
+.story-block-insight-column-label {
+  margin: 0;
+  font: 700 13px/24px var(--story-font-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--insight-muted);
+}
+/* Bodies keep the prose measure (.prose, 40rem), so rows and the closing
+   line never run the width of the card. */
+.story-block-insight-column-label + .story-block-insight-body { margin-top: var(--story-rhythm-half); }
+/* Body text and list markers follow the surface. As specific as the editor's
+   list rule above, and later, so the canvas matches. */
+.story-block-insight[data-surface='panel'] .story-block-insight-body :is(p, li, h2, h3, h4, h5, h6) { color: var(--insight-ink); }
+.story-block-insight[data-surface='panel'] .story-block-insight-body li::marker { color: var(--insight-muted); }
+.story-block-insight[data-surface='panel'] .story-block-insight-body .is-editor-empty:first-child::before { color: var(--insight-muted); }
+
+/* A point's own images or clips, under its text, each in its own shape. */
+.story-block-insight-media { display: grid; gap: var(--story-rhythm-minor); min-width: 0; margin-top: var(--story-rhythm-minor); }
+.story-block-insight-media figure { margin: 0; }
+.story-block-insight-media-add { margin-top: var(--story-rhythm-half); }
+
+.story-block-insight-add { margin-top: var(--story-rhythm-half); }
+.story-block-insight[data-surface='panel'] .story-block-insight-add { color: var(--insight-muted); }
+.story-block-insight[data-surface='panel'] .story-block-insight-add:hover { color: var(--insight-ink); }
+
+/* An optional sequence under the points: the dark strip from the decision
+   card, numbered, one row on wide screens. */
+.story-block-insight-steps {
+  list-style: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin: var(--story-rhythm-minor) 0 0;
+  padding: var(--story-rhythm-half);
+  border-radius: 6px;
+  background: var(--insight-well);
+  box-shadow: inset 0 0 0 1px var(--story-on-panel-divider);
+}
+.story-block-insight-steps li {
+  position: relative;
+  min-width: 0;
+  padding-block: var(--story-rhythm-half);
+  box-shadow: inset 0 1px 0 var(--story-on-panel-divider);
+}
+.story-block-insight-steps li:not(:last-child)::after {
+  content: '↓';
+  position: absolute;
+  right: 0;
+  top: var(--story-rhythm-half);
+  color: var(--story-on-panel-accent);
+  font: 400 13px/24px var(--story-font-mono);
+}
+.story-block-insight-steps li > span { display: block; font: 400 13px/24px var(--story-font-mono); color: var(--story-on-panel-muted); }
+.story-block-insight-steps strong { display: block; font: 600 16px/24px var(--story-font-sans); color: var(--story-on-panel); }
+
+.story-block-insight-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: var(--story-rhythm-minor);
+  padding-top: var(--story-rhythm-half);
+  box-shadow: inset 0 1px 0 var(--insight-rule);
+}
+
+@media (min-width: 768px) {
+  .story-block-insight { padding: var(--story-rhythm-minor); }
+  .story-block-insight[data-surface='open'] { padding: 0; }
+  .story-block-insight-title { font-size: 36px; line-height: 48px; }
+
+  .story-block-insight[data-layout='columns'] .story-block-insight-columns { column-gap: var(--story-rhythm-minor); }
+  .story-block-insight[data-layout='columns'] .story-block-insight-columns[data-count='2'],
+  .story-block-insight[data-layout='columns'] .story-block-insight-columns[data-count='4'] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .story-block-insight[data-layout='columns'] .story-block-insight-columns[data-count='3'] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .story-block-insight[data-layout='columns'] .story-block-insight-columns[data-count='4'] { row-gap: var(--story-rhythm-minor); }
+
+  /* Rows: each heading in a gutter beside its text, like the ledger. */
+  .story-block-insight[data-layout='rows'] .story-block-insight-column {
+    display: grid;
+    grid-template-columns: 168px minmax(0, 1fr);
+    column-gap: var(--story-rhythm-minor);
+  }
+  .story-block-insight[data-layout='rows'] .story-block-insight-body,
+  .story-block-insight[data-layout='rows'] .story-block-insight-media,
+  .story-block-insight[data-layout='rows'] .story-block-insight-media-add { grid-column: 2; }
+  /* Two or more in a row's wide text column sit side by side. */
+  .story-block-insight[data-layout='rows'] .story-block-insight-media[data-count='2'] { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+  .story-block-insight[data-layout='rows'] .story-block-insight-column-label + .story-block-insight-body { margin-top: 0; }
+
+  .story-block-insight-steps { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0 18px; }
+  .story-block-insight-steps li:not(:last-child)::after { content: '→'; right: -13px; }
+
+  .story-block-insight-footer { grid-template-columns: 168px minmax(0, 1fr); column-gap: var(--story-rhythm-minor); }
+  .story-block-insight-footer .story-block-insight-body { grid-column: 2; }
+  .story-block-insight-footer .story-block-insight-column-label + .story-block-insight-body { margin-top: 0; }
+}
+
+@media (min-width: 1024px) {
+  .story-block-insight[data-layout='columns'] .story-block-insight-columns[data-count='4'] { grid-template-columns: repeat(4, minmax(0, 1fr)); row-gap: 0; }
+
+  /* Split: the title holds the left of the card, its points stack on the right. */
+  .story-block-insight[data-layout='split'] {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    column-gap: calc(var(--story-rhythm-minor) * 2);
+    align-items: start;
+  }
+  .story-block-insight[data-layout='split'] > * { grid-column: 1 / -1; }
+  .story-block-insight[data-layout='split'] > .story-block-insight-head { grid-column: 1; grid-row: 1; }
+  .story-block-insight[data-layout='split'] > .story-block-insight-columns { grid-column: 2; grid-row: 1; margin-top: 0; }
+  .story-block-insight[data-layout='split'] .story-block-insight-title { max-width: none; }
+}
+
+
+
+@media (min-width: 768px) {
+  .story-block-decision-editorial { padding: var(--story-rhythm-minor); }
+  .story-block-decision-editorial-head {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+  }
+  .story-block-decision-editorial-call { padding-top: 0; font-size: 36px; line-height: 48px; }
+  .story-block-decision-editorial-inputs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: var(--story-rhythm-minor);
+  }
+  .story-block-decision-editorial-input[data-tradeoff] { margin-top: 0; padding: var(--story-rhythm-half); }
+  .story-block-decision-ownership { grid-template-columns: 168px minmax(0, 1fr); column-gap: var(--story-rhythm-minor); }
+}
+
+@media (min-width: 1024px) {
+  [data-columns='two'] .story-block-prose[data-paragraphs='2'],
+  [data-columns='two'] .story-block-prose[data-paragraphs='3'] {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--story-rhythm-minor);
+    row-gap: var(--story-rhythm-minor);
+    align-items: start;
+  }
+  [data-columns='two'] .story-block-prose[data-paragraphs='2'] > p + p,
+  [data-columns='two'] .story-block-prose[data-paragraphs='3'] > p + p {
+    margin-top: 0;
+  }
+  /* Three or more paragraphs: the first, and any in large text, run across
+     both columns. Two paragraphs stay one per column, whatever their style. */
+  [data-columns='two'] .story-block-prose[data-paragraphs='3'] > p:first-child,
+  [data-columns='two'] .story-block-prose[data-paragraphs='3'] > .story-block-lede {
+    grid-column: 1 / -1;
+  }
+  /* A list among paragraphs runs across both columns; the grid spaces it. */
+  [data-columns='two'] .story-block-prose:is([data-paragraphs='2'], [data-paragraphs='3']) > .story-block-prose-list { grid-column: 1 / -1; }
+  [data-columns='two'] .story-block-prose:is([data-paragraphs='2'], [data-paragraphs='3']) > :is(* + .story-block-prose-list, .story-block-prose-list + *) { margin-top: 0; }
+  /* The editor's paragraphs sit one level down, inside ProseMirror, so the
+     authoring block hands the same two-column grid to the element that holds
+     them: the paragraphs for prose, the list itself for bullets. */
+  [data-columns='two'] .story-block-prose.story-block-authoring-prose:is([data-paragraphs='2'], [data-paragraphs='3']) { display: block; }
+  [data-columns='two'] .story-block-authoring-prose:is([data-paragraphs='2'], [data-paragraphs='3']) .ProseMirror:has(> p),
+  [data-columns='two'] .story-block-authoring-prose:is([data-paragraphs='2'], [data-paragraphs='3']) .ProseMirror > :is(ul, ol) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--story-rhythm-minor);
+    row-gap: var(--story-rhythm-minor);
+    align-items: start;
+  }
+  [data-columns='two'] .story-block-authoring-prose:is([data-paragraphs='2'], [data-paragraphs='3']) .ProseMirror > p + p { margin-top: 0; }
+  [data-columns='two'] .story-block-authoring-prose[data-paragraphs='3'] .ProseMirror > :is(p:first-child, .story-block-lede) { grid-column: 1 / -1; }
+  [data-columns='two'] .story-block-authoring-prose:is([data-paragraphs='2'], [data-paragraphs='3']) .ProseMirror:has(> :is(p, h2, h3, h4, h5, h6)) > :is(ul, ol) { display: block; grid-column: 1 / -1; }
+  [data-columns='two'] .story-block-authoring-prose:is([data-paragraphs='2'], [data-paragraphs='3']) .ProseMirror > :is(* + .story-block-prose-list, .story-block-prose-list + *) { margin-top: 0; }
+}
+
+/* --- Quote --------------------------------------------------------------- */
+
+.story-block-quote { margin: 0; min-width: 0; max-width: 52rem; }
+.story-block-quote blockquote { margin: 0; }
+.story-block-quote blockquote p {
+  margin: 0;
+  font: 500 24px/36px var(--story-font-sans);
+  letter-spacing: -.02em;
+  color: var(--story-foreground);
+  text-wrap: pretty;
+}
+/* Hang the opening quote into the margin so the text edge stays true. */
+.story-block-quote blockquote p::before { content: '\201C'; margin-left: -.45em; }
+.story-block-quote blockquote p::after { content: '\201D'; }
+.story-block-quote figcaption {
+  padding-top: var(--story-rhythm-minor);
+  font: 400 13px/24px var(--story-font-mono);
+  color: var(--story-foreground-muted);
+}
+.story-block-quote-context { display: block; }
+
+/* --- Outcomes ------------------------------------------------------------ */
+
+.story-block-outcomes { display: grid; gap: var(--story-rhythm-minor) calc(var(--story-rhythm-minor) * 2); min-width: 0; }
+.story-block-outcome-lead { min-width: 0; }
+.story-block-outcome-lead-value {
+  margin: 0;
+  font: 600 60px/72px var(--story-font-sans);
+  letter-spacing: -.045em;
+  color: var(--story-accent);
+  overflow-wrap: anywhere;
+}
+.story-block-outcome-lead-label { margin: 0; max-width: 32ch; font: 400 16px/24px var(--story-font-sans); color: var(--story-foreground); }
+.story-block-outcome-context { margin: 0; font: 400 13px/24px var(--story-font-mono); color: var(--story-foreground-muted); }
+.story-block-evidence {
+  margin-right: 12px;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  color: var(--story-foreground);
+  background: var(--story-background-secondary);
+  box-shadow: inset 0 0 0 1px var(--story-border);
+}
+.story-block-outcome-note-line { margin: 0; max-width: 52ch; font: 400 13px/24px var(--story-font-sans); color: var(--story-foreground-muted); }
+.story-block-outcome-ledger, .story-block-outcome-grid { list-style: none; margin: 0; padding: 0; display: grid; align-content: start; }
+.story-block-outcome-grid { column-gap: calc(var(--story-rhythm-minor) * 2); }
+.story-block-outcome-ledger li, .story-block-outcome-grid li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  padding-block: var(--story-rhythm-half);
+  box-shadow: inset 0 1px 0 var(--story-border);
+}
+
+.story-block-outcome-value {
+  margin: 0;
+  font: 600 30px/36px var(--story-font-sans);
+  letter-spacing: -.035em;
+  color: var(--story-accent);
+}
+.story-block-outcome-grid .story-block-outcome-value { font-size: 36px; line-height: 48px; letter-spacing: -.04em; overflow-wrap: anywhere; }
+.story-block-outcome-label { margin: 0; font: 400 16px/24px var(--story-font-sans); color: var(--story-foreground); }
+.story-block-outcome-note {
+  margin: 0;
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: none;
+  font: 400 13px/24px var(--story-font-mono);
+  color: var(--story-foreground-muted);
+}
+
+/* --- Ledger ------------------------------------------------------------- */
+
+.story-block-ledger { margin: 0; display: grid; min-width: 0; max-width: 52rem; }
+.story-block-ledger-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  padding-block: var(--story-rhythm-half);
+  box-shadow: inset 0 1px 0 var(--story-border);
+}
+.story-block-ledger-row dt {
+  font: 700 13px/24px var(--story-font-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--story-foreground-muted);
+}
+.story-block-ledger-row dd { margin: 0; }
+.story-block-ledger-row ul { margin: 0; padding: 0; list-style: none; display: grid; }
+.story-block-ledger-row li { font: 400 16px/24px var(--story-font-sans); color: var(--story-foreground); }
+.story-block-ledger-role { font-weight: 600; }
+
+/* --- Collaboration map -------------------------------------------------- */
+
+.story-block-collaboration { margin: 0; min-width: 0; }
+.story-block-collaboration-map {
+  display: grid;
+  gap: var(--story-rhythm-minor);
+  padding: var(--story-rhythm-minor);
+  border-radius: 6px;
+  background: var(--story-surface-panel);
+  color: var(--story-on-panel);
+  box-shadow: inset 0 0 0 1px var(--story-on-panel-divider);
+}
+.story-block-collaboration-center {
+  display: grid;
+  gap: var(--story-rhythm-half);
+  max-width: 34rem;
+  padding-bottom: var(--story-rhythm-minor);
+  border-bottom: 1px solid var(--story-on-panel-divider);
+}
+.story-block-collaboration-center span:not([contenteditable]),
+.story-block-collaboration-group span:not([contenteditable]) {
+  font: 700 13px/24px var(--story-font-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--story-on-panel-accent);
+}
+.story-block-collaboration-center strong {
+  font: 600 24px/36px var(--story-font-sans);
+  letter-spacing: -.02em;
+  text-wrap: balance;
+}
+.story-block-collaboration-groups { display: grid; gap: var(--story-rhythm-minor); }
+.story-block-collaboration-group {
+  min-width: 0;
+  padding-top: var(--story-rhythm-half);
+  border-top: 1px solid var(--story-on-panel-divider);
+}
+.story-block-collaboration-group p {
+  margin: var(--story-rhythm-half) 0 0;
+  font: 400 16px/24px var(--story-font-sans);
+  color: var(--story-on-panel-muted);
+}
+.story-block-collaboration-note {
+  max-width: 64ch;
+  padding-block: var(--story-rhythm-half);
+  font: 400 13px/24px var(--story-font-mono);
+  color: var(--story-foreground-muted);
+}
+
+@media (min-width: 768px) {
+  .story-block-collaboration-map { padding: calc(var(--story-rhythm-minor) * 2); }
+  .story-block-collaboration-groups { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* --- Steps --------------------------------------------------------------- */
+
+.story-block-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--story-rhythm-minor) calc(var(--story-rhythm-minor) * 2);
+  min-width: 0;
+}
+.story-block-steps li {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  /* 12 + title 24 + 12 + body 24n + 24: two halves, so the row sums to baselines. */
+  padding: var(--story-rhythm-half) 0 var(--story-rhythm-minor);
+  box-shadow: inset 0 1px 0 var(--story-border);
+}
+.story-block-step-index { font: 400 13px/24px var(--story-font-mono); color: var(--story-foreground-muted); }
+.story-block-step-title { margin: 0; font: 600 16px/24px var(--story-font-sans); color: var(--story-foreground); }
+.story-block-step-body { margin: 0; padding-top: var(--story-rhythm-half); font: 400 16px/24px var(--story-font-sans); color: var(--story-foreground-muted); }
+
+/* --- Divider ------------------------------------------------------------
+ * A hairline across the column, like the one that opens a section. It is a
+ * row of the block grid with no height of its own, so the blocks either side
+ * sit a block gap from the line and stay on the baseline. A baseline of
+ * padding each side, cancelled by the margins, makes a 48px row the editor
+ * can click (it fills a compact section's 24px gaps exactly); the line is
+ * painted across its middle, so the <hr> (what a screen reader announces)
+ * takes no height. */
+
+.story-block-divider {
+  margin-block: calc(var(--story-rhythm-minor) * -1);
+  padding-block: var(--story-rhythm-minor);
+  background: linear-gradient(var(--story-border), var(--story-border)) 0 var(--story-rhythm-minor) / 100% 1px no-repeat;
+}
+.story-block-divider hr { height: 0; margin: 0; border: 0; }
+
+/* --- Spacer -------------------------------------------------------------
+ * Extra room between blocks. A spacer is a row of the block grid, so it adds
+ * one block gap plus its own height: Small is the gap alone. All sizes stay
+ * on the 24px baseline. */
+
+.story-block-spacer { position: relative; height: 0; }
+.story-block-spacer[data-size='medium'] { height: var(--story-rhythm-minor); }
+.story-block-spacer[data-size='large'] { height: var(--story-rhythm-major); }
+.story-block-spacer[data-size='xl'] { height: calc(var(--story-rhythm-major) * 2); }
+
+/* Editor only: outline the exact room the spacer makes, including the normal
+   block gap split around it. Absolute positioning keeps the reader's layout
+   unchanged; only the editor sees the bounding box and size control. */
+.story-block-spacer-hint {
+  position: absolute;
+  inset: calc(var(--story-block-gap, calc(var(--story-rhythm-minor) * 2)) / -2) 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 1px dashed var(--story-border);
+  background: color-mix(in srgb, var(--story-background-secondary) 35%, transparent);
+}
+.story-block-spacer-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding-inline: var(--story-rhythm-half);
+  border: 1px solid var(--story-border);
+  border-radius: 999px;
+  background: var(--story-background);
+  box-shadow: var(--story-shadow-sm);
+  color: var(--story-foreground-muted);
+  font: 600 13px/24px var(--story-font-mono);
+  cursor: pointer;
+}
+.story-block-spacer-control:hover,
+.story-block-spacer-control[data-state='open'] { border-color: var(--story-foreground-muted); }
+.story-block-spacer-control strong {
+  color: var(--story-foreground);
+  font: 600 13px/24px var(--story-font-mono);
+}
+.story-block-spacer-control:focus-visible { outline: 2px solid var(--story-accent); outline-offset: 2px; }
+.story-block-spacer-chevron {
+  width: 16px;
+  height: 16px;
+  color: var(--story-foreground-muted);
+  transition: transform 150ms ease;
+}
+.story-block-spacer-control[data-state='open'] .story-block-spacer-chevron { transform: rotate(180deg); }
+.story-block-spacer-menu {
+  width: var(--radix-dropdown-menu-trigger-width);
+  min-width: 10rem;
+}
+.story-block-spacer-check {
+  display: grid;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  place-items: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-block-spacer-chevron { transition: none; }
+}
+
+@media (max-width: 639px) {
+  .story-block-spacer-hint { justify-content: flex-start; }
+  .story-block-spacer-control { margin-left: var(--story-rhythm-half); }
+}
+
+/* --- Table and code ------------------------------------------------------ */
+
+.story-block-table, .story-block-code-block { margin: 0; min-width: 0; }
+/* A wide table scrolls inside this frame on narrow screens, not the page. */
+.story-block-table-frame { overflow-x: auto; border: 1px solid var(--story-border); border-radius: 6px; }
+.story-block-table-frame:focus-visible { outline: 2px solid var(--story-accent); outline-offset: 2px; }
+.story-block-table table { width: 100%; border-collapse: collapse; font: 400 15px/24px var(--story-font-sans); color: var(--story-foreground); }
+.story-block-table th, .story-block-table td { min-width: 8rem; padding: var(--story-rhythm-half) 16px; border-bottom: 1px solid var(--story-border); text-align: left; vertical-align: top; }
+.story-block-table tr:last-child td { border-bottom: 0; }
+.story-block-table th { font: 700 13px/24px var(--story-font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--story-foreground-muted); background: var(--story-background-secondary); }
+.story-block-code-pre {
+  margin: 0;
+  padding: var(--story-rhythm-minor);
+  overflow-x: auto;
+  border-radius: 6px;
+  background: var(--story-background-secondary);
+  font: 400 14px/24px var(--story-font-mono);
+  color: var(--story-foreground);
+  white-space: pre;
+  tab-size: 2;
+}
+
+/* --- Image group as a grid ---------------------------------------------- */
+
+.story-block-gallery-plate {
+  padding: var(--story-rhythm-minor);
+  border-radius: 6px;
+  background: var(--story-mat);
+  box-shadow: inset 0 0 0 1px var(--story-mat-edge);
+}
+/* Columns, not a grid: every item keeps its own height, so nothing is
+   cropped to line up. The negative margin takes back the last row's gap. */
+.story-block-gallery-grid {
+  list-style: none;
+  margin: 0 0 calc(var(--story-rhythm-minor) * -1);
+  padding: 0;
+  columns: 1;
+  column-gap: var(--story-rhythm-minor);
+}
+.story-block-gallery-grid > li { break-inside: avoid; margin-bottom: var(--story-rhythm-minor); }
+.story-block-gallery-grid figure { margin: 0; }
+
+@media (min-width: 640px) {
+  .story-block-gallery-grid { columns: 2; }
+}
+
+/* Section composition is semantic at every breakpoint. A one-column section
+   must not regain desktop-era text caps at tablet widths; on phones these
+   declarations simply resolve to the already-smaller available width. */
+[data-columns='one'] :is(.story-block-group-caption, .story-block-decision-editorial-call, .story-block-insight-body),
+[data-columns='one'] .story-block-prose :is(h2, h3, h4, h5, h6),
+[data-columns='one'] .story-block-with-notes > .story-block-prose,
+[data-columns='one'] .story-block-with-notes .story-block-note,
+[data-columns='one'] .story-block-grid > :is(.story-block-decision-editorial, .story-block-ledger, .story-block-callout, .story-block-quote, .story-block-note) {
+  width: 100%;
+  max-width: none;
+}
+[data-columns='one'] .story-block-insight[data-title-width='auto'] .story-block-insight-title { max-width: none; }
+[data-columns='two'] .story-block-insight[data-title-width='auto'] .story-block-insight-title { max-width: 28ch; }
+
+/* --- Wide screens -------------------------------------------------------- */
+
+@media (min-width: 768px) {
+  .story-block-prose .story-block-lede { font-weight: 400; font-size: 20px; line-height: 36px; letter-spacing: -.01em; }
+  .story-block-group[data-layout='horizontal'] .story-block-group-items { grid-template-columns: var(--group-cols, repeat(2, minmax(0, 1fr))); align-items: start; }
+  .story-block-group[data-alignment='auto'] .story-block-group-items { row-gap: 0; }
+  .story-block-group[data-alignment='auto'] .story-block-group-item { display: grid; grid-template-rows: subgrid; grid-row: span 2; }
+  .story-block-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .story-block-outcomes { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
+  .story-block-outcomes[data-layout='even'] { grid-template-columns: minmax(0, 1fr); }
+  .story-block-outcome-grid { grid-template-columns: repeat(var(--outcome-cols, 2), minmax(0, 1fr)); }
+  .story-block-decision-why > div { grid-template-columns: 96px minmax(0, 1fr); column-gap: var(--story-rhythm-minor); }
+  .story-block-decision-mechanism { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 18px; }
+  .story-block-decision-mechanism li:not(:last-child)::after { content: '→'; right: -13px; }
+  .story-block-decision-constraint { grid-template-columns: 168px minmax(0, 1fr); gap: var(--story-rhythm-minor); }
+  .story-block-ledger-row { grid-template-columns: 144px minmax(0, 1fr); column-gap: var(--story-rhythm-minor); }
+  .story-block-band { padding-block: calc(var(--story-rhythm-major) * 2); }
+  .story-block-band[data-frame='bleed'] { padding-block: 0; }
+  .story-block-outcome-lead-value { font-size: 72px; line-height: 72px; }
+}
+
+@media (min-width: 768px) {
+  .story-block-gallery-plate { padding: calc(var(--story-rhythm-minor) * 2); }
+}
+
+@media (min-width: 1024px) {
+  .story-block-group[data-columns='three'] .story-block-gallery-grid { columns: 3; }
+  .story-block-group[data-columns='four'] .story-block-gallery-grid { columns: 4; }
+  .story-block-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--story-rhythm-minor); }
+  .story-block-grid > * { grid-column: 1 / -1; }
+  .story-block-grid > .story-block-prose, .story-block-grid > .story-block-subhead { grid-column: 1 / 8; }
+  .story-block-grid > .story-block-media-text, .story-block-grid > .story-block-decision-wrap:not([data-media]), .story-block-grid > .story-block-decision-editorial, .story-block-grid > .story-block-ledger { grid-column: 1 / 10; }
+  /* A centered text-width image keeps its narrow reading width, but centers
+     that complete figure (matte and caption included) against the article
+     canvas instead of against the left-rail grid area. */
+  .story-block-grid > .story-block-media-text.story-block-media-centered {
+    grid-column: 1 / -1;
+    width: min(100%, 46rem);
+    justify-self: center;
+  }
+  .story-block-decision-wrap[data-media='side'] { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: start; }
+  .story-block-grid > .story-block-headed { grid-column: 1 / -1; }
+  .story-block-headed > .story-block-prose, .story-block-headed > .story-block-subhead { max-width: 40rem; }
+  .story-block-grid > .story-block-quote { grid-column: 1 / 11; }
+  .story-block-grid > .story-block-callout { grid-column: 1 / 10; }
+  .story-block-grid > .story-block-note { grid-column: 1 / 8; }
+
+  .story-block-with-notes { grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--story-rhythm-minor); }
+  .story-block-with-notes > .story-block-prose { grid-column: 1 / 8; }
+  .story-block-with-notes > .story-block-notes { grid-column: 9 / 13; }
+  .story-block-with-notes .story-block-note { padding-top: 0; }
+}
+
+/* --- Editing --------------------------------------------------------------
+ * The editor puts a block's identity (data-story-editor-id …) on the block's
+ * own root element, not on a wrapper, so every placement and sibling rule
+ * above applies to the editing canvas unchanged and the shell can measure
+ * the block's real box. Only editor-only states live here. */
+
+/* A hidden block stays on the canvas, faded, so it can be found and shown
+   again. Readers never receive it. While it's being worked on it returns to
+   full strength — opacity can't be undone by a child, so the fade would
+   otherwise dim the selection's formatting pill too; the shell's "Hidden"
+   tag carries the state meanwhile. */
+.story-block-grid [data-story-editor-id][data-story-hidden='true']:not([data-story-editor-selected]):not(:focus-within) {
+  opacity: .42;
+  filter: saturate(.45);
+}
+
+/* Editor only: a block just added or duplicated settles into place, so the
+   eye finds where it landed. The editor shell sets the attribute briefly. */
+.story-block-grid [data-story-editor-id][data-story-entering] { animation: story-block-story-block-enter 280ms cubic-bezier(.16, 1, .3, 1); }
+@keyframes story-block-story-block-enter {
+  from { opacity: .01; transform: translateY(8px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .story-block-grid [data-story-editor-id][data-story-entering] { animation: none; }
+}
+
+/* The ghost row that adds a step: it takes the next cell of the steps grid,
+   with the title column's alignment and no rule of its own. */
+.story-block-steps .story-block-step-add {
+  padding-top: 0;
+  box-shadow: none;
+}
+.story-block-step-add > * { grid-column: 2; }
+.story-block-decision-mechanism-add { margin-top: var(--story-rhythm-half); }
+/* Editor-only empty state: the quiet metadata voice, like a placeholder. */
+.story-block-empty-hint { font: 400 13px/24px var(--story-font-mono); color: var(--story-foreground-muted); }
+
+@media (min-width: 1024px) {
+  /* "One column" describes the section, not just the paragraph flow inside a
+     narrow reading module. Let prose use the complete chapter canvas, stack
+     attached notes, and stop an unfilled side-media slot from squeezing a
+     decision card into five of twelve columns. Two-column sections retain the
+     editorial reading measure and side-by-side composition above. */
+  [data-columns='one'] .story-block-grid > .story-block-prose,
+  [data-columns='one'] .story-block-headed > .story-block-prose {
+    grid-column: 1 / -1;
+    max-width: none;
+    width: 100%;
+  }
+  [data-columns='one'] .story-block-headed {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--story-rhythm-half);
+  }
+  [data-columns='one'] .story-block-headed > .story-block-subhead {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: none;
+    padding-top: 0;
+  }
+  [data-columns='one'] .story-block-with-notes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  [data-columns='one'] .story-block-with-notes > .story-block-prose,
+  [data-columns='one'] .story-block-with-notes > .story-block-notes {
+    grid-column: 1 / -1;
+  }
+  [data-columns='one'] .story-block-grid > .story-block-decision-wrap {
+    grid-column: 1 / -1;
+  }
+  [data-columns='one'] .story-block-decision-wrap {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  [data-columns='one'] .story-block-decision {
+    width: 100%;
+    max-width: none;
+  }
+
+  /* A one-column chapter is the author's explicit full-canvas composition.
+     Apply that intent consistently to every text-bearing sibling instead of
+     leaving captions, notes, ledgers, callouts and quotes on unrelated legacy
+     measures. Explicit media width and explicit insight-title choices remain
+     authoritative. */
+  [data-columns='one'] .story-block-grid > :is(.story-block-decision-editorial, .story-block-ledger, .story-block-callout, .story-block-quote, .story-block-note),
+  [data-columns='one'] .story-block-with-notes > .story-block-prose,
+  [data-columns='one'] .story-block-with-notes .story-block-note {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Explicit editorial palettes. A legacy callout has no palette attribute and
+   keeps its original paint. Pigment commits to the named ramp; ink is mixed
+   against the actual theme text, independently of Surface. */
+.story-block-callout-palette[data-callout-palette='neutral'] { --callout-pigment: var(--story-neutral-500); }
+.story-block-callout-palette[data-callout-palette='info'] { --callout-pigment: var(--story-info); }
+.story-block-callout-palette[data-callout-palette='success'] { --callout-pigment: var(--story-success); }
+.story-block-callout-palette[data-callout-palette='warning'] { --callout-pigment: var(--story-warning); }
+.story-block-callout-palette[data-callout-palette='error'] { --callout-pigment: var(--story-error); }
+.story-block-callout-palette[data-callout-palette='slate'] { --callout-pigment: var(--story-neutral-700); }
+.story-block-callout-palette[data-callout-palette='sky'] { --callout-pigment: var(--story-blue-400); }
+.story-block-callout-palette[data-callout-palette='cobalt'] { --callout-pigment: var(--story-blue-700); }
+.story-block-callout-palette[data-callout-palette='teal'] { --callout-pigment: var(--story-teal-500); }
+.story-block-callout-palette[data-callout-palette='deep-teal'] { --callout-pigment: var(--story-teal-800); }
+.story-block-callout-palette[data-callout-palette='amber'] { --callout-pigment: var(--story-orange-500); }
+.story-block-callout-palette[data-callout-palette='copper'] { --callout-pigment: var(--story-orange-800); }
+
+.story-block-callout-palette[data-callout-palette] {
+  --callout-accent: color-mix(in srgb, var(--callout-pigment) 42%, var(--story-foreground));
+}
+.story-block-callout.story-block-callout-palette[data-callout-palette] {
+  --callout-surface: color-mix(in srgb, var(--callout-pigment) 13%, var(--story-card));
+}
+.story-block-callout.story-block-callout-palette[data-callout-palette][data-presentation='outline'] {
+  --callout-surface: transparent;
+  border-color: color-mix(in srgb, var(--callout-accent) 57%, var(--story-border));
+}
+.story-block-callout.story-block-callout-palette[data-callout-palette][data-presentation='panel'] {
+  --callout-accent: color-mix(in srgb, var(--callout-pigment) 42%, var(--story-on-panel));
+  --callout-surface: color-mix(in srgb, var(--callout-pigment) 16%, var(--story-surface-panel));
+  border-color: color-mix(in srgb, var(--callout-accent) 30%, var(--story-surface-panel));
+}
+.story-block-callout.story-block-callout-palette[data-callout-palette][data-presentation='panel'] :is(.story-block-callout-body, .story-block-callout-content) a {
+  color: var(--story-link-current, var(--story-on-panel));
+}
+.story-block-callout.story-block-callout-palette[data-callout-palette]:not([data-presentation='panel']) .story-block-callout-body :is(p, li) {
+  color: color-mix(in srgb, var(--story-foreground) 32%, var(--story-foreground-muted));
+}
+
+
+/* ─── chapterStyles ─────────────────────────────────────────── */
+/* A chapter opens on a hairline across the column, a small label, and a
+ * sans statement — the /blog title register, not the mono display one, so
+ * the hero stays the loudest thing on the page. */
+
+.story-chapter-chapter {
+  padding-block: var(--story-rhythm-major);
+  box-shadow: inset 0 1px 0 var(--story-border);
+}
+.story-chapter-chapter[data-story-section-drop='before'] { box-shadow: inset 0 3px 0 var(--story-accent); }
+.story-chapter-chapter[data-story-section-drop='after'] { box-shadow: inset 0 -3px 0 var(--story-accent); }
+.story-chapter-chapter[data-density='compact'] { --story-block-gap: var(--story-rhythm-minor); }
+/* The chapter bar moves focus here so the next Tab continues in the chapter. */
+.story-chapter-chapter:focus { outline: none; }
+.story-chapter-chapter:focus-visible {
+  outline: 2px solid var(--story-accent);
+  outline-offset: 4px;
+}
+
+/* The statement runs the full width of the column; `pretty` (not `balance`)
+   lets each line fill to the edge and only avoids a lone last word. */
+.story-chapter-title {
+  margin: 0;
+  padding-bottom: var(--story-rhythm-half);
+  font: 600 30px/36px var(--story-font-sans);
+  letter-spacing: -.025em;
+  color: var(--story-foreground);
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.story-chapter-body { padding-top: calc(var(--story-rhythm-minor) * 2); }
+.story-chapter-chapter[data-density='compact'] .story-chapter-body { padding-top: var(--story-rhythm-minor); }
+
+@media (max-width: 767px) {
+  /* A phone shows one idea at a time. Two minor units separate chapters,
+     while one minor unit keeps a heading attached to the first block. */
+  .story-chapter-chapter { padding-block: calc(var(--story-rhythm-minor) * 2); }
+  .story-chapter-title {
+    padding-bottom: 0;
+    font-size: 26px;
+    line-height: 36px;
+  }
+  .story-chapter-body { padding-top: var(--story-rhythm-minor); }
+}
+
+@media (min-width: 768px) {
+  /* 72 below one chapter + the rule + 72 above the next = the 144 section gap. */
+  .story-chapter-chapter { padding-block: var(--story-rhythm-major); }
+  .story-chapter-title { font-size: 36px; line-height: 48px; }
+}
+
+.story-chapter-credits { padding-block: var(--story-rhythm-minor) var(--story-rhythm-major); box-shadow: inset 0 1px 0 var(--story-border); }
+.story-chapter-credits-title {
+  margin: 0;
+  padding-top: var(--story-rhythm-half);
+  padding-bottom: var(--story-rhythm-half);
+  font: 700 13px/24px var(--story-font-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--story-foreground-muted);
+}
+.story-chapter-credits-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0 var(--story-rhythm-minor);
+}
+.story-chapter-credits-list li { display: flex; flex-wrap: wrap; gap: 0 12px; min-width: 0; }
+.story-chapter-credit-name { font: 600 16px/24px var(--story-font-sans); color: var(--story-foreground); }
+.story-chapter-credit-role { font: 400 13px/24px var(--story-font-mono); color: var(--story-foreground-muted); }
+
+@media (min-width: 768px) {
+  .story-chapter-credits-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1024px) {
+  .story-chapter-credits-list { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+
+
+
+/* ─── heroStyles ─────────────────────────────────────────── */
+/* The fold. A bold display title with tight tracking, sans for the thesis,
+ * 13px mono for everything that's metadata. */
+
+.story-hero-hero { padding-top: var(--story-rhythm-minor); }
+
+.story-hero-back {
+  display: inline-flex;
+  gap: 8px;
+  font: 500 13px/24px var(--story-font-mono);
+  color: var(--story-foreground-muted);
+  text-decoration: none;
+  transition: color 160ms cubic-bezier(.16, 1, .3, 1);
+}
+.story-hero-back:hover { color: var(--story-foreground); }
+.story-hero-back:focus-visible { outline: 3px solid var(--story-accent); outline-offset: 4px; border-radius: 2px; }
+
+.story-hero-identity {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 16px;
+  min-height: 24px;
+}
+/* A small wordmark heads the text column; the graphic column offsets by the
+   difference so the card border meets the logo's top edge (see .graphic). */
+.story-hero-hero { --hero-logo-height: 16px; }
+.story-hero-logo { display: block; width: auto; height: var(--hero-logo-height); max-width: 196px; object-fit: contain; object-position: left; }
+.story-hero-company { font: 700 13px/24px var(--story-font-mono); color: var(--story-foreground); }
+.story-hero-period { font: 400 13px/24px var(--story-font-mono); color: var(--story-foreground-muted); }
+/* The credits separator: a slash in the hairline colour. Only from
+   sm up — on a phone the row wraps, and a line must never start with one. */
+@media (min-width: 640px) {
+  .story-hero-period::before,
+  .story-hero-status::before { content: '/'; margin-right: 16px; color: var(--story-border-hover); }
+}
+.story-hero-status { font: 400 13px/24px var(--story-font-mono); color: var(--story-foreground-muted); }
+/* Period, status, project year and read time. From sm up the group dissolves into the
+   logo row (every layout below places them as its own children). On a phone
+   it is a full-width row under the logo, so the labels never squeeze in
+   beside it and wrap into a ragged second line. Symmetric half padding sets
+   the row off from the logo (and the title under it) and keeps the block on
+   the baseline. The logo, alone on its row, is centred in the 24px line it
+   used to share (same optical offset as .graphic below). */
+.story-hero-details { display: contents; }
+@media (max-width: 639px) {
+  .story-hero-details { display: flex; flex-wrap: wrap; flex-basis: 100%; gap: 0 16px; padding-block: var(--story-rhythm-half); }
+  .story-hero-logo { margin-block: calc((var(--story-rhythm-minor) - var(--hero-logo-height)) / 2); }
+}
+
+
+
+.story-hero-title {
+  margin: 0;
+  max-width: 22ch;
+  font: 700 40px/48px var(--story-font-mono);
+  letter-spacing: -.04em;
+  color: var(--story-foreground);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.story-hero-thesis {
+  margin: var(--story-rhythm-minor) 0 0;
+  max-width: 44rem;
+  /* RHYTHM lede ramp: 16/24 on phones, 24/36 from md. 20/36 reads
+     double-spaced on a narrow column. */
+  font: 500 16px/24px var(--story-font-sans);
+  letter-spacing: -.005em;
+  color: var(--story-foreground);
+  text-wrap: pretty;
+  white-space: pre-line;
+}
+
+.story-hero-summary-copy { min-width: 0; }
+/* Below 1024px the card stacks under the thesis. */
+.story-hero-lead, .story-hero-copy { min-width: 0; }
+.story-hero-lead { display: grid; gap: var(--story-rhythm-minor); margin-top: var(--story-rhythm-minor); }
+/* Logo row, then a full baseline to the title. */
+.story-hero-text { margin-top: var(--story-rhythm-minor); }
+
+.story-hero-disclosure {
+  margin: var(--story-rhythm-half) 0 0;
+  padding-bottom: var(--story-rhythm-half);
+  font: 400 13px/24px var(--story-font-mono);
+  color: var(--story-foreground-muted);
+  white-space: pre-line;
+}
+
+.story-hero-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 var(--story-rhythm-minor);
+  margin: calc(var(--story-rhythm-minor) * 2) 0 0;
+}
+.story-hero-fact { min-width: 0; padding-block: var(--story-rhythm-half); box-shadow: inset 0 1px 0 var(--story-border); }
+.story-hero-fact dt {
+  font: 400 13px/24px var(--story-font-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--story-foreground-muted);
+}
+.story-hero-fact dd { margin: 0; font: 500 16px/24px var(--story-font-sans); color: var(--story-foreground); overflow-wrap: anywhere; }
+
+.story-hero-media { margin-top: calc(var(--story-rhythm-minor) * 2); container-type: inline-size; }
+.story-hero-secondary-graphic { min-width: 0; container-type: inline-size; }
+.story-hero-hero[data-review-layout] .story-hero-facts { margin-top: 0; padding-top: var(--story-rhythm-minor); }
+
+@media (min-width: 768px) {
+  .story-hero-hero { padding-top: calc(var(--story-rhythm-minor) * 2); }
+  .story-hero-media { margin-top: var(--story-rhythm-major); }
+  .story-hero-title { font-size: 64px; line-height: 72px; }
+  .story-hero-thesis { font-weight: 400; font-size: 24px; line-height: 36px; letter-spacing: -.015em; }
+  .story-hero-facts { grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); }
+  /* Keep the artifact and facts divider on separate beats. */
+  .story-hero-hero[data-review-layout] .story-hero-facts { padding-top: calc(var(--story-rhythm-minor) * 2); }
+}
+
+@media (min-width: 1024px) {
+  /* 72 on a 72 line box: the display step of the RHYTHM size table. (80/84
+     read well but left one- and three-line titles on a half baseline.) */
+  .story-hero-title { font-size: 72px; line-height: 72px; letter-spacing: -.045em; }
+  .story-hero-lead {
+    grid-template-columns: minmax(0, 7fr) minmax(22rem, 5fr);
+    align-items: start;
+    gap: calc(var(--story-rhythm-minor) * 2);
+  }
+  /* Optical, not rhythm: the logo sits centred on its 24px baseline, so its
+     top edge is half the difference below the row. Dropping the card by the
+     same amount puts its border level with the logo. */
+  .story-hero-graphic { padding-top: calc((var(--story-rhythm-minor) - var(--hero-logo-height)) / 2); }
+
+  
+
+  /* Review-only compositions. Production never sets data-review-layout.
+     Editorial 1A–1D intentionally keep all text in one full-width flow. */
+  .story-hero-hero[data-review-layout^='editorial-'] .story-hero-lead {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'identity' 'title' 'summary' 'graphic';
+  }
+  .story-hero-hero[data-review-layout^='editorial-'] .story-hero-copy,
+  .story-hero-hero[data-review-layout^='editorial-'] .story-hero-text { display: contents; }
+  .story-hero-hero[data-review-layout^='editorial-'] .story-hero-identity { grid-area: identity; }
+  .story-hero-hero[data-review-layout^='editorial-'] .story-hero-title { grid-area: title; max-width: none; font-family: var(--story-font-sans); text-align: left; }
+  .story-hero-hero[data-review-layout^='editorial-'] .story-hero-summary-copy { grid-area: summary; width: 100%; max-width: none; }
+  .story-hero-hero[data-review-layout^='editorial-'] .story-hero-graphic { grid-area: graphic; width: min(100%, 68rem); margin-inline: auto; padding-top: 0; }
+  .story-hero-hero[data-review-layout^='editorial-'] .story-hero-secondary-graphic { grid-area: secondary; width: min(100%, 68rem); margin-inline: auto; container-type: inline-size; }
+
+  .story-hero-hero[data-review-layout='editorial-a'] .story-hero-lead { row-gap: normal; }
+  .story-hero-hero[data-review-layout='editorial-a'] .story-hero-title { font-size: 52px; font-weight: 350; line-height: 60px; letter-spacing: -.035em; }
+  .story-hero-hero[data-review-layout='editorial-a'] .story-hero-thesis { max-width: 58rem; margin: 0; font-size: 24px; line-height: 36px; }
+
+  .story-hero-hero[data-review-layout='editorial-b'] .story-hero-lead { row-gap: var(--story-rhythm-major); }
+  .story-hero-hero[data-review-layout='editorial-b'] .story-hero-title { font-size: 64px; font-weight: 300; line-height: 72px; letter-spacing: -.045em; }
+  .story-hero-hero[data-review-layout='editorial-b'] .story-hero-thesis { max-width: 66rem; margin: 0; font-size: 28px; line-height: 48px; font-weight: 300; }
+
+  .story-hero-hero[data-review-layout='editorial-c'] .story-hero-lead { grid-template-areas: 'identity' 'title' 'summary' 'graphic' 'secondary'; row-gap: var(--story-rhythm-minor); }
+  .story-hero-hero[data-review-layout='editorial-c'] .story-hero-title { padding-block: 0; border-block: 1px solid var(--story-border); font-size: 48px; font-weight: 450; line-height: 60px; letter-spacing: -.03em; }
+  .story-hero-hero[data-review-layout='editorial-c'] .story-hero-summary-copy { padding-bottom: var(--story-rhythm-minor); border-bottom: 1px solid var(--story-border); }
+  .story-hero-hero[data-review-layout='editorial-c'] .story-hero-thesis { max-width: 54rem; margin: 0; font-size: 20px; line-height: 36px; }
+
+  .story-hero-hero[data-review-layout='editorial-d'] .story-hero-lead { row-gap: var(--story-rhythm-minor); }
+  .story-hero-hero[data-review-layout='editorial-d'] .story-hero-title { font-size: 44px; font-weight: 550; line-height: 48px; letter-spacing: -.03em; }
+  .story-hero-hero[data-review-layout='editorial-d'] .story-hero-thesis { max-width: 62rem; margin: 0; font-size: 18px; line-height: 36px; }
+  .story-hero-hero[data-review-layout='editorial-d'] .story-hero-graphic { margin-top: var(--story-rhythm-minor); }
+
+  .story-hero-hero[data-review-layout^='media-first-'] .story-hero-lead {
+    grid-template-columns: minmax(0, 7fr) minmax(20rem, 5fr);
+    grid-template-areas: 'identity identity' 'graphic graphic' 'title summary';
+    column-gap: var(--story-rhythm-major);
+    row-gap: normal;
+  }
+  .story-hero-hero[data-review-layout^='media-first-'] .story-hero-copy,
+  .story-hero-hero[data-review-layout^='media-first-'] .story-hero-text { display: contents; }
+  .story-hero-hero[data-review-layout^='media-first-'] .story-hero-identity { grid-area: identity; }
+  .story-hero-hero[data-review-layout^='media-first-'] .story-hero-graphic { grid-area: graphic; padding-top: 0; }
+  .story-hero-hero[data-review-layout^='media-first-'] .story-hero-secondary-graphic { grid-area: secondary; min-width: 0; container-type: inline-size; }
+  .story-hero-hero[data-review-layout^='media-first-'] .story-hero-title { grid-area: title; max-width: 18ch; font-family: var(--story-font-sans); font-size: 48px; font-weight: 500; line-height: 60px; letter-spacing: -.035em; }
+  .story-hero-hero[data-review-layout^='media-first-'] .story-hero-summary-copy { grid-area: summary; align-self: end; }
+  .story-hero-hero[data-review-layout^='media-first-'] .story-hero-thesis { margin: 0; font-size: 18px; line-height: 36px; }
+
+  .story-hero-hero[data-review-layout='media-first-a'] .story-hero-graphic { width: min(100%, 72rem); margin-inline: auto; }
+  .story-hero-hero[data-review-layout='media-first-b'] .story-hero-lead { grid-template-areas: 'identity identity' 'graphic graphic' 'secondary secondary' 'title summary'; }
+  .story-hero-hero[data-review-layout='media-first-b'] .story-hero-graphic,
+  .story-hero-hero[data-review-layout='media-first-b'] .story-hero-secondary-graphic { width: min(100%, 64rem); margin-inline: auto; padding: var(--story-rhythm-half); background: var(--story-background-secondary); }
+  .story-hero-hero[data-review-layout='media-first-b'] .story-hero-title { font-size: 42px; line-height: 48px; }
+  .story-hero-hero[data-review-layout='media-first-c'] .story-hero-identity { padding-bottom: var(--story-rhythm-half); border-bottom: 1px solid var(--story-border); }
+  .story-hero-hero[data-review-layout='media-first-c'] .story-hero-graphic { width: min(100%, 68rem); margin-inline: 0 auto; }
+  .story-hero-hero[data-review-layout='media-first-c'] .story-hero-title { font-family: var(--story-font-mono); font-size: 40px; line-height: 48px; }
+  .story-hero-hero[data-review-layout='media-first-d'] .story-hero-lead { grid-template-areas: 'identity identity' 'graphic secondary' 'title summary'; gap: var(--story-rhythm-minor); }
+  .story-hero-hero[data-review-layout='media-first-d'] .story-hero-graphic,
+  .story-hero-hero[data-review-layout='media-first-d'] .story-hero-secondary-graphic { width: 100%; padding: var(--story-rhythm-half); background: var(--story-surface-panel); }
+  .story-hero-hero[data-review-layout='media-first-d'] .story-hero-title { font-size: 52px; }
+
+  .story-hero-hero[data-review-layout^='rail-'] .story-hero-lead {
+    grid-template-columns: minmax(0, 7fr) minmax(20rem, 5fr);
+    grid-template-areas: 'identity identity' 'title summary' 'graphic graphic';
+    column-gap: var(--story-rhythm-major);
+    row-gap: var(--story-rhythm-minor);
+  }
+  .story-hero-hero[data-review-layout^='rail-'] .story-hero-copy,
+  .story-hero-hero[data-review-layout^='rail-'] .story-hero-text { display: contents; }
+  .story-hero-hero[data-review-layout^='rail-'] .story-hero-identity { grid-area: identity; }
+  .story-hero-hero[data-review-layout^='rail-'] .story-hero-title { grid-area: title; max-width: 17ch; font-family: var(--story-font-sans); font-size: 52px; font-weight: 450; line-height: 60px; letter-spacing: -.035em; }
+  .story-hero-hero[data-review-layout^='rail-'] .story-hero-summary-copy { grid-area: summary; align-self: end; max-width: 34rem; }
+  .story-hero-hero[data-review-layout^='rail-'] .story-hero-thesis { margin: 0; font-size: 18px; line-height: 36px; text-wrap: pretty; }
+  .story-hero-hero[data-review-layout^='rail-'] .story-hero-graphic { grid-area: graphic; width: min(100%, 68rem); margin: var(--story-rhythm-minor) auto 0; padding-top: 0; }
+  .story-hero-hero[data-review-layout^='rail-'] .story-hero-secondary-graphic { grid-area: secondary; min-width: 0; container-type: inline-size; }
+
+  .story-hero-hero[data-review-layout='rail-a'] .story-hero-graphic { box-shadow: 0 -1px 0 var(--story-border); }
+
+  .story-hero-hero[data-review-layout='rail-b'] .story-hero-lead { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: 'identity identity' 'title title' 'summary summary' 'graphic secondary'; row-gap: normal; }
+  .story-hero-hero[data-review-layout='rail-b'] .story-hero-identity { justify-content: center; }
+  .story-hero-hero[data-review-layout='rail-b'] .story-hero-title { justify-self: center; max-width: 20ch; text-align: center; font-size: 48px; }
+  .story-hero-hero[data-review-layout='rail-b'] .story-hero-summary-copy { justify-self: center; max-width: 40rem; text-align: center; }
+  .story-hero-hero[data-review-layout='rail-b'] .story-hero-graphic,
+  .story-hero-hero[data-review-layout='rail-b'] .story-hero-secondary-graphic { width: 100%; margin-top: 0; }
+
+  .story-hero-hero[data-review-layout='rail-c'] .story-hero-lead { grid-template-columns: minmax(15rem, 4fr) minmax(0, 8fr); grid-template-areas: 'identity identity' 'title graphic'; align-items: start; }
+  .story-hero-hero[data-review-layout='rail-c'] .story-hero-title { font-size: 44px; line-height: 48px; }
+  .story-hero-hero[data-review-layout='rail-c'] .story-hero-summary-copy { align-self: start; max-width: 26rem; }
+  .story-hero-hero[data-review-layout='rail-c'] .story-hero-graphic { width: 100%; margin-top: 0; }
+
+  .story-hero-hero[data-review-layout='rail-d'] .story-hero-lead { grid-template-columns: minmax(12rem, 3fr) minmax(0, 9fr); grid-template-areas: 'identity title' 'identity summary' 'graphic graphic'; column-gap: normal; }
+  .story-hero-hero[data-review-layout='rail-d'] .story-hero-identity { align-items: flex-start; align-content: start; flex-direction: column; gap: 0; padding-right: var(--story-rhythm-minor); border-right: 1px solid var(--story-border); }
+  .story-hero-hero[data-review-layout='rail-d'] .story-hero-period::before,
+  .story-hero-hero[data-review-layout='rail-d'] .story-hero-status::before { content: none; }
+  .story-hero-hero[data-review-layout='rail-d'] .story-hero-title { max-width: none; font-size: 40px; line-height: 48px; }
+  .story-hero-hero[data-review-layout='rail-d'] .story-hero-summary-copy { align-self: start; max-width: 46rem; }
+  .story-hero-hero[data-review-layout='rail-d'] .story-hero-graphic { width: min(100%, 64rem); }
+  .story-hero-hero[data-review-layout='rail-d'] .story-hero-lead { grid-template-areas: 'identity title' 'identity summary' 'graphic graphic' 'secondary secondary'; }
+  .story-hero-hero[data-review-layout='rail-d'] .story-hero-secondary-graphic { width: min(100%, 64rem); margin-inline: auto; }
+}
+
+/* Eight review-layout rules in this file (here and in the 1024px block above)
+   once used `var(--story-rhythm-minor-2)`, which was never defined, so each
+   computed as `unset`: 0 for margins and padding, normal for gaps. They now
+   say so outright, which keeps every hero exactly as it renders. The intended
+   48px would double the text-to-image gap on live phone heroes (measured: 48
+   → 96px); change one only after looking at it. */
+@media (max-width: 1023px) {
+  .story-hero-hero[data-review-layout^='editorial-'] .story-hero-title,
+  .story-hero-hero[data-review-layout^='media-first-'] .story-hero-title,
+  .story-hero-hero[data-review-layout^='rail-'] .story-hero-title { max-width: none; font-family: var(--story-font-sans); }
+  .story-hero-hero[data-review-layout^='editorial-'] .story-hero-summary-copy { width: 100%; max-width: none; }
+  .story-hero-hero[data-review-layout^='editorial-'] .story-hero-graphic { margin-top: 0; }
+  .story-hero-hero[data-review-layout='editorial-b'] .story-hero-title { font-size: clamp(44px, 8vw, 60px); line-height: 1.05; font-weight: 300; }
+  .story-hero-hero[data-review-layout='editorial-c'] .story-hero-title { padding-block: var(--story-rhythm-minor); border-block: 1px solid var(--story-border); }
+  .story-hero-hero[data-review-layout='editorial-d'] .story-hero-title { font-size: clamp(36px, 7vw, 48px); line-height: 1; }
+
+  .story-hero-hero[data-review-layout^='media-first-'] .story-hero-lead { display: flex; flex-direction: column; gap: normal; }
+  .story-hero-hero[data-review-layout^='media-first-'] .story-hero-graphic { order: -1; padding-top: 0; }
+  .story-hero-hero[data-review-layout^='media-first-'] .story-hero-secondary-graphic { order: -1; container-type: inline-size; }
+  .story-hero-hero[data-review-layout='media-first-b'] .story-hero-graphic { margin-inline: var(--story-rhythm-half); padding: var(--story-rhythm-half); background: var(--story-background-secondary); }
+  .story-hero-hero[data-review-layout='media-first-c'] .story-hero-copy { padding-top: var(--story-rhythm-half); border-top: 1px solid var(--story-border); }
+  .story-hero-hero[data-review-layout='media-first-d'] .story-hero-graphic { padding: var(--story-rhythm-half); background: var(--story-surface-panel); }
+
+  .story-hero-hero[data-review-layout^='rail-'] .story-hero-graphic { margin-top: 0; }
+  .story-hero-hero[data-review-layout^='rail-'] .story-hero-secondary-graphic { margin-top: var(--story-rhythm-minor); container-type: inline-size; }
+  .story-hero-hero[data-review-layout='rail-b'] .story-hero-title { text-align: center; }
+  .story-hero-hero[data-review-layout='rail-b'] .story-hero-summary-copy { text-align: left; }
+  .story-hero-hero[data-review-layout='rail-c'] .story-hero-graphic { margin-left: var(--story-rhythm-minor); width: calc(100% - var(--story-rhythm-minor)); }
+  .story-hero-hero[data-review-layout='rail-d'] .story-hero-identity { padding-bottom: var(--story-rhythm-half); border-bottom: 1px solid var(--story-border); }
+}
+
+/* Embedded (a reader modal, the editor canvas and Preview): the
+   logo sits one baseline under the frame's top edge. In the reader the
+   sheet's controls rest on this row, so it keeps clear of them by
+   --reader-actions-inline (set by the reader; 0 everywhere else). After the
+   breakpoint block so it beats `.hero` there too; the public page never
+   carries data-embedded. */
+.story-hero-hero[data-embedded] { padding-top: var(--story-rhythm-minor); }
+.story-hero-hero[data-embedded] .story-hero-lead { margin-top: 0; }
+.story-hero-hero[data-embedded] .story-hero-identity { padding-right: var(--reader-actions-inline, 0px); }
+/* On a phone only the logo row meets the controls; the labels' row under it
+   (see .details) takes the full width. */
+@media (max-width: 639px) {
+  .story-hero-hero[data-embedded] .story-hero-identity { padding-right: 0; }
+  .story-hero-hero[data-embedded] .story-hero-logo,
+  .story-hero-hero[data-embedded] .story-hero-company { margin-right: var(--reader-actions-inline, 0px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-hero-back { transition: none; }
+}
+
+
+/* ─── chapterBarStyles ─────────────────────────────────────────── */
+/*
+ * The rail and the contents card are one element in two states. At rest only
+ * a strip at the right edge shows: a dash per section. Open, the card slides
+ * out leftward from the screen edge carrying its rows, the dashes riding its
+ * leading edge, so the rail visibly becomes the list.
+ *
+ * Geometry: the strip is --rail wide, exactly the card's inset, a row's
+ * padding and the dash slot, so the dashes hang flush with its right edge.
+ * The track (card face and rows together) sits translated by (its own width −
+ * --rail), which parks each row's dash slot in the strip; at rest the rest of
+ * it is transparent and hangs out past the screen edge. Opening takes that
+ * translate to zero. One transform on one element: the face and the dashes
+ * can't drift apart, and nothing is laid out per frame. The bar's clip-path
+ * cuts the overhang at the screen (or reader sheet) edge, which also keeps it
+ * from catching the pointer past that edge.
+ *
+ * Motion: entering and leaving use ease-out (quint), things already on screen
+ * moving use ease-in-out (cubic), colour changes use plain ease. Only
+ * transform, translate, scale and opacity move; the one exception is the long
+ * heading's mask, a small paint-only box.
+ */
+.story-bar-bar {
+  --inset: 4px;
+  --pad: 8px;
+  --slot: 24px;
+  --rail: calc(var(--inset) + var(--pad) + var(--slot));
+  --row: 32px;
+  --edge: max(8px, env(safe-area-inset-right));
+  --ease-out: cubic-bezier(.23, 1, .32, 1);
+  --ease-in-out: cubic-bezier(.645, .045, .355, 1);
+  --open: 250ms;
+  --close: 200ms;
+  position: fixed;
+  right: var(--edge);
+  top: 50%;
+  z-index: 50;
+  transform: translate(8px, -50%);
+  opacity: 0;
+  pointer-events: none;
+  clip-path: inset(-50vh calc(var(--edge) * -1) -50vh -100vw);
+  transition:
+    opacity 240ms var(--ease-out),
+    transform 240ms var(--ease-out);
+}
+.story-bar-bar[data-visible='true'] { opacity: 1; transform: translate(0, -50%); }
+
+@media (max-width: 767px) {
+  /* A 26px resting strip clears the reading column without creating a broad
+     empty gutter. Open rows grow to 44px high, so the smaller rail remains
+     comfortable to operate once its named menu is visible. */
+  .story-bar-bar {
+    --inset: 2px;
+    --pad: 4px;
+    --slot: 20px;
+    --rail: calc(var(--inset) + var(--pad) + var(--slot));
+    --row: 44px;
+    --edge: max(2px, env(safe-area-inset-right));
+  }
+}
+
+.story-bar-track {
+  position: relative;
+  padding: var(--inset);
+  transform: translateX(calc(100% - var(--rail)));
+  transition: transform var(--close) var(--ease-out);
+}
+.story-bar-bar[data-open='true'] .story-bar-track { transform: none; transition-duration: var(--open); }
+
+/* The card's face. It fades up fast so the card has a body for most of the
+   slide, and fades last on the way out. */
+.story-bar-surface {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: var(--story-background);
+  box-shadow: 0 0 0 1px var(--story-border), var(--story-shadow-lg);
+  opacity: 0;
+  transition: opacity var(--close) var(--ease-out);
+}
+.story-bar-bar[data-open='true'] .story-bar-surface { opacity: 1; pointer-events: auto; transition-duration: 120ms; }
+
+/* Two highlights, one shape. `.indicator` slides to the section being read
+   and carries the accent, so "you are here" is the strongest thing in the
+   card however you entered it. `.hover` is a neutral grey that slides to the
+   row being pointed at (or focused); over the current row it steps aside and
+   the accent deepens instead, so the two never stack into a muddy blue-grey.
+   Pressing either gives a little: scale(.98), for 100ms. */
+.story-bar-indicator,
+.story-bar-hover {
+  position: absolute;
+  top: var(--inset);
+  right: var(--inset);
+  left: var(--inset);
+  height: var(--row);
+  border-radius: 8px;
+  opacity: 0;
+  pointer-events: none;
+}
+.story-bar-indicator {
+  background: color-mix(in srgb, var(--story-accent) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--story-accent) 18%, transparent);
+  translate: 0 calc(var(--here) * var(--row));
+  transition:
+    translate 240ms var(--ease-in-out),
+    scale 100ms var(--ease-out),
+    opacity 150ms var(--ease-out),
+    background-color 150ms ease;
+}
+.story-bar-bar[data-open='true'] .story-bar-indicator { opacity: 1; }
+.story-bar-track:has(.story-bar-item[aria-current][data-pointed]) .story-bar-indicator { background: color-mix(in srgb, var(--story-accent) 14%, transparent); }
+.story-bar-track:has(.story-bar-item[aria-current]:active) .story-bar-indicator {
+  background: color-mix(in srgb, var(--story-accent) 20%, transparent);
+  scale: .98;
+}
+
+/* Follows the pointer, so it starts fast (ease-out, 150ms) rather than
+   easing in behind it. A keyboard move lands at once. */
+.story-bar-hover {
+  background: color-mix(in srgb, var(--story-foreground) 6%, transparent);
+  translate: 0 calc(var(--at) * var(--row));
+  transition:
+    translate 150ms var(--ease-out),
+    scale 100ms var(--ease-out),
+    opacity 150ms var(--ease-out),
+    background-color 100ms ease;
+}
+.story-bar-hover[data-instant] { transition-duration: 0s, 100ms, 150ms, 100ms; }
+.story-bar-hover[data-on] { opacity: 1; }
+/* A fresh arrival is a new element: it fades up where it lands. */
+@starting-style {
+  .story-bar-hover[data-on] { opacity: 0; }
+}
+.story-bar-track:has(.story-bar-item:not([aria-current]):active) .story-bar-hover {
+  background: color-mix(in srgb, var(--story-foreground) 10%, transparent);
+  scale: .98;
+}
+
+.story-bar-list {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* "Pointed" comes from the component (pointer or keyboard focus, never
+   touch), not :hover, so a tap can't leave a row stuck in its hover look. */
+.story-bar-item {
+  display: flex;
+  align-items: center;
+  height: var(--row);
+  padding: 0 var(--pad);
+  border-radius: 8px;
+  color: var(--story-foreground-muted);
+  font: 400 14px/24px var(--story-font-sans);
+  text-decoration: none;
+  white-space: nowrap;
+  pointer-events: auto;
+  transition: color 150ms ease;
+}
+.story-bar-item[aria-current] { color: var(--story-foreground); font-weight: 500; }
+.story-bar-bar[data-open='true'] .story-bar-item[data-pointed] { color: var(--story-foreground); }
+.story-bar-item:focus-visible { outline: 2px solid var(--story-accent); outline-offset: -2px; }
+
+/* The dash fills its slot and is scaled from its right end, so a change of
+   length is a transform, not a re-layout. --dash is its length in px of the
+   24px slot: at rest the dashes hang off the rail's edge and reach leftward;
+   open they line up as list markers. */
+.story-bar-tick {
+  display: flex;
+  flex: none;
+  width: var(--slot);
+  margin-right: 10px;
+}
+.story-bar-tick::after {
+  --dash: 12;
+  content: '';
+  width: 100%;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--story-foreground-muted);
+  opacity: .5;
+  scale: calc(var(--dash) / 24) 1;
+  transform-origin: right;
+  transition:
+    scale 180ms var(--ease-out),
+    opacity 150ms ease,
+    background-color 150ms ease;
+}
+.story-bar-item[data-read] .story-bar-tick::after { background: var(--story-foreground); opacity: .6; }
+.story-bar-item[data-pointed] .story-bar-tick::after { --dash: 18; background: var(--story-foreground); opacity: 1; }
+.story-bar-item[aria-current] .story-bar-tick::after { --dash: 24; background: var(--story-accent); opacity: 1; }
+/* Open, the markers line up short and colour says read / here / ahead; the
+   one being pointed at reaches out toward the pointer. The current one keeps
+   its full rest length, so the dash you followed in is the one still marked. */
+.story-bar-bar[data-open='true'] .story-bar-tick::after { --dash: 14; }
+.story-bar-bar[data-open='true'] .story-bar-item[data-pointed] .story-bar-tick::after { --dash: 20; }
+.story-bar-bar[data-open='true'] .story-bar-item[aria-current] .story-bar-tick::after { --dash: 24; }
+
+/* Headings fade in a beat behind the card and are fully there by the time it
+   lands (40 + 180 < 250ms); on the way out they go first. */
+.story-bar-label {
+  min-width: 0;
+  /* Story headings are sentences, not labels: room for most of one. */
+  max-width: min(22rem, 100vw - 128px);
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    opacity 100ms var(--ease-out),
+    mask-position 240ms var(--ease-out);
+}
+.story-bar-bar[data-open='true'] .story-bar-label {
+  opacity: 1;
+  transition:
+    opacity 180ms var(--ease-out) 40ms,
+    mask-position 240ms var(--ease-out);
+}
+.story-bar-text {
+  display: inline-block;
+  vertical-align: top;
+  transition: transform 240ms var(--ease-out);
+}
+
+/* A heading longer than the card fades out at the cut. Rest on it (or focus
+   it) for a beat and it scrolls the rest into view at reading pace, about
+   60px a second; the fade slides across to the edge the text went past. One
+   pass, no loop; leaving snaps it home. The mask is a gradient one fade wider
+   than the label, so moving it by that fade swaps which edge is soft. */
+.story-bar-label[data-overflow] {
+  --fade: 20px;
+  --scan: calc(var(--overflow) * 16ms + 240ms);
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    var(--story-foreground) var(--fade),
+    var(--story-foreground) calc(100% - var(--fade)),
+    transparent
+  );
+  mask-size: calc(100% + var(--fade)) 100%;
+  mask-position: calc(var(--fade) * -1) 0;
+  mask-repeat: no-repeat;
+}
+.story-bar-bar[data-open='true'] .story-bar-item[data-pointed] .story-bar-label[data-overflow] {
+  mask-position: 0 0;
+  transition:
+    opacity 180ms var(--ease-out) 40ms,
+    mask-position var(--scan) var(--ease-in-out) 450ms;
+}
+.story-bar-bar[data-open='true'] .story-bar-item[data-pointed] .story-bar-label[data-overflow] .story-bar-text {
+  transform: translateX(calc(var(--overflow) * -1px));
+  transition: transform var(--scan) var(--ease-in-out) 450ms;
+}
+
+@media (max-width: 767px) {
+  .story-bar-bar { --edge: max(4px, env(safe-area-inset-right)); }
+}
+
+/* Unlayered like the rest of this module; the !important only strips the
+   movement out of transitions declared at higher specificity above. The card
+   still fades, the dashes still change colour, and a long heading still shows
+   its end after the pause, as a cut instead of a scroll. */
+@media (prefers-reduced-motion: reduce) {
+  .story-bar-bar { transition: opacity 120ms linear; transform: translate(0, -50%); }
+  .story-bar-track,
+  .story-bar-indicator,
+  .story-bar-hover,
+  .story-bar-tick::after { transition-property: opacity, background-color !important; }
+  .story-bar-label { transition-duration: 120ms, 0s !important; }
+  .story-bar-text { transition-duration: 0s !important; }
+}
+
+
+/* ─── decisionStyles ─────────────────────────────────────────── */
+.story-decisions-section {
+  padding-block: var(--story-rhythm-major);
+  box-shadow: inset 0 1px 0 var(--story-border);
+}
+
+.story-decisions-header {
+  display: grid;
+  gap: var(--story-rhythm-half);
+  max-width: 52rem;
+}
+
+.story-decisions-title {
+  margin: 0;
+  font: 600 36px/48px var(--story-font-sans);
+  letter-spacing: -.03em;
+  color: var(--story-foreground);
+}
+
+.story-decisions-intro {
+  margin: 0;
+  font: 400 16px/24px var(--story-font-sans);
+  color: var(--story-foreground-muted);
+}
+
+.story-decisions-list {
+  display: grid;
+  gap: var(--story-rhythm-half);
+  margin-top: var(--story-rhythm-minor);
+}
+
+.story-decisions-item {
+  min-width: 0;
+  border: 1px solid var(--story-border);
+  border-radius: 6px;
+  background: var(--story-card);
+}
+
+.story-decisions-item summary {
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--story-rhythm-half);
+  padding: var(--story-rhythm-half) var(--story-rhythm-minor);
+  cursor: pointer;
+  list-style: none;
+  font: 600 16px/24px var(--story-font-sans);
+  color: var(--story-foreground);
+}
+
+.story-decisions-item summary::-webkit-details-marker { display: none; }
+.story-decisions-item summary::after {
+  content: '+';
+  font: 400 24px/24px var(--story-font-sans);
+  color: var(--story-foreground-muted);
+}
+.story-decisions-item[open] summary::after { content: '−'; }
+.story-decisions-item summary:focus-visible { outline: 2px solid var(--story-accent); outline-offset: 2px; }
+
+.story-decisions-detail {
+  padding: 0 var(--story-rhythm-minor) var(--story-rhythm-minor);
+  max-width: 64rem;
+  font: 400 16px/24px var(--story-font-sans);
+  color: var(--story-foreground);
+}
+
+.story-decisions-detail a { color: inherit; text-decoration: underline; text-decoration-color: var(--story-accent); text-underline-offset: 3px; }
+.story-decisions-empty { margin: 0; color: var(--story-foreground-muted); font: 400 13px/24px var(--story-font-sans); }
+
+@media (max-width: 767px) {
+  .story-decisions-section { padding-block: calc(var(--story-rhythm-minor) * 2); }
+  .story-decisions-title { font-size: 30px; line-height: 36px; }
+  .story-decisions-item summary { padding-inline: var(--story-rhythm-half); }
+  .story-decisions-detail { padding-inline: var(--story-rhythm-half); }
+}
+
+
+/* ─── nextStyles ─────────────────────────────────────────── */
+.story-next-next { padding-block: var(--story-rhythm-major) calc(var(--story-rhythm-major) * 2); box-shadow: inset 0 1px 0 var(--story-border); }
+
+/* The row above the next card: its name, and the way to the rest. */
+.story-next-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--story-rhythm-half) var(--story-rhythm-minor); margin-bottom: var(--story-rhythm-minor); }
+/* Keep a navigation link so the reader can get back to the index. Its keycap
+   follows the shared raised Button, including hover, press and motion. */
+.story-next-all {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(var(--story-rhythm-minor) * 2);
+  padding-inline: 1.25rem;
+  border: 1px solid var(--story-border-hover);
+  border-radius: .5rem;
+  background: var(--story-card);
+  box-shadow: 0 2px 0 var(--story-border-hover), var(--story-shadow-key);
+  font: 500 15px/24px var(--story-font-sans);
+  letter-spacing: -.01em;
+  color: var(--story-foreground);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color .15s ease, box-shadow .15s ease, translate .15s ease;
+}
+@media (hover: hover) {
+  .story-next-all:hover { background: var(--story-background); translate: 0 -1px; box-shadow: 0 3px 0 var(--story-border-hover), var(--story-shadow-key-hover); }
+}
+.story-next-all:active { translate: 0 2px; box-shadow: 0 0 0 var(--story-border-hover); transition-duration: .075s; }
+.story-next-all:focus-visible { outline: 2px solid var(--story-accent); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .story-next-all { transition: none; }
+  .story-next-all:hover, .story-next-all:active { translate: none; }
+}
+
+
+/* ─── compareStyles ─────────────────────────────────────────── */
+/* Original · New — the compare switch. Same material as the chapter
+ * bar (paper pill, hairline, ink for the current item) so it reads as part of
+ * the page's chrome, parked top right under the site navigation where
+ * nothing else floats. */
+
+.story-compare-switch {
+  position: fixed;
+  top: calc(var(--story-rhythm-major) + var(--story-rhythm-half));
+  right: var(--story-rhythm-minor);
+  z-index: 50;
+  display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--story-background) 82%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 0 0 1px var(--story-border), var(--story-shadow-lg);
+}
+
+.story-compare-item {
+  display: block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font: 500 13px/24px var(--story-font-mono);
+  color: var(--story-foreground-muted);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 160ms cubic-bezier(.16, 1, .3, 1);
+}
+a.story-compare-item:hover { color: var(--story-foreground); }
+a.story-compare-item:focus-visible { outline: 2px solid var(--story-accent); outline-offset: 2px; }
+.story-compare-item[aria-current='page'] { color: var(--story-background); background: var(--story-foreground); }
+
+@media (prefers-reduced-motion: reduce) {
+  .story-compare-item { transition: none; }
+}
+
+
+/* ─── contributionStyles ─────────────────────────────────────────── */
+.story-contribution-section { display: grid; grid-template-columns: minmax(10rem, 13rem) minmax(0, 1fr); gap: var(--story-rhythm-minor); max-width: 62rem; padding: var(--story-rhythm-minor) 0; border-top: 1px solid var(--story-border); }
+.story-contribution-section h3 { margin: 0; color: var(--story-foreground); font: 600 20px/28px var(--story-font-sans); letter-spacing: -.01em; }
+.story-contribution-items, .story-contribution-partners { margin: 0; padding: 0; }
+.story-contribution-items { list-style: none; display: grid; grid-template-columns: 1fr; }
+.story-contribution-items li { position: relative; padding: var(--story-rhythm-half) 0 var(--story-rhythm-half) 1.25rem; border-top: 1px solid var(--story-border); }
+.story-contribution-items li:first-child { border-top: 0; }
+.story-contribution-items li::before { content: ''; position: absolute; top: 1.25rem; left: 0; width: .375rem; height: .375rem; border-radius: 50%; background: var(--story-accent); }
+.story-contribution-items p { margin: 0; color: var(--story-foreground); font: 500 16px/24px var(--story-font-sans); }
+.story-contribution-section[data-kind='influenced'] { padding: var(--story-rhythm-minor); border: 0; border-radius: 6px; background: var(--story-surface-panel); color: var(--story-on-panel); }
+.story-contribution-section[data-kind='influenced'] h3, .story-contribution-section[data-kind='influenced'] .story-contribution-items p { color: var(--story-on-panel); }
+.story-contribution-section[data-kind='influenced'] .story-contribution-items li { border-color: var(--story-on-panel-divider); }
+.story-contribution-partners { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 var(--story-rhythm-minor); }
+.story-contribution-partners > div { display: grid; gap: .25rem; align-content: start; padding: var(--story-rhythm-half) 0; border-top: 1px solid var(--story-border); }
+.story-contribution-partners > div:nth-child(-n+2) { border-top: 0; }
+.story-contribution-partners dt { color: var(--story-foreground); font: 600 16px/24px var(--story-font-sans); }
+.story-contribution-partners dd { margin: 0; color: var(--story-foreground-muted); font: 400 16px/24px var(--story-font-sans); }
+.story-contribution-empty { margin: 0; color: var(--story-foreground-muted); font: 400 13px/24px var(--story-font-mono); }
+@media (max-width: 700px) {
+  .story-contribution-section { grid-template-columns: 1fr; gap: var(--story-rhythm-half); }
+  .story-contribution-partners { grid-template-columns: 1fr; }
+  .story-contribution-partners > div:nth-child(2) { border-top: 1px solid var(--story-border); }
+}
+
+
+/* ─── heroMorphStyles ─────────────────────────────────────────── */
+/* The hero pattern sits in the hero card frame (the story-frame- classes:
+ * figure, media, footer, controls), so every hero card is one size; these
+ * rules add only what the pattern needs inside it. */
+
+/* Still and canvas stack in the frame's 6:5 media box, on the colour the
+   shader draws its background in. */
+.story-morph-stage { position: absolute; inset: 0; background: var(--story-card); }
+.story-morph-still { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+
+/* The canvas draws the still's frame first, so revealing it changes nothing;
+   the short fade only hides sub-pixel differences in antialiasing. */
+.story-morph-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 240ms ease-out;
+}
+.story-morph-stage[data-ready] .story-morph-canvas { opacity: 1; }
+
+/* No caption, but the control row keeps the motion card's height, so every
+   hero card is the same size whether or not it has a button to show. */
+.story-morph-footer { min-height: 44px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .story-morph-canvas { transition: none; }
+}
+
+
+/* ─── heroFrameStyles ─────────────────────────────────────────── */
+.story-frame-figure {
+  min-width: 0;
+  margin: 0;
+  padding: var(--story-rhythm-half);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--story-accent) 4%, var(--story-card));
+  box-shadow: inset 0 0 0 1px var(--story-border);
+}
+
+.story-frame-media {
+  position: relative;
+  overflow: hidden;
+  /* The shape comes from the footage (the hero graphic); 6:5 is the
+     fallback before it renders. */
+  aspect-ratio: 6 / 5;
+  border-radius: 8px;
+  background: var(--story-background-secondary);
+  box-shadow: 0 0 0 1px var(--story-border), var(--story-shadow-sm);
+}
+
+.story-frame-media video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  background: var(--story-background-secondary);
+}
+
+.story-frame-footer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px;
+  margin-top: var(--story-rhythm-half);
+}
+
+.story-frame-note {
+  margin: 0;
+  font: 400 13px/24px var(--story-font-mono);
+  color: var(--story-foreground-muted);
+  text-wrap: pretty;
+}
+
+/* ─── motionToggleStyles ─────────────────────────────────────────── */
+/* Sits over the moving media, above a card's overlay link (z-index 2), and
+   takes clicks even when its parent lets them fall through. It is the control
+   that satisfies WCAG 2.2.2 for every loop, so it stays opaque enough to hold
+   its contrast over a white frame, in every theme. */
+.story-motion-toggle {
+  position: absolute;
+  z-index: 3;
+  right: var(--story-rhythm-half);
+  bottom: var(--story-rhythm-half);
+  display: grid;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--story-on-panel-divider);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--story-surface-panel) 84%, transparent);
+  color: var(--story-on-panel);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--story-surface-panel) 24%, transparent);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+@media (hover: hover) {
+  .story-motion-toggle:hover {
+    border-color: var(--story-accent);
+    background: var(--story-surface-panel);
+    color: var(--story-neutral-50);
+  }
+}
+
+.story-motion-toggle:active { transform: scale(.94); }
+.story-motion-toggle:focus-visible { outline: 2px solid var(--story-accent); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .story-motion-toggle { transition: none; }
+}
+
+@media (forced-colors: active) {
+  .story-motion-toggle {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+}
+
+
+/* ─── Semantic classes for the reader's own layout ─────────────────── */
+.story-page {
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-inline: var(--story-rhythm-minor);
+}
+
+.story-hero-column { min-width: 0; }
+
+.story-block-cta {
+  display: inline-flex;
+  align-items: center;
+  min-height: calc(var(--story-rhythm-minor) * 2);
+  padding-inline: 1.25rem;
+  border-radius: var(--story-radius-md);
+  background: var(--story-foreground);
+  color: var(--story-background);
+  font: 500 15px/24px var(--story-font-sans);
+  text-decoration: none;
+}
+.story-block-cta:hover { background: color-mix(in srgb, var(--story-foreground) 88%, var(--story-background)); }
+.story-block-cta:focus-visible { outline: 2px solid var(--story-accent); outline-offset: 3px; }
+
+.story-block-custom {
+  grid-column: 1 / -1;
+  min-width: 0;
+  margin: 0;
+}
+
+.story-block-custom-title {
+  margin: 0 0 var(--story-rhythm-half);
+  font: 600 18px/24px var(--story-font-sans);
+  color: var(--story-foreground);
+}
+
+.story-block-custom-missing {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 4px;
+  padding: var(--story-rhythm-minor);
+  border: 1px dashed var(--story-border-hover);
+  border-radius: var(--story-radius-md);
+  background: var(--story-card);
+  font: 400 14px/24px var(--story-font-sans);
+  color: var(--story-foreground-muted);
+}
+.story-block-custom-missing strong { color: var(--story-foreground); font-weight: 600; }
+
+.story-next-heading {
+  margin: 0;
+  font: 600 24px/36px var(--story-font-sans);
+  color: var(--story-foreground);
+}
+
+.story-next-card {
+  position: relative;
+  display: grid;
+  gap: var(--story-rhythm-half);
+  padding: var(--story-rhythm-minor);
+  border-radius: var(--story-radius-lg);
+  background: var(--story-card);
+  box-shadow: inset 0 0 0 1px var(--story-border);
+}
+.story-next-card:hover { box-shadow: inset 0 0 0 1px var(--story-border-hover); }
+
+.story-next-company { margin: 0; font: 400 13px/24px var(--story-font-mono); color: var(--story-foreground-muted); }
+
+.story-next-title { margin: 0; font: 600 20px/24px var(--story-font-sans); color: var(--story-foreground); }
+
+.story-next-summary { margin: 0; max-width: 40rem; font: 400 16px/24px var(--story-font-sans); color: var(--story-foreground-muted); }
+
+.story-next-card-link { position: absolute; inset: 0; border-radius: inherit; }
+.story-next-card-link:focus-visible { outline: 2px solid var(--story-accent); outline-offset: 2px; }
+
+.story-compare-item-slot { display: contents; }
+
+.story-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.story-fill { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.story-fill-cover { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }

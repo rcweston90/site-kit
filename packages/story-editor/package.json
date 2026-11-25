@@ -1,0 +1,57 @@
+{
+  "name": "@rcweston/story-editor",
+  "version": "0.1.0",
+  "description": "The in-place story editor: one continuous document over typed blocks, on the real page, with saves that explain themselves.",
+  "license": "MIT",
+  "author": "Charlie Weston",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && cp src/*.css dist/",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsx --test 'test/*.test.ts' 'test/*.test.tsx'"
+  },
+  "dependencies": {
+    "@rcweston/story-core": "workspace:^",
+    "@rcweston/story-react": "workspace:^",
+    "@rcweston/save-kit": "workspace:^",
+    "lucide-react": "~0.562.0",
+    "@tiptap/core": "^3.19.0",
+    "@tiptap/pm": "^3.19.0",
+    "@tiptap/react": "^3.19.0",
+    "@tiptap/starter-kit": "^3.19.0",
+    "@tiptap/extension-placeholder": "^3.19.0",
+    "@tiptap/extension-image": "^3.19.0",
+    "radix-ui": "^1.6.7",
+    "@floating-ui/dom": "^1.7.0"
+  },
+  "peerDependencies": {
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/jsdom": "^30.0.0",
+    "@types/react": "^19.3.3",
+    "@types/react-dom": "^19.3.0",
+    "jsdom": "^26.1.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  }
+}

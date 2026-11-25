@@ -1,0 +1,47 @@
+{
+  "name": "@rcweston/story-react",
+  "version": "0.1.0",
+  "description": "The story reader: renders a story document as a long-form page, with a token contract you can theme.",
+  "license": "MIT",
+  "author": "Charlie Weston",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./tokens.css": "./dist/tokens.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && cp src/*.css dist/",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsx --test 'test/*.test.ts' 'test/*.test.tsx'"
+  },
+  "dependencies": {
+    "@rcweston/story-core": "workspace:^",
+    "lucide-react": "~0.562.0"
+  },
+  "peerDependencies": {
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/jsdom": "^30.0.0",
+    "@types/react": "^19.3.3",
+    "@types/react-dom": "^19.3.0",
+    "jsdom": "^26.1.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  }
+}

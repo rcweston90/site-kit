@@ -1,0 +1,78 @@
+{
+  "name": "@rcweston/story-server",
+  "version": "0.1.0",
+  "description": "Storage, media and auth adapters for story documents, with explicit migrations and framework-free request handlers.",
+  "license": "MIT",
+  "author": "Charlie Weston",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js"
+    },
+    "./memory": {
+      "types": "./dist/memory/index.d.ts",
+      "import": "./dist/memory/index.js"
+    },
+    "./postgres": {
+      "types": "./dist/postgres/index.d.ts",
+      "import": "./dist/postgres/index.js"
+    },
+    "./s3": {
+      "types": "./dist/s3/index.d.ts",
+      "import": "./dist/s3/index.js"
+    },
+    "./fs": {
+      "types": "./dist/fs/index.d.ts",
+      "import": "./dist/fs/index.js"
+    },
+    "./passcode": {
+      "types": "./dist/passcode/index.d.ts",
+      "import": "./dist/passcode/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "story-migrate": "./dist/bin/story-migrate.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "migrations"
+  ],
+  "scripts": {
+    "build": "node scripts/embed-migrations.mjs && rm -rf dist && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsx --test 'test/*.test.ts'"
+  },
+  "dependencies": {
+    "@rcweston/story-core": "workspace:^"
+  },
+  "peerDependencies": {
+    "pg": "^8.11",
+    "aws4fetch": "^1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "pg": "^8.16.0",
+    "@types/pg": "^8.15.0",
+    "@electric-sql/pglite": "^0.3.0",
+    "aws4fetch": "^1.0.20"
+  },
+  "peerDependenciesMeta": {
+    "pg": {
+      "optional": true
+    },
+    "aws4fetch": {
+      "optional": true
+    }
+  }
+}
