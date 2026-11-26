@@ -1,10 +1,11 @@
 import { randomBytes } from 'node:crypto';
 import { createStoryHandlers, createMediaPolicy, type StoryHandlers } from '@rcweston/story-server';
 import { createPasscodeAuth } from '@rcweston/story-server/passcode';
-import { SITE_DATA_MODULES, createSiteData, seedBlog, type SiteData } from '@rcweston/site-data';
+import { EMPTY_SEO_OVERRIDE, SITE_DATA_MODULES, createSiteData, seedBlog, type SiteData } from '@rcweston/site-data';
 import type { AuthAdapter, DocumentStore, Story } from '@rcweston/story-core';
 import { seed } from '@/content/seed';
 import { blogSeed } from '@/content/blog-seed';
+import { SEO_SEED } from '@/content/seo';
 import { CUSTOM_BLOCK_NAMES } from '@/content/blocks-registry';
 import { SITE, SITE_PAGES } from '@/content/site';
 import { RESUME_BASE, SEO_FALLBACKS, SITE_RESOURCES } from './settings';
@@ -102,6 +103,10 @@ async function seedStore(store: DocumentStore, site: DemoSiteData): Promise<void
   await site.stores['work-order'].set('stories', seed.order);
   for (const slug of seed.hidden) await site.stores['story-placement'].set(slug, false);
   await site.stores.home.headerImages.set('header-images', SEED_HEADER);
+  await site.stores.seo.defaults.set('site', SEO_SEED.defaults);
+  for (const [path, override] of Object.entries(SEO_SEED.overrides)) {
+    await site.stores.seo.overrides.set(path, { ...EMPTY_SEO_OVERRIDE, ...override });
+  }
 }
 
 type DemoSiteData = SiteData<typeof SITE_DATA_MODULES>;

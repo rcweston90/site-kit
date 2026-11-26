@@ -16,36 +16,45 @@ export const RESUME = {
   ],
   roles: [
     {
-      title: 'Lead product designer',
+      title: 'Senior product designer',
       place: 'Fieldnote Studio',
-      dates: '2022 - now',
+      dates: '2023 - now',
       points: [
-        'Led design for a research repository used by 40 product teams.',
-        'Built the studio design system with Ada Park; cut new screens to days.',
-        'Ran weekly critique and mentored three designers.',
+        'Lead design on the research repository used by 40 product teams.',
+        'Built the studio design system with Sam Rivera; forty buttons became four.',
+        'Wrote the decision-log pattern behind the weekly Friday call.',
       ],
     },
     {
-      title: 'Senior product designer',
-      place: 'Fieldnote Studio',
-      dates: '2019 - 2022',
+      title: 'Design lead (contract)',
+      place: 'Tidewater Transit',
+      dates: '2024',
       points: [
-        'Redesigned the planning board; task completion up a third in testing.',
-        'Wrote the decision-log pattern now used across the product.',
+        'Redrew the bus map around the questions riders ask at the stop.',
+        'Ran platform tests with Sam Rivera and Jun Ito; wrong-bus complaints fell 58%.',
       ],
     },
     {
       title: 'Product designer',
-      place: 'Independent practice',
-      dates: '2017 - 2019',
+      place: 'Harbor Lane Clinics',
+      dates: '2021 - 2023',
       points: [
-        'Designed wayfinding for a night-bus pilot with Sam Rivera and Jun Ito.',
-        'Shipped the first accessible trip planner for the network.',
+        'Cut online booking from nine screens to three; online share 22% to 48%.',
+        'Set up the first patient research panel.',
+      ],
+    },
+    {
+      title: 'Designer',
+      place: 'Northfold Library',
+      dates: '2018 - 2021',
+      points: [
+        'Designed catalogue search for the special collections.',
+        'Started the volunteer mentoring program, still running.',
       ],
     },
   ],
   skills: 'Research synthesis · Interaction design · Design systems · Prototyping · Writing',
-  education: 'BA Communication Design, 2017',
+  education: 'Studio for Information Design, 2017 · Research methods certificate, 2020',
 };
 
 // ── PDF writing ──────────────────────────────────────────────────────────────
