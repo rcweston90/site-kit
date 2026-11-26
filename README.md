@@ -8,7 +8,9 @@ A portfolio site with its own CMS, ready to make yours: case studies edited in p
 pnpm install && pnpm dev   # http://localhost:3000, admin at /admin (passcode `studio`)
 ```
 
-Everything in the screenshots below is made up for the demo: Lena Ortiz and her clients don't exist.
+<p align="center"><a href="assets/readme/site-kit-tour.mp4"><img src="assets/readme/tour-poster.webp" alt="Play the tour: a 76-second walk through the demo site and its admin" width="100%"></a><br><sub><a href="assets/readme/site-kit-tour.mp4">Watch the 76-second tour</a>: the public site, then signing in, reordering work, editing a case study in place, a post saving itself, and switching to dark.</sub></p>
+
+Everything in the video and the screenshots below is made up for the demo: Lena Ortiz and her clients don't exist.
 
 <p align="center"><img src="assets/readme/home.webp" alt="The demo site's home page: Lena Ortiz, a research-led designer, with four illustrated cards" width="100%"></p>
 
@@ -18,8 +20,8 @@ Everything in the screenshots below is made up for the demo: Lena Ortiz and her 
 | A case study, as readers see it | The same page in the editor: you write on the real layout |
 | <img src="assets/readme/admin-dashboard.webp" alt="The admin dashboard with a five-step start-here tour and content counts"> | <img src="assets/readme/admin-work.webp" alt="The Work screen: companies and the case study table"> |
 | The dashboard, with a short tour to start | Work: every case study, grouped by company |
-| <img src="assets/readme/admin-posts.webp" alt="The Posts screen in the admin"> | <img src="assets/readme/work.webp" alt="The public Work page with project cards"> |
-| Posts that save themselves as drafts until you publish | The public Work page |
+| <img src="assets/readme/admin-post-editor.webp" alt="A post open in the editor, with the status reading Saved a moment after typing"> | <img src="assets/readme/work.webp" alt="The public Work page with project cards"> |
+| Posts save themselves as you write; readers see them when you publish | The public Work page |
 | <img src="assets/readme/case-study-dark.webp" alt="The case study in dark mode"> | <img src="assets/readme/home-phone.webp" alt="The home page on a phone" width="60%"> |
 | Dark mode follows the reader's system | On a phone |
 

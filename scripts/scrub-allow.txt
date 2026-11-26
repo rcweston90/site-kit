@@ -2,10 +2,12 @@
 scripts/scrub.test.mjs  # planted leaks that prove the check fails; fake names and keys only
 assets/readme/admin-dashboard.webp  # fictional demo screenshot for the README; made-up persona, no private media
 assets/readme/admin-editor.webp  # fictional demo screenshot for the README; made-up persona, no private media
-assets/readme/admin-posts.webp  # fictional demo screenshot for the README; made-up persona, no private media
+assets/readme/admin-post-editor.webp  # fictional demo screenshot for the README; made-up persona, no private media
 assets/readme/admin-work.webp  # fictional demo screenshot for the README; made-up persona, no private media
 assets/readme/case-study-dark.webp  # fictional demo screenshot for the README; made-up persona, no private media
 assets/readme/case-study.webp  # fictional demo screenshot for the README; made-up persona, no private media
 assets/readme/home-phone.webp  # fictional demo screenshot for the README; made-up persona, no private media
 assets/readme/home.webp  # fictional demo screenshot for the README; made-up persona, no private media
 assets/readme/work.webp  # fictional demo screenshot for the README; made-up persona, no private media
+assets/readme/site-kit-tour.mp4  # fictional demo tour for the README; made-up persona, no private media
+assets/readme/tour-poster.webp  # fictional demo tour for the README; made-up persona, no private media
