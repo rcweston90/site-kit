@@ -192,7 +192,7 @@ describe('ResumeScreen', () => {
 describe('SeoScreen', () => {
   it('starts empty, leaves Posts out without a blog, and saves the defaults', async () => {
     const { site } = backend();
-    const page = await render(<SeoScreen />);
+    const page = await render(<SeoScreen postsUrl={null} />);
     assert.match(page.textContent ?? '', /No static page overrides configured/);
     assert.match(page.textContent ?? '', /No work projects found/);
     assert.doesNotMatch(page.textContent ?? '', /Posts \(/);

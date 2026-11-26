@@ -14,6 +14,7 @@ export * from './modules/shots/model.js';
 export * from './modules/home/model.js';
 export * from './modules/community/model.js';
 export * from './modules/showreel/model.js';
+export * from './modules/blog/model.js';
 
 /** Where the handlers are mounted unless you say otherwise. */
 export const DEFAULT_SITE_DATA_BASE_PATH = '/api/site';

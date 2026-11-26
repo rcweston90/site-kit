@@ -4,6 +4,7 @@
  * (see MODULES.md). A host can also pass its own list to `createSiteData`.
  */
 
+import { blog } from './modules/blog/index.js';
 import { mediaLibrary } from './modules/media-library/index.js';
 import { siteResources } from './modules/site-resources/index.js';
 import { storyPlacement } from './modules/story-placement/index.js';
@@ -28,6 +29,7 @@ export const SITE_DATA_MODULES = [
   home,
   community,
   showreel,
+  blog,
 ] as const;
 
 export type SiteDataModules = typeof SITE_DATA_MODULES;

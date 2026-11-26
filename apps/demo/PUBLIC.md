@@ -11,6 +11,7 @@ What visitors see, all under `app/(site)` and `app/stories`. It is the same layo
 | `/resume` | The resume PDF, inline: the upload from Admin → Resume, else the made-up one `lib/resume-pdf.ts` draws | `reads.resume.respond()` |
 | `/sitemap.xml`, `/robots.txt` | Home, the visible pages and resources and every published story; robots keeps out `/admin`, `/api` and every hidden page | `reads.seo`, `reads['site-resources']` |
 | `/manifest.webmanifest`, `/og-default.png`, `/icon-192.png`, `/icon-512.png` | The app manifest, and the share card and icons, drawn on request by `lib/share-images.tsx` | `content/site.ts` |
+| `/blog` and `/blog/<slug>` | Posts: a search over every published post, newest first, and one post with its newer and older neighbours | `site.reads.blog`; both answer 404 when Posts is hidden |
 
 `lib/published.ts` holds the reads, so a page never talks to a store itself:
 

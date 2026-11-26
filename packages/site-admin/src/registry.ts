@@ -6,6 +6,7 @@ import { shotsModule } from './modules/shots/index.js';
 import { homeModule } from './modules/home/index.js';
 import { communityModule } from './modules/community/index.js';
 import { showreelModule } from './modules/showreel/index.js';
+import { blogModule } from './modules/blog/index.js';
 
 /** The admin modules this package ships, in nav order. Add yours after them. */
-export const ADMIN_MODULES = [dashboardModule, storiesModule, imageLibraryModule, siteResourcesModule, homeModule, communityModule, shotsModule, showreelModule, resumeModule, seoModule, appearanceModule] as const;
+export const ADMIN_MODULES = [dashboardModule, storiesModule, imageLibraryModule, siteResourcesModule, homeModule, blogModule, communityModule, shotsModule, showreelModule, resumeModule, seoModule, appearanceModule] as const;

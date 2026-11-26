@@ -52,3 +52,7 @@ export {
 export { STORY_UPLOAD_ACCEPT, STORY_UPLOAD_MAX_BYTES, checkStoryUpload, type StoryUploadKind } from './upload-checks.js';
 export * from './classes.js';
 export { ImageCatalog, fetchImageLibrary, type ImageCatalogItem, type ImageCatalogPage, type ImageCatalogQuery, type ImageLibrarySource } from './ImageCatalog.js';
+// The authoring pieces other editors (site-admin's post editor) build on.
+export { TiptapSelectionToolbar, TiptapLinkChip, PROSE_SURFACE, type AuthoringTextStyle, type ParagraphSpacing, type SelectionToolbarOptions, type SelectionToolbarState } from './TiptapAuthoringToolbar.js';
+export { default as StorySlashMenu, type SlashInsertAction } from './StorySlashMenu.js';
+export { StoryParagraphStyle, StoryHighlight, StoryTypography, StoryListBackwardDelete, StorySlash, storySlashKey, changeListIndent, enterInStoryLargeText, listToggleState, selectedListKind, setStoryLarge, toggleStoryList } from './story-prose-schema.js';

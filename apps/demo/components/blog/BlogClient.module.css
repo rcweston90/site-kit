@@ -1,0 +1,150 @@
+/* The Posts archive: masthead, search, and one row per post. */
+.archive {
+  display: grid;
+  gap: var(--rhythm-minor);
+  color: var(--foreground);
+}
+
+.masthead {
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  padding-block-end: calc(var(--rhythm-minor) - 1px);
+}
+
+.masthead h1 { margin: 0; }
+
+.search {
+  display: flex;
+  align-items: center;
+  gap: var(--rhythm-half);
+  min-height: calc(var(--rhythm-minor) * 2);
+  padding-inline: var(--rhythm-minor);
+  border-radius: 12px;
+}
+
+.search:focus-within {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+.marker { flex: none; color: var(--foreground-muted); }
+
+.input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: calc(var(--rhythm-minor) * 2);
+  background: transparent;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  font-size: var(--text-xl, 1.25rem);
+  line-height: calc(var(--rhythm-half) * 3);
+  outline: none;
+}
+
+.input::placeholder { color: var(--foreground-muted); opacity: 1; }
+.input::-webkit-search-cancel-button { appearance: none; }
+
+.clear {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: calc(var(--rhythm-minor) * 2);
+  min-height: calc(var(--rhythm-minor) * 2);
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--foreground-muted);
+  cursor: pointer;
+}
+
+.clear:hover { color: var(--foreground); }
+.clear:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 3px;
+}
+
+.filterBar { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; column-gap: var(--rhythm-half); }
+
+.count,
+.date,
+.detail {
+  color: var(--foreground-muted);
+  font-size: var(--text-xs);
+  line-height: var(--rhythm-minor);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
+.count,
+.detail { white-space: nowrap; }
+
+.results { margin: 0; padding: 0; list-style: none; }
+.item { border-bottom: 1px solid var(--border); }
+
+.row {
+  display: grid;
+  grid-template-columns: clamp(8rem, 13vw, 10.5rem) minmax(0, 1fr) auto;
+  gap: 0 var(--rhythm-minor);
+  align-items: baseline;
+  min-height: calc(var(--rhythm-minor) * 2 - 1px);
+  padding-block: var(--rhythm-half) calc(var(--rhythm-half) - 1px);
+  padding-inline: var(--rhythm-half);
+  text-decoration: none;
+  color: inherit;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: var(--text-xl, 1.25rem);
+  line-height: calc(var(--rhythm-half) * 3);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+/* Like the company logo links, the recessed hover sits entirely inside the
+   clickable row, keeps the divider visible, and does not shift the text. */
+a.row { position: relative; isolation: isolate; }
+a.row::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 6px 0;
+  border-radius: 8px;
+  background: var(--well-bg);
+  box-shadow: var(--shadow-well);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+
+@media (hover: hover) {
+  a.row:hover::before { opacity: 1; }
+  a.row:hover .detail { text-decoration: underline; text-underline-offset: .25em; }
+}
+
+a.row:focus-visible { outline: none; }
+a.row:focus-visible::before {
+  opacity: 1;
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -2px;
+}
+a.row:focus-visible .detail { text-decoration: underline; text-underline-offset: .25em; }
+
+@media (prefers-reduced-motion: reduce) {
+  a.row::before { transition: none; }
+}
+
+.empty { color: var(--foreground-muted); line-height: var(--rhythm-minor); margin: 0; }
+
+@media (max-width: 639px) {
+  .search { gap: 8px; padding-inline: 12px; }
+  .input { font-size: var(--text-base, 1rem); }
+  .count, .date, .detail { letter-spacing: 0.03em; }
+  .row { grid-template-columns: minmax(0, 1fr) auto; gap: 0 8px; }
+  .title { grid-column: 1 / -1; grid-row: 2; font-size: var(--text-lg, 1.125rem); }
+  .detail { grid-column: 2; grid-row: 1; text-align: end; }
+}
+

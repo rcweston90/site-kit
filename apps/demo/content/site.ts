@@ -32,4 +32,5 @@ export const SITE_PAGES: SitePage[] = [
   { path: '/work', label: 'Work' },
   { path: '/shots', label: 'Shots' },
   { path: '/community', label: 'Community' },
+  { path: '/blog', label: 'Posts' },
 ];

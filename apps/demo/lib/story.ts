@@ -1,9 +1,10 @@
 import { randomBytes } from 'node:crypto';
 import { createStoryHandlers, createMediaPolicy, type StoryHandlers } from '@rcweston/story-server';
 import { createPasscodeAuth } from '@rcweston/story-server/passcode';
-import { SITE_DATA_MODULES, createSiteData, type SiteData } from '@rcweston/site-data';
+import { SITE_DATA_MODULES, createSiteData, seedBlog, type SiteData } from '@rcweston/site-data';
 import type { AuthAdapter, DocumentStore, Story } from '@rcweston/story-core';
 import { seed } from '@/content/seed';
+import { blogSeed } from '@/content/blog-seed';
 import { CUSTOM_BLOCK_NAMES } from '@/content/blocks-registry';
 import { SITE, SITE_PAGES } from '@/content/site';
 import { RESUME_BASE, SEO_FALLBACKS, SITE_RESOURCES } from './settings';
@@ -122,6 +123,7 @@ export async function createBackend(config: SiteKitConfig = readConfig()): Promi
         'site-resources': { pages: SITE_PAGES, resources: [...SITE_RESOURCES, SHOWREEL_RESOURCE] },
         resume: { base: RESUME_BASE, downloadName: `${SITE.name} - Resume.pdf` },
         seo: { siteUrl: config.siteUrl.toString(), fallbacks: SEO_FALLBACKS },
+        blog: { caseStudyBasePath: '/stories' },
         ...publishingConfig,
       },
       services: { documents: store, media, mediaVisibility: 'public' },
@@ -133,6 +135,7 @@ export async function createBackend(config: SiteKitConfig = readConfig()): Promi
       await putPublishingMedia(media);
       await seedStore(store, site);
       await seedShots(site.stores['shots'], media);
+      await seedBlog(site.stores.blog, blogSeed);
     }
     const auth = await createAuth(config, database);
     const story = createStoryHandlers({

@@ -36,4 +36,5 @@ export { shots, configureShots, createMemoryShotsStore, createPostgresShotsStore
 export { home, type HomeReads, type HomeStore } from './modules/home/index.js';
 export { community, type CommunityReads, type CommunityStore } from './modules/community/index.js';
 export { showreel, type ShowreelReads, type ShowreelStore } from './modules/showreel/index.js';
+export { blog, blogEditorState, blogSummary, seedBlog, createMemoryBlogStore, createPostgresBlogStore, type BlogConfig, type BlogReads, type BlogSeed, type BlogPostStore } from './modules/blog/index.js';
 export * from './client.js';

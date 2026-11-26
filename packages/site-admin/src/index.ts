@@ -59,3 +59,4 @@ export { SeoOverrideFields, type SeoOverride, type SeoOverrideSource } from './c
 export { CmsCtaEditor, CmsCtaFields, type CmsCta } from './components/CmsCtaEditor.js';
 
 export { ADMIN_TITLE, ADMIN_TITLE_TEMPLATE, adminRecordTitle, adminTitle } from './title/index.js';
+export { blogModule, BlogAdmin, BlogEditor, BlogDraftPreview, usePostUpdates, PostUpdatesNotice, PostUpdatesReview, diffPost, applyPostChange, applyPostChanges, comparePostChange, postBlocks, type BlogEditorProps, type PostChange, type PostUpdatesState } from './modules/blog/index.js';

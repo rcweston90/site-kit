@@ -33,14 +33,14 @@ import { SettingsSheet } from '@rcweston/story-editor';
 const memoryFallback = new Map<string, string>();
 const memoryListeners = new Set<() => void>();
 
-function subscribeMemory(listener: () => void) {
+export function subscribeMemory(listener: () => void) {
   memoryListeners.add(listener);
   return () => {
     memoryListeners.delete(listener);
   };
 }
 
-function readMemory(key: string): string | null {
+export function readMemory(key: string): string | null {
   try {
     const stored = window.sessionStorage.getItem(key);
     if (stored !== null) return stored;
@@ -50,7 +50,7 @@ function readMemory(key: string): string | null {
   return memoryFallback.get(key) ?? null;
 }
 
-function writeMemory(key: string, value: string) {
+export function writeMemory(key: string, value: string) {
   memoryFallback.set(key, value);
   try {
     window.sessionStorage.setItem(key, value);
@@ -60,15 +60,15 @@ function writeMemory(key: string, value: string) {
   memoryListeners.forEach((listener) => listener());
 }
 
-interface ReviewMemory {
+export interface ReviewMemory {
   dismissed: boolean;
   /** Updates the author decided against: their own version stays. */
   kept: string[];
 }
 
-const NO_MEMORY: ReviewMemory = { dismissed: false, kept: [] };
+export const NO_MEMORY: ReviewMemory = { dismissed: false, kept: [] };
 
-function parseMemory(raw: string | null): ReviewMemory {
+export function parseMemory(raw: string | null): ReviewMemory {
   if (!raw) return NO_MEMORY;
   try {
     const value = JSON.parse(raw) as Partial<ReviewMemory> | null;
@@ -219,11 +219,11 @@ export function OriginalUpdatesNotice({ updates }: { updates: OriginalUpdatesSta
   );
 }
 
-type Side = 'yours' | 'original';
+export type Side = 'yours' | 'original';
 
 const SIDE_NAMES: Record<Side, string> = { yours: 'Yours', original: 'Published' };
 const bodyText = 'mb-0 whitespace-pre-line break-words font-sans text-sm leading-baseline text-foreground';
-const quietText = 'mb-0 font-sans text-sm leading-baseline text-foreground-muted';
+export const quietText = 'mb-0 font-sans text-sm leading-baseline text-foreground-muted';
 
 /** One version's text with the words the other version lacks marked like a
  *  highlighter: a tint, and a heavier weight so the mark doesn't rest on
@@ -264,7 +264,7 @@ function showsLabel(parts: ComparePart[], part: ComparePart) {
  * for keyboards and screen readers; a click anywhere else on the card is a
  * pointer shortcut to it.
  */
-function VersionOption({
+export function VersionOption({
   name,
   side,
   checked,
@@ -320,7 +320,7 @@ function VersionOption({
   );
 }
 
-const GROUPS = [
+export const GROUPS = [
   {
     kind: 'conflict',
     heading: 'You changed these too',
@@ -334,7 +334,7 @@ const GROUPS = [
 ] as const;
 
 /** The third choice for each change: leave it on the list for later. */
-function LaterOption({ name, checked, onChoose }: { name: string; checked: boolean; onChoose: () => void }) {
+export function LaterOption({ name, checked, onChoose }: { name: string; checked: boolean; onChoose: () => void }) {
   return (
     <label className="flex min-h-11 w-fit cursor-pointer items-center gap-3 sm:col-span-2">
       <input type="radio" name={name} checked={checked} onChange={onChoose} className="peer sr-only" />
@@ -350,7 +350,7 @@ function LaterOption({ name, checked, onChoose }: { name: string; checked: boole
   );
 }
 
-const plainCount = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
+export const plainCount = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
 /** "2 to bring in · 1 to keep · 3 for later", leaving out the empty parts. */
 export function describeReviewChoices(counts: Record<ReviewChoice, number>): string {
@@ -362,8 +362,8 @@ export function describeReviewChoices(counts: Record<ReviewChoice, number>): str
   return parts.join(' · ') || 'Nothing to decide';
 }
 
-const secondaryButton = 'inline-flex min-h-11 items-center justify-center rounded-md border border-default px-4 font-sans text-sm font-medium leading-baseline text-foreground transition-colors hover:bg-foreground/5 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary';
-const primaryButton = 'inline-flex min-h-11 items-center justify-center rounded-md bg-foreground px-4 font-sans text-sm font-semibold leading-baseline text-background transition-opacity hover:opacity-90 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary';
+export const secondaryButton = 'inline-flex min-h-11 items-center justify-center rounded-md border border-default px-4 font-sans text-sm font-medium leading-baseline text-foreground transition-colors hover:bg-foreground/5 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary';
+export const primaryButton = 'inline-flex min-h-11 items-center justify-center rounded-md bg-foreground px-4 font-sans text-sm font-semibold leading-baseline text-background transition-opacity hover:opacity-90 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-primary';
 
 /**
  * Each update, where it is and what it is, with the draft's version and the

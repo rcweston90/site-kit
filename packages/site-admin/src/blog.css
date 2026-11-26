@@ -1,0 +1,464 @@
+/*
+ * The post editor and the post reader's prose, for @rcweston/site-admin's
+ * blog module and any public page that shows a post.
+ *
+ * - .sa-blog-*: the editor's own chrome (save dock, insert actions, the image
+ *   dialog and its floating actions, the caret "+" menu, Learn more cards,
+ *   the draft preview).
+ * - .blog-content / .blog-cms-content: one long-form scale for editing,
+ *   previewing and reading a post (headings, callouts, lists, code, cards,
+ *   buttons, highlights).
+ * - [data-cms-cta]: an authored button, a link drawn as a keycap, in the
+ *   editor and on the page.
+ */
+
+/* ── Editor ─────────────────────────────────────────────────────────────── */
+.sa-blog-canvas { position: relative; min-width: 0; }
+.sa-blog-content { min-height: 360px; padding: var(--rhythm-minor); border: 1px solid var(--border); border-radius: 8px; caret-color: var(--accent-primary); white-space: pre-wrap; overflow-wrap: break-word; }
+.sa-blog-content:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 4px; }
+.sa-blog-content > p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; height: 0; color: var(--foreground-muted); pointer-events: none; }
+.sa-blog-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--rhythm-half); padding-block: var(--rhythm-half); }
+.sa-blog-actions button { min-height: 44px; padding-inline: var(--rhythm-half); border: 1px solid var(--border); border-radius: 6px; color: var(--foreground); background: var(--background); font-size: 13px; line-height: var(--rhythm-minor); }
+.sa-blog-actions button:hover { background: var(--background-secondary); }
+.sa-blog-actions button:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+.sa-blog-actions button:disabled { color: var(--foreground-muted); cursor: not-allowed; }
+.sa-blog-image-panel { display: grid; gap: var(--rhythm-minor); margin-bottom: var(--rhythm-minor); padding: var(--rhythm-minor); border: 1px solid var(--border); border-radius: 8px; background: var(--background-secondary); }
+.sa-blog-image-panel label { display: grid; font-size: 13px; line-height: var(--rhythm-minor); color: var(--foreground-muted); }
+.sa-blog-image-panel input { min-height: 48px; padding-inline: var(--rhythm-half); border: 1px solid var(--border); border-radius: 6px; background: var(--background); color: var(--foreground); font-size: 16px; }
+.sa-blog-image-panel input:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+
+/* Keep the writing surface first; metadata and publication are deliberate steps. */
+.sa-blog-page { min-width: 0; }
+.sa-blog-header { display: flex; align-items: center; gap: var(--rhythm-half); padding-bottom: var(--rhythm-half); }
+.sa-blog-header h1 { flex: 1; margin: 0; }
+.sa-blog-back { display: inline-flex; align-items: center; min-height: 48px; padding-right: var(--rhythm-half); color: var(--foreground-muted); }
+.sa-blog-back:focus-visible { outline: 2px solid var(--accent-primary); }
+.sa-blog-save-dock { position: sticky; top: 48px; z-index: 10; margin-bottom: var(--rhythm-minor); padding-block: var(--rhythm-half); border-bottom: 1px solid var(--border); background: var(--background); }
+.sa-blog-save-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--rhythm-half); }
+.sa-blog-save-row [role='status'] { grid-column: 1; min-width: 0; overflow-wrap: anywhere; }
+.sa-blog-save-actions { grid-column: 2; justify-self: end; display: flex; align-items: center; gap: var(--rhythm-half); white-space: nowrap; }
+@media (max-width: 420px) {
+  .sa-blog-save-row { grid-template-columns: minmax(0, 1fr); }
+  .sa-blog-save-actions { grid-column: 1; }
+}
+.sa-blog-save-button, .sa-blog-more-button { display: inline-flex; align-items: center; justify-content: center; min-width: 48px; min-height: 48px; padding-inline: var(--rhythm-half); border: 1px solid var(--border); border-radius: 8px; font: 600 14px/24px var(--font-sans); color: var(--foreground); background: var(--background); touch-action: manipulation; }
+.sa-blog-save-button { color: var(--background); background: var(--foreground); border-color: var(--foreground); }
+.sa-blog-save-button:disabled, .sa-blog-more-button:disabled { opacity: .5; }
+.sa-blog-save-button:focus-visible, .sa-blog-more-button:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+.sa-blog-settings { margin-bottom: var(--rhythm-minor); border-bottom: 1px solid var(--border); padding-block: var(--rhythm-half); }
+.sa-blog-settings summary { min-height: 48px; align-content: center; cursor: pointer; font: 600 14px/24px var(--font-sans); color: var(--foreground); }
+.sa-blog-settings summary:focus-visible { outline: 2px solid var(--accent-primary); }
+.sa-blog-page input, .sa-blog-page textarea { scroll-margin-top: 168px; }
+@media (min-width: 1024px) { .sa-blog-save-dock { top: 0; } }
+@media (max-width: 767px) {
+  .sa-blog-page input, .sa-blog-page textarea { font-size: max(16px, 1em); }
+  .sa-blog-page textarea[id='blog-title'] { font-size: 30px; }
+  .sa-blog-content { padding: var(--rhythm-half); padding-bottom: var(--rhythm-major); scroll-margin-block: 168px 144px; }
+  .sa-blog-content p, .sa-blog-content h2, .sa-blog-content h3, .sa-blog-content li { scroll-margin-block: 168px 144px; }
+}
+/* Above the shared mobile formatting toolbar (60), below shell session recovery. */
+.sa-blog-dialog-overlay { position: fixed; inset: 0; z-index: 70; background: color-mix(in srgb, var(--foreground) 30%, transparent); }
+.sa-blog-image-panel { position: fixed; z-index: 71; inset: 50% auto auto 50%; transform: translate(-50%, -50%); width: min(480px, calc(100vw - var(--rhythm-minor))); max-height: calc(100dvh - var(--rhythm-minor)); overflow-y: auto; margin: 0; gap: var(--rhythm-half); }
+.sa-blog-image-panel input { min-width: 0; width: 100%; }
+@media (max-width: 767px) {
+  .sa-blog-image-panel { inset: auto 0 0; transform: none; width: 100%; border-radius: 12px 12px 0 0; padding-bottom: max(var(--rhythm-minor), env(safe-area-inset-bottom)); }
+}
+
+.sa-blog-image-action {
+  position: fixed;
+  inset: 0 auto auto 0;
+  z-index: 9;
+  display: inline-flex;
+  width: max-content;
+  min-height: 44px;
+  min-width: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--background);
+  color: var(--foreground);
+  box-shadow: var(--shadow-sm);
+  font: 600 13px/24px var(--font-sans);
+  white-space: nowrap;
+}
+.sa-blog-image-action button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  min-width: 44px;
+  padding-inline: var(--rhythm-half);
+  border-radius: 8px;
+  touch-action: manipulation;
+}
+.sa-blog-image-action button + button { border-inline-start: 1px solid var(--border); }
+.sa-blog-image-action button svg { flex: none; }
+.sa-blog-image-action button[aria-disabled="true"] { opacity: 0.5; cursor: default; }
+.sa-blog-image-action button:not([aria-disabled="true"]):hover { background: var(--background-secondary); }
+.sa-blog-image-action button:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: -3px; }
+/* Keep all three targets 44px on narrow phones. A text label would push
+ * the group onto short, narrow media even when its side has room for icons. */
+@media (max-width: 480px) {
+  .sa-blog-image-action[data-image-arrangement] button { padding-inline: 0; }
+  .sa-blog-image-action[data-image-arrangement] .sa-blog-image-edit-label { display: none; }
+}
+.sa-blog-image-dialog-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--rhythm-half);
+  margin-block-start: var(--rhythm-half);
+  padding-block-start: var(--rhythm-half);
+  border-top: 1px solid var(--border);
+}
+
+.sa-blog-image-source { min-width: 0; padding: var(--rhythm-half); border: 1px dashed var(--border); border-radius: 6px; }
+.sa-blog-image-source .sa-blog-actions { padding-block: 0; }
+.sa-blog-image-source .sa-blog-actions button { display: inline-flex; align-items: center; gap: var(--rhythm-half); }
+.sa-blog-image-source .sa-blog-actions svg { flex: none; }
+.sa-blog-image-hint { margin: 0; color: var(--foreground-muted); font-size: 13px; line-height: var(--rhythm-minor); overflow-wrap: anywhere; }
+.sa-blog-image-staged { display: flex; align-items: center; gap: var(--rhythm-half); margin-block: var(--rhythm-half); }
+.sa-blog-image-staged img { inline-size: var(--rhythm-major); block-size: calc(2 * var(--rhythm-minor)); flex: none; object-fit: contain; border-radius: 6px; background: var(--background); }
+.sa-blog-image-staged .sa-blog-image-hint { min-width: 0; }
+.sa-blog-image-url summary { min-height: 44px; align-content: center; color: var(--foreground); font-size: 13px; line-height: var(--rhythm-minor); cursor: pointer; }
+.sa-blog-image-url summary:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+
+/* The "+" beside a blank line. */
+.sa-blog-caret-trigger {
+  position: fixed;
+  z-index: 10;
+  display: grid;
+  inline-size: 44px;
+  block-size: 44px;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--background);
+  color: var(--foreground-muted);
+  touch-action: manipulation;
+}
+.sa-blog-caret-trigger:hover, .sa-blog-caret-trigger[aria-expanded='true'] {
+  background: var(--background-secondary);
+  color: var(--foreground);
+}
+.sa-blog-caret-trigger:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* A Learn more card while editing. */
+.sa-blog-related {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--rhythm-half);
+  margin-block: var(--rhythm-minor);
+  padding: var(--rhythm-half);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--background-secondary);
+  color: var(--foreground);
+  font-size: 13px;
+  line-height: var(--rhythm-minor);
+}
+.sa-blog-related-title { display: flex; align-items: center; gap: var(--rhythm-half); grid-column: 1 / -1; font-weight: 600; }
+.sa-blog-related select, .sa-blog-related button { min-height: 44px; border-radius: 6px; }
+.sa-blog-related select { width: 100%; min-width: 0; padding-inline: var(--rhythm-half); border: 1px solid var(--border); background: var(--background); font-size: 16px; }
+.sa-blog-related button { min-width: 44px; display: inline-grid; place-items: center; }
+.sa-blog-related :is(select, button):focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+.sa-blog-related-open { grid-column: 1 / -1; display: grid; gap: var(--rhythm-half); }
+.sa-blog-related-notice { grid-column: 1 / -1; color: var(--foreground-muted); }
+.sa-blog-related-notice button { text-decoration: underline; }
+
+/* A Posts list row rises in, one after another. */
+@keyframes sa-blog-rise { from { opacity: 0; transform: translateY(20px); } }
+.sa-blog-row { animation: sa-blog-rise 0.5s cubic-bezier(0, 0, 0.58, 1) both; }
+@media (prefers-reduced-motion: reduce) { .sa-blog-row { animation: none; } }
+
+/* The draft preview. */
+.sa-blog-preview {
+  max-width: 48rem;
+  margin-inline: auto;
+  scroll-margin-top: calc(var(--rhythm-major) * 2);
+}
+.sa-blog-preview-notice {
+  color: var(--foreground-muted);
+  font-size: 13px;
+  line-height: var(--rhythm-minor);
+  margin: 0 0 var(--rhythm-minor);
+}
+
+/* ── Post prose: editing, preview and the published page ────────────────── */
+
+/* One long-form heading scale for post editing, preview and the published post.
+   It uses 24/36px line boxes, leaving the post title a distinct tier. */
+.blog-content h2 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: calc(var(--rhythm-minor) + var(--rhythm-half));
+  color: var(--foreground);
+  margin-top: var(--rhythm-major);
+  margin-bottom: var(--rhythm-minor);
+}
+
+.blog-content h2:first-child {
+  margin-top: 0;
+}
+
+.blog-content h3 {
+  font-size: 1.375rem;
+  font-weight: 600;
+  line-height: calc(var(--rhythm-minor) + var(--rhythm-half));
+  color: var(--foreground);
+  margin-top: calc(var(--rhythm-minor) * 2);
+  margin-bottom: var(--rhythm-minor);
+}
+
+.blog-content p {
+  color: var(--foreground-muted);
+  line-height: var(--rhythm-minor);
+  margin-top: 0;
+  margin-bottom: var(--rhythm-minor);
+}
+
+/* Match the callout in post edit, draft preview and the published post. */
+.blog-content [data-blog-callout] {
+  --blog-callout-accent: var(--foreground-muted);
+  overflow-wrap: anywhere;
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--blog-callout-accent) 8%, var(--background));
+  border: 1px solid var(--border);
+  border-inline-start: 3px solid var(--blog-callout-accent);
+  border-radius: var(--rhythm-half);
+  padding: var(--rhythm-half) var(--rhythm-minor);
+  margin-block: var(--rhythm-minor);
+}
+
+.blog-content [data-blog-callout="info"] { --blog-callout-accent: var(--color-status-info); }
+.blog-content [data-blog-callout="success"] { --blog-callout-accent: var(--status-success-text); }
+.blog-content [data-blog-callout="warning"] { --blog-callout-accent: var(--status-warning-text); }
+.blog-content [data-blog-callout] > :last-child,
+.blog-content .blog-callout-body [data-node-view-content-react] > :last-child { margin-block-end: 0; }
+
+.blog-content .blog-callout-controls {
+  margin-block-end: var(--rhythm-half);
+  font-size: var(--text-xs);
+  color: var(--foreground-muted);
+}
+
+.blog-content .blog-callout-controls fieldset {
+  min-inline-size: 0;
+  padding: 0;
+  border: 0;
+}
+
+.blog-content .blog-callout-options {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0 var(--rhythm-half);
+}
+
+.blog-content .blog-callout-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  min-block-size: var(--rhythm-minor);
+  cursor: pointer;
+}
+
+.blog-content .blog-callout-options input {
+  accent-color: var(--foreground);
+}
+
+.blog-content blockquote {
+  border-left: 2px solid var(--foreground-muted);
+  padding-left: var(--rhythm-minor);
+  margin: var(--rhythm-minor) 0;
+  color: var(--foreground-muted);
+  font-style: italic;
+}
+
+.blog-content pre {
+  background: var(--background-secondary);
+  border-radius: 4px;
+  padding: var(--rhythm-minor);
+  overflow-x: auto;
+  margin: var(--rhythm-minor) 0;
+  font-size: 0.875rem;
+  line-height: var(--rhythm-minor);
+}
+
+.blog-content code {
+  background: var(--background-secondary);
+  border-radius: 2px;
+  padding: 0.15rem 0.35rem;
+  font-size: 0.875em;
+  font-family: var(--font-code);
+}
+
+.blog-content pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
+.blog-content ul {
+  list-style: disc;
+  padding-left: var(--rhythm-minor);
+  margin: var(--rhythm-minor) 0;
+  color: var(--foreground-muted);
+}
+
+.blog-content ol {
+  list-style: decimal;
+  padding-left: var(--rhythm-minor);
+  margin: var(--rhythm-minor) 0;
+  color: var(--foreground-muted);
+}
+
+.blog-content li {
+  margin-bottom: 0;
+  line-height: var(--rhythm-minor);
+}
+
+/* A deeper row belongs to its parent, not a separate editorial section. */
+.blog-content li > :is(ul, ol) {
+  margin-block: 0;
+  padding-inline-start: var(--rhythm-half);
+}
+.blog-content li > ul { list-style-type: circle; }
+.blog-content li > ul ul { list-style-type: square; }
+
+.blog-content a:not([data-cms-cta]) {
+  color: var(--reader-link-current, var(--accent-primary));
+  text-decoration-line: underline;
+  text-decoration-color: var(--reader-link-current, currentColor);
+  text-decoration-thickness: var(--reader-link-weight, auto);
+  text-underline-offset: 2px;
+}
+
+.blog-content:not([data-blog-reader-prose]) a:not([data-cms-cta]):hover,
+.blog-content[data-blog-reader-prose] a:not([data-cms-cta]):hover:not(:where(:is(p, li, blockquote) a[href]:not([role], [class], :has(img, svg)))) {
+  color: var(--accent-secondary-text);
+}
+
+@layer base {
+  [data-blog-reader-prose] :is(p, li, blockquote) a[href]:not(:where([data-cms-cta], [role], [class], :has(img, svg))):focus-visible {
+    --reader-link-current: var(--reader-link-active, var(--accent-secondary-text));
+    --reader-link-weight: 3px;
+    color: var(--reader-link-current);
+    text-decoration-line: underline;
+    text-decoration-color: currentColor;
+    text-decoration-thickness: 3px;
+    outline: 2px solid currentColor;
+    outline-offset: 3px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    [data-blog-reader-prose] :is(p, li, blockquote) a[href]:not(:where([data-cms-cta], [role], [class], :has(img, svg))):hover {
+      --reader-link-current: var(--reader-link-active, var(--accent-secondary-text));
+      --reader-link-weight: 3px;
+      color: var(--reader-link-current);
+      text-decoration-line: underline;
+      text-decoration-color: currentColor;
+      text-decoration-thickness: 3px;
+    }
+  }
+}
+
+.blog-content img {
+  max-width: 100%;
+  border-radius: 6px;
+  margin: var(--rhythm-minor) 0;
+  border: 1px solid var(--border);
+}
+
+.blog-content a[data-related-tile] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--rhythm-minor);
+  width: fit-content;
+  min-width: min(320px, 100%);
+  max-width: 100%;
+  padding: var(--rhythm-half) var(--rhythm-minor);
+  margin-block: var(--rhythm-minor);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--background-secondary);
+  color: var(--foreground);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.blog-content a[data-related-tile] :is(small, strong) { display: block; line-height: var(--rhythm-minor); }
+.blog-content a[data-related-tile] small { color: var(--foreground-muted); font-size: 13px; }
+.blog-content a[data-related-tile]:hover { background: var(--background); text-decoration: none; }
+.blog-content a[data-related-tile]:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+
+.blog-content hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: calc(var(--rhythm-minor) * 2) 0;
+}
+
+/* Post text uses the same stored paragraph and highlight attributes as the
+   story controls, in the editor and the published post. */
+/* Authored CTAs remain links when read and use the same keycap surface when edited. */
+@layer base {
+  :is(a, button)[data-cms-cta] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--rhythm-half);
+    max-inline-size: 100%;
+    min-block-size: calc(2 * var(--rhythm-minor));
+    padding-inline: var(--rhythm-half);
+    border: 1px solid var(--border-hover);
+    border-radius: var(--radius-lg);
+    background: var(--card-bg);
+    color: var(--foreground);
+    box-shadow: 0 2px 0 var(--border-hover), var(--shadow-key);
+    font: 500 var(--text-sm)/var(--rhythm-minor) var(--font-sans);
+    text-align: center;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+  :is(a, button)[data-cms-cta]:is(:hover, :focus-visible) {
+    color: var(--foreground);
+    background: var(--background);
+    box-shadow: 0 3px 0 var(--border-hover), var(--shadow-key-hover);
+    text-decoration: none;
+  }
+  :is(a, button)[data-cms-cta]:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+  }
+}
+.blog-content p[data-large] { font-size: 1.25rem; line-height: 36px; color: var(--foreground); }
+.blog-content li:has(> p[data-large])::marker { font-size: 1.25rem; }
+.blog-content h4 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: var(--rhythm-minor);
+  margin-block: var(--rhythm-minor);
+  color: var(--foreground);
+}
+
+@media (max-width: 767px) {
+  .blog-content h2 { font-size: 1.5rem; }
+  .blog-content h3 { font-size: 1.25rem; line-height: var(--rhythm-minor); }
+  .blog-content h4 { font-size: 1.0625rem; }
+}
+.blog-content mark { color: var(--foreground); background: var(--highlight-orange); }
+.blog-content mark[data-color='yellow'] { background: var(--highlight-yellow); }
+.blog-content mark[data-color='red'] { background: var(--highlight-red); }
+.blog-content mark[data-color='green'] { background: var(--highlight-green); }
+.blog-content mark[data-color='teal'] { background: var(--highlight-teal); }
+.blog-content mark[data-color='blue'] { background: var(--highlight-blue); }
+.blog-content mark[data-color='purple'] { background: var(--highlight-purple); }
+.blog-content mark[data-color='grey'] { background: var(--highlight-grey); }
+.blog-cms-content li > p { margin-bottom: 0; }
