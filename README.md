@@ -8,7 +8,7 @@ A portfolio site with its own CMS, ready to make yours: case studies edited in p
 pnpm install && pnpm dev   # http://localhost:3000, admin at /admin (passcode `studio`)
 ```
 
-<p align="center"><a href="assets/readme/site-kit-tour.mp4"><img src="assets/readme/tour-poster.webp" alt="Play the tour: a 76-second walk through the demo site and its admin" width="100%"></a></p>
+<p align="center"><img src="assets/readme/site-kit-tour.gif" alt="A tour of the demo: the public site, then signing in, reordering work, editing a case study in place, a post saving itself, and switching to dark" width="100%"></p>
 
 Everything in the tour and the screenshots at the bottom is made up for the demo: Lena Ortiz and her clients don't exist.
 

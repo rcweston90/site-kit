@@ -9,5 +9,4 @@ assets/readme/case-study.webp  # fictional demo screenshot for the README; made-
 assets/readme/home-phone.webp  # fictional demo screenshot for the README; made-up persona, no private media
 assets/readme/home.webp  # fictional demo screenshot for the README; made-up persona, no private media
 assets/readme/work.webp  # fictional demo screenshot for the README; made-up persona, no private media
-assets/readme/site-kit-tour.mp4  # fictional demo tour for the README; made-up persona, no private media
-assets/readme/tour-poster.webp  # fictional demo tour for the README; made-up persona, no private media
+assets/readme/site-kit-tour.gif  # the README tour GIF, recorded from the demo; made-up persona, no private media
