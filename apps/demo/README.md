@@ -5,13 +5,14 @@ A complete designer's portfolio on the story CMS: the public site (home, Work an
 ```sh
 # from the repo root
 pnpm install
-pnpm build
-pnpm --filter @rcweston/story-demo dev
+pnpm dev
 ```
+
+`pnpm dev` builds the packages once, then starts the demo in development mode.
 
 Open http://localhost:3000 for the site and http://localhost:3000/admin for the admin. Under `pnpm dev` the passcode is `studio`.
 
-On first start the demo writes its sample stories into an empty store: five published (one of them hidden from Work), two drafts, and one draft restored from before its last publish, so the editor offers to bring the published version's changes in. It never seeds a store that has been seeded before.
+On first start the demo writes its sample stories into an empty store: five published (one of them hidden from Work), two drafts, and one draft restored from before its last publish, so the editor offers to bring the published version's changes in. The same first start fills every other module too: the Work order, the home page, shots, community, the resume, posts (six live, two drafts, one hidden), the SEO defaults with a few page overrides, and the image library, which gets each sample cover and drawing as a WebP. It never seeds a store that has been seeded before. While the store still holds only the samples, the dashboard shows a short "Start here" card; dismissing it is remembered in that browser.
 
 ## Where things are kept
 
@@ -21,7 +22,7 @@ On first start the demo writes its sample stories into an empty store: five publ
 | --- | --- | --- |
 | Stories, Work order, page visibility | Embedded Postgres (PGlite) in `.data/pglite`. Lasts across restarts. | `SITE_KIT_DATABASE_URL`: any Postgres (Neon, Supabase, Vercel Postgres, RDS, your own). |
 | Uploads | Files in `.data/media` | `SITE_KIT_S3_ENDPOINT`, `_BUCKET`, `_ACCESS_KEY_ID`, `_SECRET_ACCESS_KEY` (and `_REGION` on AWS): any S3-compatible bucket. |
-| Sign-in | Passcode `studio`; a new session secret each start | `SITE_KIT_ADMIN_PASSCODE` and `SITE_KIT_SESSION_SECRET` (32+ random characters). Required by `next start`. |
+| Sign-in | Passcode `studio`; a new session secret each start | `SITE_KIT_ADMIN_PASSCODE` and `SITE_KIT_SESSION_SECRET` (32+ random characters). Under `next start` without them the public site still runs, and `/admin` says which to set. |
 | Site address | `http://localhost:3000` | `SITE_KIT_SITE_URL` |
 
 `.data/` is ignored by git. One server process at a time may open the embedded database; a second one stops with a message saying so. `SITE_KIT_STORAGE=memory` keeps everything in memory instead (it resets on restart), which the tests use.
@@ -39,7 +40,7 @@ With auto-migrate off, a server whose database is behind stops and names the com
 
 ## Photos
 
-The sample case studies ship with drawn covers so the demo works offline. To use real photographs, open `public/samples/photos/manifest.json`: it has one slot per sample story. Save a cover (about 1600 × 1000) and a smaller card copy (about 800 × 500) in that folder, put their file names in the slot's `file` and `card`, and fill in `credit` (photographer, profile link, photo page link, license). On the next start the story's banner, its Work card and its admin thumbnail all use the photo. Use only photos you have the rights to, such as ones under the Unsplash License, and avoid faces, brands and logos.
+The sample case studies ship with drawn covers so the demo works offline. To use real photographs, open `public/samples/photos/manifest.json`: it has one slot per sample story. Save a cover (about 1600 × 1000) and a smaller card copy (about 800 × 500) in that folder, put their file names in the slot's `file` and `card`, and fill in `credit` (photographer, profile link, photo page link, license). On the next start the story's banner, its Work card and its admin thumbnail all use the photo, the banner carries the credit, and a "Photo credits" link in the footer opens `/credits`, which lists every filled slot. With no slot filled there is no credits link and `/credits` is a 404. Use only photos you have the rights to, such as ones under the Unsplash License, and avoid faces, brands and logos.
 
 ## Production build
 
@@ -47,6 +48,8 @@ The sample case studies ship with drawn covers so the demo works offline. To use
 pnpm --filter @rcweston/story-demo build
 SITE_KIT_ADMIN_PASSCODE=… SITE_KIT_SESSION_SECRET=… pnpm --filter @rcweston/story-demo start
 ```
+
+Leave both variables out to run the public site alone; the admin then explains what to set instead of asking for a passcode.
 
 Every page that reads stories renders per request, so the build never opens the database.
 
