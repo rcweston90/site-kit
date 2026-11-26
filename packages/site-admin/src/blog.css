@@ -2,9 +2,9 @@
  * The post editor and the post reader's prose, for @rcweston/site-admin's
  * blog module and any public page that shows a post.
  *
- * - .sa-blog-*: the editor's own chrome (save dock, insert actions, the image
- *   dialog and its floating actions, the caret "+" menu, Learn more cards,
- *   the draft preview).
+ * - .sa-blog-*: the editor's own chrome (the reader frame it writes in, the
+ *   image dialog and its floating actions, Learn more cards, the draft
+ *   preview). The top bar and the caret "+" are shared: theme.css.
  * - .blog-content / .blog-cms-content: one long-form scale for editing,
  *   previewing and reading a post (headings, callouts, lists, code, cards,
  *   buttons, highlights).
@@ -14,7 +14,7 @@
 
 /* ── Editor ─────────────────────────────────────────────────────────────── */
 .sa-blog-canvas { position: relative; min-width: 0; }
-.sa-blog-content { min-height: 360px; padding: var(--rhythm-minor); border: 1px solid var(--border); border-radius: 8px; caret-color: var(--accent-primary); white-space: pre-wrap; overflow-wrap: break-word; }
+.sa-blog-content { min-height: 360px; caret-color: var(--accent-primary); white-space: pre-wrap; overflow-wrap: break-word; }
 .sa-blog-content:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 4px; }
 .sa-blog-content > p.is-editor-empty:first-child::before { content: attr(data-placeholder); float: left; height: 0; color: var(--foreground-muted); pointer-events: none; }
 .sa-blog-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--rhythm-half); padding-block: var(--rhythm-half); }
@@ -27,41 +27,28 @@
 .sa-blog-image-panel input { min-height: 48px; padding-inline: var(--rhythm-half); border: 1px solid var(--border); border-radius: 6px; background: var(--background); color: var(--foreground); font-size: 16px; }
 .sa-blog-image-panel input:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
 
-/* Keep the writing surface first; metadata and publication are deliberate steps. */
+/* The post is written in the frame readers see it in; settings and publishing live in the top bar. */
 .sa-blog-page { min-width: 0; }
-.sa-blog-header { display: flex; align-items: center; gap: var(--rhythm-half); padding-bottom: var(--rhythm-half); }
-.sa-blog-header h1 { flex: 1; margin: 0; }
-.sa-blog-back { display: inline-flex; align-items: center; min-height: 48px; padding-right: var(--rhythm-half); color: var(--foreground-muted); }
-.sa-blog-back:focus-visible { outline: 2px solid var(--accent-primary); }
-.sa-blog-save-dock { position: sticky; top: 48px; z-index: 10; margin-bottom: var(--rhythm-minor); padding-block: var(--rhythm-half); border-bottom: 1px solid var(--border); background: var(--background); }
-.sa-blog-save-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--rhythm-half); }
-.sa-blog-save-row [role='status'] { grid-column: 1; min-width: 0; overflow-wrap: anywhere; }
-.sa-blog-save-actions { grid-column: 2; justify-self: end; display: flex; align-items: center; gap: var(--rhythm-half); white-space: nowrap; }
-@media (max-width: 420px) {
-  .sa-blog-save-row { grid-template-columns: minmax(0, 1fr); }
-  .sa-blog-save-actions { grid-column: 1; }
-}
+.sa-blog-reader-frame { box-sizing: content-box; max-inline-size: 42rem; margin-inline: auto; padding: var(--rhythm-minor) max(0px, calc(var(--page-inset) - var(--rhythm-half))); }
+.sa-blog-reader-title { display: block; width: 100%; resize: none; overflow: hidden; border: 0; padding: 0; background: transparent; }
+.sa-blog-reader-title:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 4px; }
+.sa-blog-comparison { display: grid; gap: var(--rhythm-half); }
+@media (min-width: 768px) { .sa-blog-comparison { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .sa-blog-save-button, .sa-blog-more-button { display: inline-flex; align-items: center; justify-content: center; min-width: 48px; min-height: 48px; padding-inline: var(--rhythm-half); border: 1px solid var(--border); border-radius: 8px; font: 600 14px/24px var(--font-sans); color: var(--foreground); background: var(--background); touch-action: manipulation; }
 .sa-blog-save-button { color: var(--background); background: var(--foreground); border-color: var(--foreground); }
 .sa-blog-save-button:disabled, .sa-blog-more-button:disabled { opacity: .5; }
 .sa-blog-save-button:focus-visible, .sa-blog-more-button:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
-.sa-blog-settings { margin-bottom: var(--rhythm-minor); border-bottom: 1px solid var(--border); padding-block: var(--rhythm-half); }
-.sa-blog-settings summary { min-height: 48px; align-content: center; cursor: pointer; font: 600 14px/24px var(--font-sans); color: var(--foreground); }
-.sa-blog-settings summary:focus-visible { outline: 2px solid var(--accent-primary); }
-.sa-blog-page input, .sa-blog-page textarea { scroll-margin-top: 168px; }
-@media (min-width: 1024px) { .sa-blog-save-dock { top: 0; } }
+.sa-blog-page input, .sa-blog-page textarea { scroll-margin-top: var(--rhythm-major); }
 @media (max-width: 767px) {
-  .sa-blog-page input, .sa-blog-page textarea { font-size: max(16px, 1em); }
-  .sa-blog-page textarea[id='blog-title'] { font-size: 30px; }
-  .sa-blog-content { padding: var(--rhythm-half); padding-bottom: var(--rhythm-major); scroll-margin-block: 168px 144px; }
-  .sa-blog-content p, .sa-blog-content h2, .sa-blog-content h3, .sa-blog-content li { scroll-margin-block: 168px 144px; }
+  .sa-blog-content { padding-bottom: var(--rhythm-major); scroll-margin-block: 72px 144px; }
 }
 /* Above the shared mobile formatting toolbar (60), below shell session recovery. */
 .sa-blog-dialog-overlay { position: fixed; inset: 0; z-index: 70; background: color-mix(in srgb, var(--foreground) 30%, transparent); }
 .sa-blog-image-panel { position: fixed; z-index: 71; inset: 50% auto auto 50%; transform: translate(-50%, -50%); width: min(480px, calc(100vw - var(--rhythm-minor))); max-height: calc(100dvh - var(--rhythm-minor)); overflow-y: auto; margin: 0; gap: var(--rhythm-half); }
+.sa-blog-image-panel.sa-blog-live-review { width: min(72rem, calc(100vw - var(--rhythm-minor))); }
 .sa-blog-image-panel input { min-width: 0; width: 100%; }
 @media (max-width: 767px) {
-  .sa-blog-image-panel { inset: auto 0 0; transform: none; width: 100%; border-radius: 12px 12px 0 0; padding-bottom: max(var(--rhythm-minor), env(safe-area-inset-bottom)); }
+  .sa-blog-image-panel, .sa-blog-image-panel.sa-blog-live-review { inset: auto 0 0; transform: none; width: 100%; border-radius: 12px 12px 0 0; padding-bottom: max(var(--rhythm-minor), env(safe-area-inset-bottom)); }
 }
 
 .sa-blog-image-action {
@@ -126,28 +113,6 @@
 .sa-blog-image-url summary:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
 
 /* The "+" beside a blank line. */
-.sa-blog-caret-trigger {
-  position: fixed;
-  z-index: 10;
-  display: grid;
-  inline-size: 44px;
-  block-size: 44px;
-  place-items: center;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  background: var(--background);
-  color: var(--foreground-muted);
-  touch-action: manipulation;
-}
-.sa-blog-caret-trigger:hover, .sa-blog-caret-trigger[aria-expanded='true'] {
-  background: var(--background-secondary);
-  color: var(--foreground);
-}
-.sa-blog-caret-trigger:focus-visible {
-  outline: 2px solid var(--accent-primary);
-  outline-offset: 2px;
-}
-
 /* A Learn more card while editing. */
 .sa-blog-related {
   display: grid;

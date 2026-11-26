@@ -4,6 +4,13 @@
  * newest version is refused (DraftConflictError), and publishing checks the
  * published version is still the one the editor loaded
  * (PublicationConflictError). The handlers turn both into a 409.
+ *
+ * Autosaves are the one exception to adding a version. The editor saves a
+ * second after typing stops, so a version per autosave would bury the ones
+ * that matter. An autosave instead rewrites the newest version in place when
+ * that version was itself an autosave and readers aren't seeing it; its id
+ * stays the same, so the editor's parent still matches. An explicit save, a
+ * publish, or an autosave over a published or hand-saved version adds one.
  */
 
 import { AddressTakenError, DraftConflictError, PublicationConflictError, sha256Hex, stableJson } from '@rcweston/story-core';
@@ -19,7 +26,12 @@ export interface BlogSaveInput {
   rename?: string;
   sourceKind?: BlogSourceKind;
   sourceRef?: string;
+  /** Saved by the editor on its own, a second after typing stopped. */
+  autosave?: boolean;
 }
+
+/** The sourceRef an autosaved version carries, so the next autosave can rewrite it. */
+export const BLOG_AUTOSAVE_REF = 'autosave';
 
 export interface BlogCreateInput {
   slug: string;
@@ -56,6 +68,10 @@ class BlogNotFoundError extends Error {
   }
 }
 export { BlogNotFoundError };
+
+/** An autosave may rewrite the newest version only if it was an autosave too and isn't live. */
+const rewritable = (latest: { id: string; sourceKind: string; sourceRef: string }, publishedDocumentId: string | null) =>
+  latest.sourceKind === 'editor' && latest.sourceRef === BLOG_AUTOSAVE_REF && latest.id !== publishedDocumentId;
 
 const sortNewest = (records: BlogPostRecord[]) =>
   records.sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.id - a.id);
@@ -130,8 +146,15 @@ export function createMemoryBlogStore(): BlogPostStore {
           if (bySlug(input.rename)) throw new AddressTakenError(BLOG_MESSAGES.taken);
           post.slug = input.rename;
         }
-        const unchanged = latest && latest.contentSha256 === blogContentSha256(input.content) && (input.sourceKind ?? 'editor') === 'editor';
-        if (!unchanged) add(post, input.content, latest?.id ?? null, input.sourceKind ?? 'editor', input.sourceRef ?? '');
+        const kind = input.sourceKind ?? 'editor';
+        const sha = blogContentSha256(input.content);
+        const unchanged = latest && latest.contentSha256 === sha && kind === 'editor';
+        if (unchanged) return copy(post);
+        if (input.autosave && latest && rewritable(latest, post.publishedDocumentId)) {
+          Object.assign(latest, { contentSha256: sha, content: structuredClone(input.content), createdAt: new Date().toISOString() });
+        } else {
+          add(post, input.content, latest?.id ?? null, kind, input.autosave ? BLOG_AUTOSAVE_REF : input.sourceRef ?? '');
+        }
         return copy(post);
       }),
     publish: (input) =>
@@ -266,12 +289,23 @@ export function createPostgresBlogStore(sql: SqlRunner): BlogPostStore {
           }
         }
         const kind = input.sourceKind ?? 'editor';
-        let unchanged = false;
-        if (latest && kind === 'editor') {
-          const current = await tx.query('SELECT content_sha256 FROM site_blog_post_versions WHERE id = $1', [latest]);
-          unchanged = current.rows[0]?.content_sha256 === blogContentSha256(input.content);
+        const sha = blogContentSha256(input.content);
+        const current = latest
+          ? (await tx.query('SELECT id, source_kind, source_ref, content_sha256 FROM site_blog_post_versions WHERE id = $1', [latest])).rows[0]
+          : undefined;
+        const unchanged = kind === 'editor' && current?.content_sha256 === sha;
+        const published = row.published_document_id ? String(row.published_document_id) : null;
+        const rewrite = !unchanged && input.autosave && current
+          && rewritable({ id: String(current.id), sourceKind: String(current.source_kind), sourceRef: String(current.source_ref) }, published);
+        if (rewrite) {
+          await tx.query(
+            'UPDATE site_blog_post_versions SET content = $2::jsonb, content_sha256 = $3, created_at = clock_timestamp() WHERE id = $1',
+            [latest, JSON.stringify(input.content), sha],
+          );
+          await tx.query('UPDATE site_blog_posts SET updated_at = NOW() WHERE id = $1', [postId]);
+        } else if (!unchanged) {
+          await insertVersion(tx, postId, latest, input.content, kind, input.autosave ? BLOG_AUTOSAVE_REF : input.sourceRef ?? '');
         }
-        if (!unchanged) await insertVersion(tx, postId, latest, input.content, kind, input.sourceRef ?? '');
         return (await full(tx, (await tx.query(`SELECT ${POST_COLUMNS} FROM site_blog_posts WHERE id = $1`, [postId])).rows[0]))!;
       }, 'READ COMMITTED'),
     publish: (input) =>

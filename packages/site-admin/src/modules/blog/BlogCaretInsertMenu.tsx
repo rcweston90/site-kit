@@ -3,13 +3,10 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { Editor } from '@tiptap/react';
-import { Plus } from 'lucide-react';
-import { AuthoringCommandMenu, AuthoringCommandRow } from '../../menu/index.js';
+import { AuthoringCommandMenu, AuthoringCommandRow, AuthoringInsertTrigger } from '../../menu/index.js';
 import { AUTHORING_COMMAND_MENU_MAX_HEIGHT } from '../../menu/index.js';
 import type { SlashInsertAction } from '@rcweston/story-editor';
 import { blankBlogLine, blogCaretMenuPlacement } from './blog-caret-insert.js';
-/* Styles: blog.css. */
-const styles = { trigger: 'sa-blog-caret-trigger' } as const;
 
 export function BlogCaretInsertMenu({ editor, at, actions }: { editor: Editor; at: number | null; actions: SlashInsertAction[] }) {
   const id = useId();
@@ -29,7 +26,7 @@ export function BlogCaretInsertMenu({ editor, at, actions }: { editor: Editor; a
       const viewportLeft = viewport?.offsetLeft ?? 0;
       const viewportTop = viewport?.offsetTop ?? 0;
       const viewportBottom = viewportTop + (viewport?.height ?? window.innerHeight);
-      const sticky = editor.view.dom.closest('[data-blog-editor]')?.querySelector('[data-blog-save-dock]');
+      const sticky = editor.view.dom.closest('[data-blog-editor]')?.querySelector('[data-story-workspace-bar]');
       const mobileBar = document.querySelector('[data-story-mobile-formatting]');
       setPlacement(blogCaretMenuPlacement(editor.view.coordsAtPos(at), {
         left: viewportLeft,
@@ -90,14 +87,14 @@ export function BlogCaretInsertMenu({ editor, at, actions }: { editor: Editor; a
     requestAnimationFrame(() => menu.current?.querySelector('button')?.focus({ preventScroll: true }));
   };
   return createPortal(<>
-    <button type="button" ref={trigger} className={styles.trigger} style={placement.plus}
+    <AuthoringInsertTrigger ref={trigger} style={placement.plus}
       aria-label="Insert at this line" aria-haspopup="menu" aria-expanded={open} aria-controls={open ? id : undefined}
       data-story-prose-surface=""
       onPointerDown={event => event.preventDefault()} onClick={toggle}
       onKeyDown={event => {
         if (event.key === 'Escape') { event.preventDefault(); restoreCaret(); }
         if (event.key === 'ArrowDown') { event.preventDefault(); if (!open) toggle(); else menu.current?.querySelector('button')?.focus({ preventScroll: true }); }
-      }}><Plus size={18} aria-hidden="true" /></button>
+      }} />
     {open && placement.menu.maxHeight >= 44 && <AuthoringCommandMenu
       ref={menu} id={id} role="menu" aria-label="Insert at this line" data-story-prose-surface=""
       style={{ left: placement.menu.left, top: placement.menu.top, width: placement.menu.width, maxHeight: Math.min(placement.menu.maxHeight, AUTHORING_COMMAND_MENU_MAX_HEIGHT) }}

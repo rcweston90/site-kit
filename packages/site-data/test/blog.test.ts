@@ -103,6 +103,42 @@ for (const backend of ['memory', 'postgres'] as const) {
         assert.equal(((await taken.json()) as { code: string }).code, 'ADDRESS');
       }));
 
+    it('folds autosaves into one working version, and keeps hand saves and published versions', () =>
+      withSite(async ({ request }) => {
+        const put = async (title: string, parentDocumentId: string, autosave = true) =>
+          (await (await request('/blog/drafting', { method: 'PUT', json: { content: post(title), parentDocumentId, autosave } })).json()) as BlogEditorState;
+        const created = (await (await request('/blog', { method: 'POST', json: { slug: 'drafting', content: post('Drafting') } })).json()) as BlogEditorState;
+        const first = created.documents[0].id;
+
+        // The first autosave builds on the created version, so it adds one.
+        const a = await put('Drafting, a', first);
+        assert.equal(a.documents.length, 2);
+        assert.equal(a.documents[0].sourceRef, 'autosave');
+        const working = a.documents[0].id;
+
+        // The next ones rewrite it in place: same id, so the editor's parent still matches.
+        const b = await put('Drafting, ab', working);
+        const c = await put('Drafting, abc', working);
+        assert.equal(c.documents.length, 2);
+        assert.equal(b.documents[0].id, working);
+        assert.equal(c.documents[0].id, working);
+        assert.equal(c.content.title, 'Drafting, abc');
+
+        // A save by hand keeps that point: it adds a version, and the next autosave adds another.
+        const kept = await put('Drafting, abc', working, false);
+        assert.equal(kept.documents.length, 2, 'the same content saves no new version');
+        const handSaved = await put('Drafting, by hand', working, false);
+        assert.equal(handSaved.documents.length, 3);
+        const after = await put('Drafting, then typing', handSaved.documents[0].id);
+        assert.equal(after.documents.length, 4);
+
+        // Once readers see the autosaved version, the next autosave leaves it alone.
+        await request('/blog/drafting/publish', { method: 'POST', json: { documentId: after.documents[0].id, expectedPublishedDocumentId: null } });
+        const overLive = await put('Drafting, past the live one', after.documents[0].id);
+        assert.equal(overLive.documents.length, 5);
+        assert.equal(overLive.liveContent?.title, 'Drafting, then typing');
+      }));
+
     it('publishes, keeps readers on the published version while a draft moves on, and unpublishes', () =>
       withSite(async ({ request, site, revalidated }) => {
         const state = (await (await request('/blog', { method: 'POST', json: { slug: 'tide-tables', content: post('Tide tables', '<p>One</p>') } })).json()) as BlogEditorState;

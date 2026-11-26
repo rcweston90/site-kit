@@ -371,7 +371,7 @@ export function AdminWorkspace({
         inert={mobileOpen ? true : undefined}
         className={`sa-content-in min-w-0 flex-1 bg-background px-4 md:px-8 ${editing
           // The story editor pulls its sticky bar up by exactly this padding.
-          ? 'py-4 md:py-8'
+          ? 'py-half md:py-minor'
           // 72px clears the 48px top bar by one baseline.
           : 'pt-major pb-minor-2 lg:ml-(--admin-nav-width) lg:pt-minor-2'}`}
       >

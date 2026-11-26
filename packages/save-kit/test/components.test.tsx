@@ -11,8 +11,11 @@ import {
   deleteWithUndo,
   markSessionEnded,
   sessionPromptDismissed,
+  useDraftAutosave,
   useFormSave,
+  useLeaveGuard,
   useSaveStatus,
+  whenHistorySettled,
   type SaveStatusState,
 } from '../src/index.ts';
 import { resetDeletesForTest } from '../src/deletes.ts';
@@ -124,4 +127,55 @@ test('useFormSave: dirty from the value, ⌘S saves only when there is something
   await press();
   assert.equal(saves, 1);
   await unmount();
+});
+
+test('useDraftAutosave: saves once, a second after the last change, and only when eligible', async () => {
+  const saves: string[] = [];
+  let setText!: (text: string) => void;
+  let setEligible!: (eligible: boolean) => void;
+  let setFlush!: (flush: boolean) => void;
+  function Editor() {
+    const [text, setTextState] = useState('a');
+    const [eligible, setEligibleState] = useState(true);
+    const [flush, setFlushState] = useState(false);
+    setText = setTextState; setEligible = setEligibleState; setFlush = setFlushState;
+    useDraftAutosave({ eligible, revision: text, save: () => saves.push(text), flush });
+    return null;
+  }
+  const wait = (ms: number) => act(() => new Promise((resolve) => setTimeout(resolve, ms)));
+  const page = await render(<Editor />);
+  await act(async () => setText('ab'));
+  await wait(500);
+  await act(async () => setText('abc'));
+  await wait(700);
+  assert.deepEqual(saves, [], 'each change restarts the wait');
+  await wait(400);
+  assert.deepEqual(saves, ['abc'], 'the newest text, once');
+  await act(async () => { setEligible(false); setText('abcd'); });
+  await wait(1100);
+  assert.deepEqual(saves, ['abc'], 'nothing while not eligible');
+  await act(async () => { setEligible(true); setFlush(true); });
+  await wait(20);
+  assert.deepEqual(saves, ['abc', 'abcd'], 'flush saves now');
+  await page.unmount();
+});
+
+test('whenHistorySettled: a page that leaves after its last save goes after the guard tidies history', async () => {
+  let setDirty!: (dirty: boolean) => void;
+  function Page() {
+    const [dirty, setDirtyState] = useState(false);
+    setDirty = setDirtyState;
+    useLeaveGuard(dirty);
+    return null;
+  }
+  const page = await render(<Page />);
+  await act(async () => setDirty(true));
+  assert.ok(window.history.state?.__saveKitUnsavedGuard, 'the guard keeps a copy entry while unsaved');
+  const order: string[] = [];
+  const popped = new Promise<void>((resolve) => window.addEventListener('popstate', () => { order.push('back landed'); resolve(); }, { once: true }));
+  await act(async () => setDirty(false));
+  await whenHistorySettled().then(() => order.push('navigate'));
+  await popped;
+  assert.deepEqual(order, ['back landed', 'navigate']);
+  await page.unmount();
 });

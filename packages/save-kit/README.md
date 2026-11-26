@@ -56,6 +56,12 @@ function PostEditor({ post }: { post: Post }) {
 }
 ```
 
+To have a draft save itself, add one line under `useFormSave`. Keep it to drafts: publishing stays a button.
+
+```tsx
+useDraftAutosave({ eligible: dirty && !status.failure && status.pending.length === 0, revision: JSON.stringify(draft), save });
+```
+
 ## In your app shell, once
 
 ```tsx
@@ -98,6 +104,7 @@ A list that saves each action as it happens (publish, reorder, delete) uses `use
 | `deleteWithUndo`, `useHiddenKeys`, `UndoToast`, `reportLateFailure` | Delete now, Undo in a toast, sent later. ⌘Z undoes too, unless you're typing. |
 | `SessionEndedDialog`, `markSessionEnded`, `sessionResumed` | Sign in over the page and carry on. |
 | `useFormSave`, `useListSave` | Everything above for a form or a list. |
+| `useDraftAutosave({ eligible, revision, save, flush? })` | Saves a private draft a second after typing stops (`DRAFT_AUTOSAVE_DELAY_MS`). `eligible` is yours to decide: dirty, valid, not mid-composition, nothing failing. `flush` saves now, for leaving the page. |
 | `safeReturnPath(next, { prefix })` | The `?next=` path after signing in, only if it's a page on this origin under `prefix`. No imports, so edge middleware can use it. |
 
 ## Styling

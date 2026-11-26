@@ -8,12 +8,12 @@ import { NodeSelection } from '@tiptap/pm/state';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { common, createLowlight } from 'lowlight';
 import { Dialog } from 'radix-ui';
-import { ArrowDown, ArrowUp, ArrowUpRight, Code, Heading2, Heading3, Heading4, ImagePlus, List, ListOrdered, MessageSquare, Minus, MousePointerClick, Pencil, Pilcrow, Quote, Type } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpRight, Code, ImagePlus, MessageSquare, Minus, MousePointerClick, Pencil, Quote } from 'lucide-react';
 import { useMediaQuery } from '@rcweston/story-react';
 import { highlightColor } from '@rcweston/story-core';
 import { StorySlashMenu, TiptapLinkChip, TiptapSelectionToolbar, storySlashKey } from '@rcweston/story-editor';
 import { safeBlogUrl } from '@rcweston/site-data/client';
-import { PROSE_SURFACE, type AuthoringTextStyle, type SelectionToolbarOptions, type SelectionToolbarState } from '@rcweston/story-editor';
+import { TEXT_STYLES as SHARED_TEXT_STYLES, PROSE_SURFACE, type AuthoringTextStyle, type SelectionToolbarOptions, type SelectionToolbarState } from '@rcweston/story-editor';
 import { BlogRelatedTileNode, insertBlogRelatedTile } from './BlogRelatedTile.js';
 import { blogEditorExtensions, blogTextStyle, setBlogTextStyle } from './blog-editor-schema.js';
 /* Styles: blog.css. */
@@ -32,16 +32,11 @@ import { blogAfterCallout, insertBlogAfterCallout } from './blog-callout-placeme
 import { blankBlogLine, blogToolbarDividerTarget, dividerAfterBlogContainer, dividerBeforeBlankBlogLine, inBlogBodyParagraph } from './blog-caret-insert.js';
 import { BlogCta, insertBlogCta } from './BlogCta.js';
 import { BlogCaretInsertMenu } from './BlogCaretInsertMenu.js';
+import type { BlogBlockTool } from './blog-block-tools.js';
 import type { SlashInsertAction } from '@rcweston/story-editor';
 
 const TEXT_STYLES: AuthoringTextStyle[] = [
-  { value: 'text', label: 'Text', icon: Pilcrow, keys: '⌘⌥0' },
-  { value: 'large', label: 'Large text', icon: Type, keys: '⌘⌥1' },
-  { value: 'heading2', label: 'Heading 2', icon: Heading2, keys: '⌘⌥2' },
-  { value: 'heading3', label: 'Heading 3', icon: Heading3, keys: '⌘⌥3' },
-  { value: 'heading4', label: 'Heading 4', icon: Heading4, keys: '⌘⌥4' },
-  { value: 'bullets', label: 'Bulleted list', icon: List, keys: '⌘⇧8' },
-  { value: 'numbered', label: 'Numbered list', icon: ListOrdered, keys: '⌘⇧7' },
+  ...SHARED_TEXT_STYLES,
   { value: 'quote', label: 'Quote', icon: Quote, keys: '' },
   { value: 'codeBlock', label: 'Code block', icon: Code, keys: '' },
 ];
@@ -63,10 +58,15 @@ function imageAtTarget(target: EventTarget | null) {
 }
 
 /** Shared case-study authoring controls over the blog's lossless HTML schema. */
-export default function TiptapEditor({ content, onChange, uploadBodyImage }: {
+export default function TiptapEditor({ content, onChange, uploadBodyImage, registerHistory, onHistoryChange, registerTools }: {
   content: string; onChange: (html: string) => void;
   /** Uploads a body image and answers its URL. */
   uploadBodyImage: (file: File) => Promise<string>;
+  /** The workspace bar's Undo and Redo run through this. */
+  registerHistory?: (handler: ((action: 'undo' | 'redo') => void) | null) => void;
+  onHistoryChange?: (state: { undo: boolean; redo: boolean }) => void;
+  /** The workspace bar's More menu lists these block tools. */
+  registerTools?: (tools: readonly BlogBlockTool[], handler: (key: BlogBlockTool['key']) => void) => void;
 }) {
   const onChangeRef = useRef(onChange);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -84,7 +84,6 @@ export default function TiptapEditor({ content, onChange, uploadBodyImage }: {
   const imageInput = useRef<HTMLInputElement>(null);
   const uploadButton = useRef<HTMLButtonElement>(null);
   const imagePanel = useRef<HTMLDivElement>(null);
-  const imageTrigger = useRef<HTMLButtonElement>(null);
   const imageEditTrigger = useRef<HTMLButtonElement>(null);
   const imageActions = useRef<HTMLDivElement>(null);
   const imageMoveUp = useRef<HTMLButtonElement>(null);
@@ -211,7 +210,7 @@ export default function TiptapEditor({ content, onChange, uploadBodyImage }: {
     if (!editor || imagePosition === null || !trackImageAction) return;
     let frame = 0;
     const body = editor.view.dom;
-    const dock = body.closest('[data-blog-editor]')?.querySelector('[data-blog-save-dock]');
+    const dock = body.closest('[data-blog-editor]')?.querySelector('[data-story-workspace-bar]');
     const action = imageActions.current;
     const measure = () => {
       if (editor.isDestroyed || !action?.isConnected) return;
@@ -264,6 +263,45 @@ export default function TiptapEditor({ content, onChange, uploadBodyImage }: {
     const target = pending.direction === 'up' ? imageMoveUp.current : imageMoveDown.current;
     target?.focus({ preventScroll: true });
   }, [imageActionPosition, imagePosition]);
+  const undo = state?.canUndo ?? false;
+  const redo = state?.canRedo ?? false;
+  useEffect(() => {
+    onHistoryChange?.({ undo, redo });
+  }, [undo, redo, onHistoryChange]);
+  useEffect(() => {
+    if (!editor || !registerHistory) return;
+    registerHistory(action => editor.chain().focus(undefined, { scrollIntoView: false })[action]().run());
+    return () => registerHistory(null);
+  }, [editor, registerHistory]);
+  // Re-registered each render so the bar's menu reflects where the cursor is now.
+  useEffect(() => {
+    if (!registerTools || !editor || !state) return;
+    const tools: BlogBlockTool[] = [
+      { key: 'image', label: 'Insert image', available: true },
+      { key: 'callout', label: 'Insert callout', available: state.canInsertCallout },
+      { key: 'cta', label: 'Insert button', available: state.bodyParagraph },
+      { key: 'related', label: 'Learn more card', available: true },
+      { key: 'divider', label: 'Divider', available: state.dividerTarget !== null },
+    ];
+    registerTools(tools, key => {
+      if (editor.isDestroyed || !tools.find(tool => tool.key === key)?.available) return;
+      switch (key) {
+        case 'image': openImage(editor.state, true); break;
+        case 'callout': insertBlogCallout(editor); break;
+        case 'cta': insertBlogCta(editor); break;
+        case 'related': insertBlogRelatedTile(editor); break;
+        case 'divider': {
+          if (blogToolbarDividerTarget(editor.state) === 'cursor') {
+            editor.chain().focus(undefined, { scrollIntoView: false }).setHorizontalRule().run();
+          } else {
+            const tr = dividerAfterBlogContainer(editor.state);
+            if (tr) { editor.view.dispatch(tr); editor.commands.focus(undefined, { scrollIntoView: false }); }
+          }
+          break;
+        }
+      }
+    });
+  });
   if (!editor || !state) return null;
   const selectImage = (img: HTMLImageElement) => {
     if (editor.isDestroyed || !editor.view.dom.contains(img)) return false;
@@ -383,13 +421,11 @@ export default function TiptapEditor({ content, onChange, uploadBodyImage }: {
     setImageFile(null);
     if (session?.kind === 'edit' && imageActionPosition && imageEditTrigger.current?.isConnected) {
       imageEditTrigger.current.focus({ preventScroll: true });
-    } else if (imageApplied.current || session?.kind === 'edit' || session?.kind === 'insert' && session.returnToEditor) {
+    } else {
       editor.commands.focus(undefined, { scrollIntoView: false });
-    } else imageTrigger.current?.focus({ preventScroll: true });
+    }
   };
 
-  const keepSelection = (event: React.PointerEvent<HTMLButtonElement>) => event.preventDefault();
-  const actionFocus = () => editor.chain().focus(undefined, { scrollIntoView: false });
   const insertActions: SlashInsertAction[] = [
     { key: 'related-tile', label: 'Learn more card', terms: ['related', 'post', 'case study'], icon: ArrowUpRight, run: () => insertBlogRelatedTile(editor) },
     { key: 'image', label: 'Image', terms: ['picture', 'photo', 'media'], icon: ImagePlus, run: () => openImage(editor.state, true) },
@@ -406,16 +442,6 @@ export default function TiptapEditor({ content, onChange, uploadBodyImage }: {
   ];
 
   return <div className={styles.canvas}>
-    <p className="text-sm leading-baseline text-foreground-muted mb-0">Use + on a blank line or type / to insert. Select text to format it.</p>
-    <div className={styles.actions} aria-label="Post content actions">
-      <button ref={imageTrigger} type="button" onClick={() => openImage(editor.state, false)} aria-haspopup="dialog" aria-expanded={imageOpen}>Insert image</button>
-      <button type="button" disabled={!state.bodyParagraph} onPointerDown={keepSelection} onClick={() => insertBlogCta(editor)}>Insert button</button>
-      <button type="button" onPointerDown={keepSelection} onClick={() => insertBlogRelatedTile(editor)}>Learn more card</button>
-      <button type="button" disabled={!state.canInsertCallout} onPointerDown={keepSelection} onClick={() => insertBlogCallout(editor)}>Insert callout</button>
-      <button type="button" disabled={state.dividerTarget === null} onPointerDown={keepSelection} onClick={() => addDivider()}>Divider</button>
-      <button type="button" disabled={!state.canUndo} onPointerDown={keepSelection} onClick={() => actionFocus().undo().run()}>Undo</button>
-      <button type="button" disabled={!state.canRedo} onPointerDown={keepSelection} onClick={() => actionFocus().redo().run()}>Redo</button>
-    </div>
     <Dialog.Root open={imageOpen} onOpenChange={open => { if (!imageUploadActive.current) setImageOpen(open); }}>
       <Dialog.Portal>
         <Dialog.Overlay className={styles.dialogOverlay} />
@@ -520,7 +546,7 @@ export default function TiptapEditor({ content, onChange, uploadBodyImage }: {
           </button>
         </>}
       </div>}
-    {editing && !imageOpen && imagePosition === null && !state.slash?.active && state.blankLine !== null && <BlogCaretInsertMenu editor={editor} at={state.blankLine} actions={insertActions} />}
+    {editing && !imageOpen && imagePosition === null && !state.slash?.active && state.blankLine !== null && <BlogCaretInsertMenu editor={editor} at={state.blankLine} actions={[...TEXT_STYLES.map(style => ({ key: style.value, icon: style.icon, label: style.label, terms: [], run: () => setBlogTextStyle(editor, style.value) })), ...insertActions]} />}
     {editing && state.slash?.active && <StorySlashMenu editor={editor} slash={state.slash} textStyles={TEXT_STYLES} onTextStyle={setBlogTextStyle} insertActions={insertActions} />}
     <TiptapSelectionToolbar editor={editor} state={state}
       open={editing && imagePosition === null} mobile={touchToolbar} options={options} menuRef={menuRef}

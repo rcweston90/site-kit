@@ -15,7 +15,7 @@ export { SettingsSheet } from './EditorDrawer.js';
 export { EDITOR_UI } from './editing-slots.js';
 export { default as StoryInspector, type StoryAddressSettings } from './StoryInspector.js';
 export { default as ContinuousStoryEditor } from './continuous/ContinuousStoryEditor.js';
-export { default as EditorPublishButton } from './EditorPublishButton.js';
+export { default as EditorPublishButton, EditorialPublishControl, type PublicationControlProps } from './EditorPublishButton.js';
 export { default as EditorThemeToggle, type EditorTheme } from './EditorThemeToggle.js';
 export { InlineStoryText, InlineStoryAdd } from './InlineStoryText.js';
 export { StoryProseEditor } from './StoryProseEditor.js';
@@ -53,6 +53,6 @@ export { STORY_UPLOAD_ACCEPT, STORY_UPLOAD_MAX_BYTES, checkStoryUpload, type Sto
 export * from './classes.js';
 export { ImageCatalog, fetchImageLibrary, type ImageCatalogItem, type ImageCatalogPage, type ImageCatalogQuery, type ImageLibrarySource } from './ImageCatalog.js';
 // The authoring pieces other editors (site-admin's post editor) build on.
-export { TiptapSelectionToolbar, TiptapLinkChip, PROSE_SURFACE, type AuthoringTextStyle, type ParagraphSpacing, type SelectionToolbarOptions, type SelectionToolbarState } from './TiptapAuthoringToolbar.js';
+export { TiptapSelectionToolbar, TiptapLinkChip, PROSE_SURFACE, TEXT_STYLES, type AuthoringTextStyle, type ParagraphSpacing, type SelectionToolbarOptions, type SelectionToolbarState } from './TiptapAuthoringToolbar.js';
 export { default as StorySlashMenu, type SlashInsertAction } from './StorySlashMenu.js';
 export { StoryParagraphStyle, StoryHighlight, StoryTypography, StoryListBackwardDelete, StorySlash, storySlashKey, changeListIndent, enterInStoryLargeText, listToggleState, selectedListKind, setStoryLarge, toggleStoryList } from './story-prose-schema.js';

@@ -7,17 +7,14 @@ import { publicationTarget } from './publication-target.js';
 import { describePublicationIssues, type PublicationChecklistRow } from './publication-issue-labels.js';
 
 import { chromeStyles } from './classes.js';
-export interface EditorPublishButtonProps {
+/** What any editor's publish control needs; the checklist rows come from the host. */
+export interface PublicationControlProps {
   /** Phone bars use a shorter trigger; the full confirmation remains in the popover. */
   compact?: boolean;
   /** One-row phone toolbars use an icon while retaining the full accessible
    *  action name and the complete review gate in the popover. */
   iconOnly?: boolean;
-  /** The story as it stands in the editor, unsaved edits included — the
-   *  checklist judges what would go live, not the last save. */
-  story: Story;
   hasUnsavedChanges: boolean;
-  savedReadiness?: PublicationReadiness;
   /** Version currently live; `null` when the story has never been published. */
   publishedVersion: number | null;
   /** Latest saved version number; 0 when nothing has been saved yet. */
@@ -47,6 +44,13 @@ const primaryAction = `${chromeStyles.publishButtonPrimaryAction} ${focusRing}`;
 const mutedLine = chromeStyles.publishButtonMutedLine;
 const checklistRow = chromeStyles.publishButtonChecklistRow;
 
+export interface EditorPublishButtonProps extends PublicationControlProps {
+  /** The story as it stands in the editor, unsaved edits included — the
+   *  checklist judges what would go live, not the last save. */
+  story: Story;
+  savedReadiness?: PublicationReadiness;
+}
+
 const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
 
 /**
@@ -57,12 +61,29 @@ const plural = (count: number, one: string, many: string) => `${count} ${count =
  * a publish; the button carries their count, before and after, so they stay
  * in view until they're done.
  */
-export default function EditorPublishButton({
+/** A story's publish control: the shared control, checked against the story. */
+export default function EditorPublishButton({ story, savedReadiness, ...props }: EditorPublishButtonProps) {
+  return <EditorialPublishControl {...props}
+    getIssueAction={(row) => {
+      const target = publicationTarget(story, row).kind;
+      return target === 'settings' ? 'Open settings' : target === 'section' ? 'Show on page' : 'Go to text';
+    }}
+    getRows={() => {
+      const readiness = validatePublication(story);
+      return describePublicationIssues(story, [...readiness.errors, ...readiness.warnings, ...(savedReadiness?.errors ?? []), ...(savedReadiness?.warnings ?? [])]);
+    }} />;
+}
+
+/**
+ * The same control for any document (a post, say): the host supplies the
+ * checklist rows and what each row's jump is called.
+ */
+export function EditorialPublishControl({
+  getRows,
+  getIssueAction,
   compact = false,
   iconOnly = false,
-  story,
   hasUnsavedChanges,
-  savedReadiness,
   publishedVersion,
   latestVersion,
   isPublishedCurrent,
@@ -72,7 +93,7 @@ export default function EditorPublishButton({
   onShowIssue,
   liveHref,
   publishedUpdates,
-}: EditorPublishButtonProps) {
+}: PublicationControlProps & { getRows: () => PublicationChecklistRow[]; getIssueAction?: (row: PublicationChecklistRow) => string }) {
   const [open, setOpen] = useState(false);
   const [failed, setFailed] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -83,12 +104,9 @@ export default function EditorPublishButton({
 
   // The count on the button follows the text, so the checks run on every
   // edit — deferred, so they never hold up typing.
-  const deferredStory = useDeferredValue(story);
-  const checkedStory = open ? story : deferredStory;
-  const rows = useMemo<PublicationChecklistRow[]>(() => {
-    const readiness = validatePublication(checkedStory);
-    return describePublicationIssues(checkedStory, [...readiness.errors, ...readiness.warnings, ...(savedReadiness?.errors ?? []), ...(savedReadiness?.warnings ?? [])]);
-  }, [checkedStory, savedReadiness]);
+  const deferredRows = useDeferredValue(getRows);
+  const checkedRows = open ? getRows : deferredRows;
+  const rows = useMemo<PublicationChecklistRow[]>(() => checkedRows(), [checkedRows]);
   const errors = rows.filter((row) => row.severity === 'error');
   const notes = rows.filter((row) => row.severity === 'warning');
   const updatesNote = publishedUpdates && publishedUpdates.count > 0 ? publishedUpdates : null;
@@ -234,8 +252,8 @@ export default function EditorPublishButton({
               {detail && <p className={mutedLine}>{detail}</p>}
             </div>
 
-            {hasList && errors.length > 0 && <ChecklistRows story={checkedStory} rows={errors} onShow={showIssue} />}
-            {isPublishedCurrent && hasList && <ChecklistRows story={checkedStory} rows={notes} onShow={showIssue} />}
+            {hasList && errors.length > 0 && <ChecklistRows getIssueAction={getIssueAction} rows={errors} onShow={showIssue} />}
+            {isPublishedCurrent && hasList && <ChecklistRows getIssueAction={getIssueAction} rows={notes} onShow={showIssue} />}
             {!isPublishedCurrent && hasList && noteCount > 0 && (
               <>
                 {errors.length > 0 && <p className={`${chromeStyles.publishButtonP} ${mutedLine}`}>Notes</p>}
@@ -254,7 +272,7 @@ export default function EditorPublishButton({
                     </li>
                   </ul>
                 )}
-                {notes.length > 0 && <ChecklistRows story={checkedStory} rows={notes} onShow={showIssue} />}
+                {notes.length > 0 && <ChecklistRows getIssueAction={getIssueAction} rows={notes} onShow={showIssue} />}
               </>
             )}
           </div>
@@ -298,7 +316,7 @@ export default function EditorPublishButton({
   );
 }
 
-function ChecklistRows({ story, rows, onShow }: { story: Story; rows: PublicationChecklistRow[]; onShow: (row: PublicationChecklistRow) => void }) {
+function ChecklistRows({ getIssueAction, rows, onShow }: { getIssueAction?: (row: PublicationChecklistRow) => string; rows: PublicationChecklistRow[]; onShow: (row: PublicationChecklistRow) => void }) {
   return (
     <ul>
       {rows.map((row) => (
@@ -314,9 +332,7 @@ function ChecklistRows({ story, rows, onShow }: { story: Story; rows: Publicatio
               <span className={chromeStyles.publishButtonSmallText2}>{
                 row.code === 'missing-media-alt' ? 'Edit alt text'
                   : row.code === 'invalid-media-source' ? 'Check the source'
-                  : publicationTarget(story, row).kind === 'settings' ? 'Open settings'
-                  : publicationTarget(story, row).kind === 'section' ? 'Show on page'
-                  : 'Go to text'
+                  : getIssueAction?.(row) ?? 'Go to text'
               }</span>
             </span>
             <ChevronRight aria-hidden="true" className={chromeStyles.publishButtonIcon2} />

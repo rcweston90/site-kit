@@ -16,6 +16,7 @@ export { AdminLink, AdminRouterProvider, useAdminRouter, type AdminLinkProps, ty
 export { adminRead, adminRequest } from './request.js';
 
 export { AdminShell, AdminWorkspace } from './shell/AdminShell.js';
+export { EditorialWorkspaceBar, barButton, barIconButton } from './shell/EditorialWorkspaceBar.js';
 export { buildAdminNav, findAdminNavGroup, findCurrentAdminNavItem, type AdminNavGroup, type AdminNavItem } from './shell/navigation.js';
 export { PasscodeForm, useAdminAuth, type PasscodeFormProps } from './auth/index.js';
 export * from './theme/index.js';

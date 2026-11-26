@@ -68,6 +68,7 @@ export function blogTextExtensions() {
           'Shift-Tab': () => changeListIndent(this.editor, -1),
           'Mod-Alt-0': () => setBlogTextStyle(this.editor, 'text'),
           'Mod-Alt-1': () => setBlogTextStyle(this.editor, 'large'),
+          ...Object.fromEntries([2, 3, 4, 5, 6].map(level => [`Mod-Alt-${level}`, () => setBlogTextStyle(this.editor, `heading${level}`)])),
           'Mod-Shift-8': () => { toggleStoryList(this.editor, 'bulletList'); return true; },
           'Mod-Shift-7': () => { toggleStoryList(this.editor, 'orderedList'); return true; },
           'Mod-\\': () => this.editor.chain().focus().unsetAllMarks().run(),

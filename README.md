@@ -19,7 +19,7 @@ Everything in the screenshots below is made up for the demo: Lena Ortiz and her 
 | <img src="assets/readme/admin-dashboard.webp" alt="The admin dashboard with a five-step start-here tour and content counts"> | <img src="assets/readme/admin-work.webp" alt="The Work screen: companies and the case study table"> |
 | The dashboard, with a short tour to start | Work: every case study, grouped by company |
 | <img src="assets/readme/admin-posts.webp" alt="The Posts screen in the admin"> | <img src="assets/readme/work.webp" alt="The public Work page with project cards"> |
-| Posts, saved as drafts until you publish | The public Work page |
+| Posts that save themselves as drafts until you publish | The public Work page |
 | <img src="assets/readme/case-study-dark.webp" alt="The case study in dark mode"> | <img src="assets/readme/home-phone.webp" alt="The home page on a phone" width="60%"> |
 | Dark mode follows the reader's system | On a phone |
 
@@ -48,7 +48,7 @@ pnpm db:migrate            # apply migrations yourself, when SITE_KIT_AUTO_MIGRA
 | Package | What it does | Depends on |
 | --- | --- | --- |
 | [`@rcweston/credits`](packages/credits) | Credits as data, checked in CI: the build fails when a dependency isn't credited. | nothing |
-| [`@rcweston/save-kit`](packages/save-kit) | The save layer for React editing screens: failures in plain words, delete with Undo, kept edits, a leave guard, ⌘S, and signing back in over the page. | React |
+| [`@rcweston/save-kit`](packages/save-kit) | The save layer for React editing screens: failures in plain words, delete with Undo, kept edits, a leave guard, ⌘S, autosave for drafts, and signing back in over the page. | React |
 | [`@rcweston/xray`](packages/xray) | An on-page inspector for spacing, type, tokens and accessibility, measured on the live page against your own rhythm. | React, Lucide |
 
 ## Working on it

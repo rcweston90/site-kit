@@ -57,7 +57,8 @@ export function storyMediaUploader(storyApi: string, folder = 'site'): AdminConf
 export function resolveAdminConfig(partial: Partial<AdminConfig> = {}): AdminConfig {
   const adminBase = (partial.adminBase ?? '/admin').replace(/\/$/, '');
   const editorHref = partial.editorHref ?? ((slug: string) => `${adminBase}/stories/${encodeURIComponent(slug)}`);
-  const editorPattern = new RegExp(`^${adminBase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/stories/(?!new(?:/|$))[^/]+(?:/|$)`);
+  // Full-width writing surfaces: a story's editor, and a post's (new or existing).
+  const editorPattern = new RegExp(`^${adminBase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}/(?:stories/(?!new(?:/|$))[^/]+(?:/|$)|blog/(?:new|[^/]+/edit)/?$)`);
   return {
     adminBase,
     storyApi: partial.storyApi ?? '/api/story',

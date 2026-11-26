@@ -353,7 +353,8 @@ export const blog = defineModule({
           const rename = body.slug === undefined || body.slug === slug ? undefined : slugOf(body.slug);
           const content = contentOf(body.content);
           const parentDocumentId = documentIdOf(body.parentDocumentId, true);
-          const record = await guarded(slug, () => store.saveDraft({ slug, content, parentDocumentId, rename }));
+          const autosave = body.autosave === true;
+          const record = await guarded(slug, () => store.saveDraft({ slug, content, parentDocumentId, rename, autosave }));
           if (record.publishedDocumentId !== null || rename) await revalidate(pathsFor(slug, ...(rename ? [rename] : [])));
           return json(blogEditorState(record));
         },

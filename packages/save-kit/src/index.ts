@@ -11,6 +11,7 @@
  *   sent later
  * - SessionEndedDialog: sign in over the page and carry on
  * - useFormSave / useListSave: all of the above for a form or a list, in one call
+ * - useDraftAutosave: save a private draft a second after typing stops
  */
 export {
   saveRequest,
@@ -24,7 +25,7 @@ export {
 } from './request.js';
 export { useSaveStatus, statusLine, type SaveStatus as SaveStatusState, type SaveFailure, type RunOptions, type RunResult } from './status.js';
 export { SaveStatus, SaveBar } from './SaveStatus.js';
-export { useLeaveGuard, confirmLeave, LEAVE_MESSAGE, GUARDED_LINK_ATTRIBUTE } from './leave-guard.js';
+export { useLeaveGuard, confirmLeave, whenHistorySettled, LEAVE_MESSAGE, GUARDED_LINK_ATTRIBUTE } from './leave-guard.js';
 export { useSaveShortcut, isSaveShortcut } from './shortcut.js';
 export { useKeptEdits, parseKept, keptOffer, type KeptOffer, type KeptEntry } from './kept-edits.js';
 export { KeptEditsNotice } from './KeptEditsNotice.js';
@@ -42,6 +43,7 @@ export {
 export { UndoToast } from './UndoToast.js';
 export { recordKey } from './keys.js';
 export { useFormSave, useListSave, ALL_SAVED } from './form.js';
+export { useDraftAutosave, DRAFT_AUTOSAVE_DELAY_MS } from './autosave.js';
 export { safeReturnPath } from './return-path.js';
 export { markSessionEnded, sessionResumed, sessionPromptDismissed, useSessionEnded, isSessionEnded } from './session.js';
 export { SessionEndedDialog } from './SessionEndedDialog.js';

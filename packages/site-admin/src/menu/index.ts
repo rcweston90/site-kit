@@ -5,3 +5,4 @@ export { adminMenuContentClass, adminMenuItemClass, adminMenuLabelClass, adminMe
 export { adminMenuSurfaceClass } from './admin-menu.js';
 export { AUTHORING_COMMAND_MENU_MAX_HEIGHT, authoringCommandMenuWidth } from './authoring-command-menu-geometry.js';
 export { AuthoringCommandMenu, AuthoringCommandRow } from './AuthoringCommandMenu.js';
+export { AuthoringInsertTrigger } from './AuthoringInsertTrigger.js';

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { SaveStatus, deleteWithUndo, recordKey, useListSave } from '@rcweston/save-kit';
-import { blogPaths, blogSummaryOf, type BlogEditorState, type BlogPostSummary as BlogPost } from '@rcweston/site-data/client';
+import { blogPaths, type BlogPostSummary as BlogPost } from '@rcweston/site-data/client';
 import { AdminPage, AdminPageHeader } from '../../primitives/index.js';
 import { adminPath, useAdminConfig } from '../../config.js';
 import { adminRequest } from '../../request.js';
@@ -47,19 +47,6 @@ export default function BlogAdminClient() {
     // Once, on mount; the endpoint is fixed for the life of the admin.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const handleTogglePublish = async (post: BlogPost) => {
-    // Publish puts the newest saved version live; Unpublish takes the post off the site.
-    const body = post.published
-      ? { expectedPublishedDocumentId: post.publishedDocumentId }
-      : { documentId: post.latestDocumentId, expectedPublishedDocumentId: post.publishedDocumentId };
-    await status.run(() => adminRequest<BlogEditorState>(api(post.published ? blogPaths.unpublish(post.slug) : blogPaths.publish(post.slug)), { method: 'POST', body: JSON.stringify(body) }), {
-      key: `publish:${post.slug}`,
-      success: post.published ? 'Post unpublished' : 'Post published',
-      done: post.published ? 'unpublished' : 'published',
-      onSaved: (updated) => setPosts((prev) => prev.map((p) => (p.slug === post.slug ? blogSummaryOf(updated, p) : p))),
-    });
-  };
 
   const handleDelete = (slug: string) => {
     deleteWithUndo({
@@ -152,14 +139,8 @@ export default function BlogAdminClient() {
                       href={adminPath(config, `blog/${post.slug}/edit`)}
                       className="px-3 py-2 rounded-md border border-foreground-muted text-foreground hover:text-accent-primary hover:border-accent-primary transition-colors font-mono text-xs uppercase tracking-wider"
                     >
-                      Edit
+                      Edit post
                     </Link>
-                    <button
-                      onClick={() => void handleTogglePublish(post)}
-                      className="px-3 py-2 rounded-md border border-foreground-muted text-foreground hover:text-accent-primary hover:border-accent-primary transition-colors font-mono text-xs uppercase tracking-wider"
-                    >
-                      {post.published ? 'Unpublish' : 'Publish'}
-                    </button>
                     <button
                       onClick={() => handleDelete(post.slug)}
                       className="px-3 py-2 rounded-md border border-red-500/50 text-red-500 hover:bg-red-500/10 transition-colors font-mono text-xs uppercase tracking-wider"

@@ -105,7 +105,7 @@ Back in **Work**, drag rows to set their order on the public Work page, and use 
 
 ### A blog post
 
-Open **Posts** and press **New post**. Write in the editor, **Save draft** as you go, and use **Publish** when you're done. A post can link to a case study, and both show up together where they relate.
+Open **Posts** and press **New post**. Give it a title and start writing: the draft saves itself a second after you stop typing, and the line next to the title says when it last did. **Save draft** (or ⌘S) keeps a version you can come back to. Only **Publish** changes what readers see. Post settings, behind the gear, hold the summary, address, tags and cover. A post can link to a case study, and both show up together where they relate.
 
 ### Images
 

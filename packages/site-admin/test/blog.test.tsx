@@ -148,15 +148,11 @@ const summary = (overrides: Partial<BlogPostSummary> = {}): BlogPostSummary => (
   createdAt: '2026-03-01T10:00:00.000Z', updatedAt: '2026-03-01T10:00:00.000Z', ...overrides,
 });
 
-test('Posts list: every post with its state; Publish puts the newest version live', async () => {
+test('Posts list: every post with its state; publishing happens in the editor', async () => {
   const draft = summary();
   const live = summary({ id: 2, slug: 'quiet-tools', title: 'Quiet tools', published: true, unpublishedChanges: true, latestDocumentId: 'post:2:v2', publishedDocumentId: 'post:2:v1' });
-  const calls = fakeApi(({ method, url }) => {
+  fakeApi(({ method, url }) => {
     if (method === 'GET' && url === '/api/site/blog') return { body: { posts: [draft, live] } };
-    if (method === 'POST' && url === '/api/site/blog/field-notes/publish') {
-      const doc = documentOf('post:1:v1', post(), null);
-      return { body: stateOf([doc], doc.id) };
-    }
     return undefined;
   });
   const { container, unmount } = await mount(<BlogAdminClient />);
@@ -165,15 +161,14 @@ test('Posts list: every post with its state; Publish puts the newest version liv
   assert.match(container.textContent ?? '', /Unpublished changes/);
   const badges = [...container.querySelectorAll('h2 + span')].map((node) => node.textContent);
   assert.deepEqual(badges, ['Draft', 'Published']);
-  await click(button(container, 'Publish'));
-  const publish = calls.find((call) => call.url.endsWith('/publish'))!;
-  assert.deepEqual(publish.body, { documentId: 'post:1:v1', expectedPublishedDocumentId: null });
-  assert.match(container.textContent ?? '', /Post published/);
-  assert.deepEqual([...container.querySelectorAll('h2 + span')].map((node) => node.textContent), ['Published', 'Published']);
+  assert.equal(button(container, 'Publish'), undefined);
   unmount();
 });
 
-test('New post: the address follows the title, Save draft creates it and opens its editor', async () => {
+const pause = (ms: number) => act(async () => { await new Promise((resolve) => setTimeout(resolve, ms)); });
+
+test('New post: the address follows the title, Save draft creates it and the page takes its address', async () => {
+  dom.window.history.replaceState(null, '', '/admin/blog/new');
   const calls = fakeApi(({ method, url, body }) => {
     if (url === '/api/site/blog/related') return { body: { choices: [] } };
     if (method === 'POST' && url === '/api/site/blog') {
@@ -183,15 +178,56 @@ test('New post: the address follows the title, Save draft creates it and opens i
     return undefined;
   });
   const { container, moves, unmount } = await mount(<BlogEditorClient mode="create" />);
-  assert.match(container.textContent ?? '', /New post/);
+  assert.match(container.textContent ?? '', /Untitled post/);
   assert.match(container.textContent ?? '', /Not saved yet/);
   await setValue(container.querySelector<HTMLTextAreaElement>('#blog-title')!, 'Notes from the field');
-  assert.equal(container.querySelector<HTMLInputElement>('#blog-slug')!.value, 'notes-from-the-field');
   await click(button(container, 'Save draft'));
   const create = calls.find((call) => call.method === 'POST' && call.url === '/api/site/blog')!;
   assert.equal((create.body as { slug: string }).slug, 'notes-from-the-field');
   assert.equal((create.body as { content: BlogPostContent }).content.title, 'Notes from the field');
-  assert.deepEqual(moves, ['replace /admin/blog/notes-from-the-field/edit']);
+  // No navigation: the editor stays mounted, so the caret and undo stay too.
+  assert.deepEqual(moves, []);
+  assert.equal(dom.window.location.pathname, '/admin/blog/notes-from-the-field/edit');
+  unmount();
+});
+
+test('Autosave: a new post saves itself once it has a title, then each pause folds into the working version', async () => {
+  dom.window.history.replaceState(null, '', '/admin/blog/new');
+  let saved: BlogEditorState | null = null;
+  const calls = fakeApi(({ method, url, body }) => {
+    if (url === '/api/site/blog/related') return { body: { choices: [] } };
+    if (method === 'POST' && url === '/api/site/blog') {
+      const { slug, content } = body as { slug: string; content: BlogPostContent };
+      saved = stateOf([documentOf('post:9:v1', content, null)], null, slug);
+      return { status: 201, body: saved };
+    }
+    if (method === 'PUT' && url === '/api/site/blog/quiet-tools') {
+      saved = stateOf([documentOf('post:9:v1', (body as { content: BlogPostContent }).content, null)], null, 'quiet-tools');
+      return { body: saved };
+    }
+    return undefined;
+  });
+  const { container, unmount } = await mount(<BlogEditorClient mode="create" />);
+  assert.match(container.textContent ?? '', /Not saved yet/);
+  await pause(1200);
+  assert.equal(calls.filter((call) => call.method !== 'GET').length, 0, 'nothing saves without a title');
+
+  await setValue(container.querySelector<HTMLTextAreaElement>('#blog-title')!, 'Quiet tools');
+  await pause(1200);
+  await settle();
+  const create = calls.filter((call) => call.method === 'POST');
+  assert.equal(create.length, 1);
+  assert.equal((create[0].body as { slug: string }).slug, 'quiet-tools');
+  assert.equal(dom.window.location.pathname, '/admin/blog/quiet-tools/edit');
+
+  await setValue(container.querySelector<HTMLTextAreaElement>('#blog-title')!, 'Quiet tools, kept');
+  await pause(1200);
+  await settle();
+  const put = calls.filter((call) => call.method === 'PUT');
+  assert.equal(put.length, 1);
+  assert.deepEqual((put[0].body as { autosave: boolean; slug: string; parentDocumentId: string }).autosave, true);
+  assert.equal((put[0].body as { parentDocumentId: string }).parentDocumentId, 'post:9:v1');
+  assert.match(container.textContent ?? '', /Saved|All changes saved/);
   unmount();
 });
 
@@ -209,13 +245,14 @@ test('Edit post: a save goes over the newest version; a stale one says why and k
     return undefined;
   });
   const { container, unmount } = await mount(<BlogEditorClient mode="edit" slug="field-notes" />);
-  assert.match(container.textContent ?? '', /Edit post/);
-  assert.match(container.textContent ?? '', /Draft/);
+  assert.match(container.textContent ?? '', /Not published/);
   assert.equal(container.querySelector<HTMLTextAreaElement>('#blog-title')!.value, 'Field notes that travel');
   await setValue(container.querySelector<HTMLTextAreaElement>('#blog-title')!, 'Field notes, revised');
   await click(button(container, 'Save draft'));
   const put = calls.find((call) => call.method === 'PUT')!;
   assert.equal((put.body as { parentDocumentId: string }).parentDocumentId, 'post:7:v1');
+  // Save by hand keeps a version of its own; only automatic saves fold.
+  assert.equal((put.body as { autosave: boolean }).autosave, false);
   assert.match(container.textContent ?? '', /Saved/);
 
   stale = true;

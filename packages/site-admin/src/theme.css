@@ -729,3 +729,21 @@
 @media (prefers-reduced-motion: reduce) {
   .sa-shake, .sa-pop, .sa-press-flash, .sa-granted, .sa-grow-x, .sa-page-in, .sa-content-in { animation: none; }
 }
+/* The + beside a blank line that opens the insert menu (AuthoringInsertTrigger). */
+@layer components {
+  .sa-insert-trigger {
+    position: fixed;
+    z-index: 10;
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--foreground);
+    background: var(--background);
+    touch-action: manipulation;
+  }
+  .sa-insert-trigger:hover, .sa-insert-trigger[aria-expanded='true'] { background: var(--background-secondary); }
+  .sa-insert-trigger:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+}

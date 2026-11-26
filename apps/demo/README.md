@@ -59,6 +59,7 @@ Every page that reads stories renders per request, so the build never opens the 
 
 - Edit a story at `/admin`, save with ⌘S, then open the public page: nothing changes until you publish.
 - Open the same story in two tabs and save in both. The second save is refused, and your work stays on the page.
+- Start a post under Posts and type a title. A second after you stop, it saves itself as a draft; keep writing and the line by the title keeps up. Readers see none of it until you publish.
 - Reorder Work by dragging a row's grip, or from its More menu with the keyboard. The public Work page follows.
 - Hide a story from Work with its switch, or a whole page from the dashboard.
 - Open "Forty buttons, down to four": the editor offers the published version's updates to review.

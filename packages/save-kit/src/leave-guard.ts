@@ -29,6 +29,8 @@ interface GuardSource {
 
 const sources = new Set<{ current: GuardSource }>();
 let uninstall: (() => void) | null = null;
+// The Back that takes the guard's copy entry out, while it is still landing.
+let settling: Promise<void> | null = null;
 
 const activeSources = () => [...sources].map((source) => source.current).filter((source) => source.active);
 const anythingUnsaved = () => [...sources].some(({ current }) => current.active || current.isDirty?.());
@@ -36,6 +38,7 @@ const message = () => activeSources()[0]?.message ?? LEAVE_MESSAGE;
 
 function install() {
   const guardKey = '__saveKitUnsavedGuard';
+  const guardedUrl = window.location.href;
   const guardId = `${window.location.pathname}:${Date.now()}`;
   let bypassHistoryGuard = false;
   let restoringGuardEntry = false;
@@ -86,7 +89,21 @@ function install() {
       const nextState = { ...window.history.state };
       delete nextState[guardKey];
       window.history.replaceState(nextState, '', window.location.href);
-      if (!anythingUnsaved()) window.history.back();
+      // A new draft can give this entry a durable edit URL without remounting.
+      // It is no longer a duplicate of the previous, untitled entry.
+      if (!anythingUnsaved() && window.location.href === guardedUrl) {
+        settling = new Promise<void>((resolve) => {
+          const done = () => {
+            window.removeEventListener('popstate', done);
+            window.clearTimeout(fallback);
+            settling = null;
+            resolve();
+          };
+          const fallback = window.setTimeout(done, 1000);
+          window.addEventListener('popstate', done);
+        });
+        window.history.back();
+      }
     });
   };
 }
@@ -121,6 +138,18 @@ export function useLeaveGuard(active: boolean, {
     source.current = { active, message: leaveMessage, ignoreWithin, isDirty };
     sync();
   });
+}
+
+/**
+ * Resolves once the guard has finished tidying history. Navigate after it
+ * when a page leaves right after its last save: the Back that removes the
+ * guard's copy entry lands a moment later and would otherwise undo the
+ * navigation.
+ */
+export async function whenHistorySettled() {
+  // The guard tidies up in a microtask after the save's render; let it start.
+  await new Promise((resolve) => window.setTimeout(resolve));
+  if (settling) await settling;
 }
 
 /** For a page's own Back link: true when it may go. */
