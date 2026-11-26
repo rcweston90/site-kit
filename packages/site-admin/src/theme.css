@@ -19,6 +19,7 @@
  * follows --story-font-serif, so one font setting dresses the reader, the
  * editor and the admin alike.
  */
+@import "./blog.css";
 
 
 @layer base {

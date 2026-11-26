@@ -7,6 +7,7 @@ export * from './modules/site-resources/model.js';
 export * from './modules/work-order/model.js';
 export * from './modules/story-placement/model.js';
 export * from './modules/media-library/model.js';
+export * from './modules/blog/model.js';
 
 /** Where the handlers are mounted unless you say otherwise. */
 export const DEFAULT_SITE_DATA_BASE_PATH = '/api/site';

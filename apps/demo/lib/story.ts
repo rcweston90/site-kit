@@ -1,9 +1,10 @@
 import { randomBytes } from 'node:crypto';
 import { createStoryHandlers, createMediaPolicy, type StoryHandlers } from '@rcweston/story-server';
 import { createPasscodeAuth } from '@rcweston/story-server/passcode';
-import { SITE_DATA_MODULES, createSiteData, type SiteData } from '@rcweston/site-data';
+import { SITE_DATA_MODULES, createSiteData, seedBlog, type SiteData } from '@rcweston/site-data';
 import type { AuthAdapter, DocumentStore, Story } from '@rcweston/story-core';
 import { seed } from '@/content/seed';
+import { blogSeed } from '@/content/blog-seed';
 import { CUSTOM_BLOCK_NAMES } from '@/content/blocks-registry';
 import { SITE_PAGES } from '@/content/site';
 import { planStorage, readConfig, type SiteKitConfig, type StoragePlan } from './config';
@@ -114,7 +115,7 @@ export async function createBackend(config: SiteKitConfig = readConfig()): Promi
     const site = createSiteData({
       modules: SITE_DATA_MODULES,
       sql: database?.sql,
-      config: { 'site-resources': { pages: SITE_PAGES, resources: [] } },
+      config: { 'site-resources': { pages: SITE_PAGES, resources: [] }, blog: { caseStudyBasePath: '/stories' } },
       services: { documents: store, media, mediaVisibility: 'public' },
     });
     if (database && config.autoMigrate) await site.migrate();
@@ -122,6 +123,7 @@ export async function createBackend(config: SiteKitConfig = readConfig()): Promi
     if (config.seed) {
       await putSeedMedia(media);
       await seedStore(store, site);
+      await seedBlog(site.stores.blog, blogSeed);
     }
     const auth = await createAuth(config, database);
     const story = createStoryHandlers({

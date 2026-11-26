@@ -7,6 +7,7 @@ What visitors see, all under `app/(site)` and `app/stories`. It is the same layo
 | `/` | The header (name, profiles, a strip of the first published covers, the role and the statement), a letter, Selected work, experience and education, and the ethos | `workCards()`, `isPageVisible('/work')` |
 | `/work` | The Work introduction and every listed, published story as a card, in the saved order | `workCards()`; answers 404 when Work is hidden |
 | `/stories/<slug>` | A published story in the reader; an old address redirects to the new one | `@rcweston/story-server` through `backend()` |
+| `/blog` and `/blog/<slug>` | Posts: a search over every published post, newest first, and one post with its newer and older neighbours | `site.reads.blog`; both answer 404 when Posts is hidden |
 
 `lib/published.ts` holds the reads, so a page never talks to a store itself:
 
