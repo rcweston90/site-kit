@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="48" viewBox="0 0 192 48" role="img" aria-label="Harbor Lane Clinics">
+  <rect x="4" y="9" width="30" height="30" rx="8" fill="#a33b4b"/>
+  <path d="M19 16v16M11 24h16" stroke="#fbeef0" stroke-width="3.5" stroke-linecap="round"/>
+  <text x="42" y="31" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="650" fill="#a33b4b">Harbor Lane Clinics</text>
+</svg>

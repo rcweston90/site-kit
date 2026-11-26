@@ -13,6 +13,7 @@ import { describeStorage, openDatabase, openDocuments, openMedia, type Database 
 import { putSeedMedia, withSeedPhoto } from './seed-media';
 import { seedShots } from './seed-shots';
 import { SEED_HEADER, SHOWREEL_RESOURCE, publishingConfig, putPublishingMedia } from './publishing';
+import { seedCompanies, seedMemberships, seedPrototypeMemberships, seedPrototypeOrder, seedPrototypes, siteFeatures } from '@/content/companies';
 
 /**
  * The site's backend, built from `lib/config.ts`:
@@ -84,6 +85,12 @@ async function seedStore(store: DocumentStore, site: DemoSiteData): Promise<void
   await site.stores['work-order'].set('stories', seed.order);
   for (const slug of seed.hidden) await site.stores['story-placement'].set(slug, false);
   await site.stores.home.headerImages.set('header-images', SEED_HEADER);
+
+  // The companies the stories belong to, and the prototypes beside them.
+  for (const [slug, record] of Object.entries(seedCompanies)) await site.stores.companies.create(slug, record);
+  for (const [storySlug, companySlug] of Object.entries({ ...seedMemberships, ...seedPrototypeMemberships })) await site.stores.companies.assign(storySlug, companySlug);
+  for (const [slug, fields] of Object.entries(seedPrototypes)) await site.stores.projects.records.set(slug, fields, 0);
+  await site.stores['work-order'].set('prototypes', seedPrototypeOrder);
 }
 
 type DemoSiteData = SiteData<typeof SITE_DATA_MODULES>;
@@ -116,7 +123,7 @@ export async function createBackend(config: SiteKitConfig = readConfig()): Promi
   const database = await openDatabase(plan.storage);
   try {
     const [store, media] = await Promise.all([openDocuments(database, { migrate: config.autoMigrate }), openMedia(plan.media)]);
-    const site = createSiteData({
+    const site: DemoSiteData = createSiteData({
       modules: SITE_DATA_MODULES,
       sql: database?.sql,
       config: {
@@ -125,6 +132,10 @@ export async function createBackend(config: SiteKitConfig = readConfig()): Promi
         seo: { siteUrl: config.siteUrl.toString(), fallbacks: SEO_FALLBACKS },
         blog: { caseStudyBasePath: '/stories' },
         ...publishingConfig,
+        'work-order': { lists: ['stories', 'prototypes'] },
+        // A company's asset folder lists the Work records that name it.
+        companies: { workRecords: async () => (await site.reads.projects.records()).map(({ slug, title, org, type }) => ({ slug, title, org, type })) },
+        projects: { features: siteFeatures },
       },
       services: { documents: store, media, mediaVisibility: 'public' },
     });

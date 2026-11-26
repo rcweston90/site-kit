@@ -35,6 +35,8 @@ export {
 } from './modules/define.js';
 export { dashboardModule, imageLibraryModule, siteResourcesModule, storiesModule } from './modules/core.js';
 export { shotsModule, ShotsScreen, shotRecordKey, Reorder } from './modules/shots/index.js';
+export * from './modules/companies/index.js';
+export * from './modules/projects/index.js';
 export { ADMIN_MODULES } from './registry.js';
 export { ResumeScreen, resumeModule } from './modules/resume/index.js';
 export { SeoScreen, seoModule, type SeoScreenProps } from './modules/seo/index.js';
@@ -45,6 +47,8 @@ export { showreelModule, ShowreelScreen } from './modules/showreel/index.js';
 
 export { Dashboard, PageVisibilitySettings, SiteResourceVisibilitySettings } from './screens/Dashboard.js';
 export { WorkScreen, storyRecordKey } from './screens/work/WorkScreen.js';
+export type { WorkScreenExtension, WorkFeatureRow } from './screens/work/WorkScreen.js';
+export type { StoryRow, WorkSort } from './screens/work/model.js';
 export { WorkRow, WorkSection, WorkTable, WorkEmpty, formatUpdated, moveMenuEntries, useRowDrag, type WorkMenuEntry, type WorkRowProps, type WorkStatus, type WorkTone } from './screens/work/WorkTable.js';
 export { NewStory } from './screens/NewStory.js';
 export { ImageLibrary } from './screens/ImageLibrary.js';

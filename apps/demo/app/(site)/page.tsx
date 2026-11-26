@@ -26,7 +26,7 @@ function shotsReel(photos: ShotPhoto[], galleryHref: string | null): ReactNode {
 
 export default async function HomePage() {
   const { site } = await backend();
-  const [work, workVisible, shotsVisible, about, library, shots] = await Promise.all([
+  const [cards, workVisible, shotsVisible, about, library, shots] = await Promise.all([
     workCards(),
     isPageVisible('/work'),
     isPageVisible('/shots'),
@@ -36,6 +36,8 @@ export default async function HomePage() {
   ]);
   // Admin → Home sets each of the header's three slots; an unset slot shows
   // the library's photo in its place.
+  // Selected work is case studies; a site feature's card stays on Work.
+  const work = cards.filter((card) => !card.href);
   const photos = await site.reads.home.headerPhotos(library);
   return (
     <>

@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { Reader } from '@/components/Reader';
 import { backend } from '@/lib/story';
-import { forReaders, publishedTeasers } from '@/lib/published';
+import { forReaders, publishedTeasers, storyCompany } from '@/lib/published';
 import { JsonLd, pageMetadata, sitePerson } from '@/lib/seo';
 import { creativeWorkSchema, type SeoContentMeta } from '@rcweston/site-data';
 import { storyCardMedia, type Story } from '@rcweston/story-core';
@@ -35,7 +35,7 @@ export default async function StoryRoute({ params }: { params: Promise<{ slug: s
   if (result.status === 'failed') throw result.error;
   if (result.redirectFrom) redirect(`/stories/${result.slug}`);
 
-  const teasers = await publishedTeasers();
+  const [teasers, company] = await Promise.all([publishedTeasers(), storyCompany(result.story)]);
   const related = result.story.related ?? [];
   const next = teasers.find((teaser) => related.includes(teaser.slug)) ?? teasers.find((teaser) => teaser.slug !== result.slug);
   const readable = forReaders(result.story);
@@ -43,7 +43,7 @@ export default async function StoryRoute({ params }: { params: Promise<{ slug: s
   return (
     <>
       <JsonLd data={creativeWorkSchema(sitePerson(), { path: `/stories/${result.slug}`, title: readable.title, company: readable.company || undefined, description: meta.description, image: meta.image })} />
-      <Reader story={readable} next={next} />
+      <Reader story={readable} next={next} company={company} />
     </>
   );
 }

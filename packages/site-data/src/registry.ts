@@ -16,6 +16,8 @@ import { shots } from './modules/shots/index.js';
 import { home } from './modules/home/index.js';
 import { community } from './modules/community/index.js';
 import { showreel } from './modules/showreel/index.js';
+import { companies } from './modules/companies/index.js';
+import { projects } from './modules/projects/index.js';
 
 export const SITE_DATA_MODULES = [
   siteResources,
@@ -30,6 +32,8 @@ export const SITE_DATA_MODULES = [
   community,
   showreel,
   blog,
+  companies,
+  projects,
 ] as const;
 
 export type SiteDataModules = typeof SITE_DATA_MODULES;

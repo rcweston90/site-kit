@@ -15,6 +15,8 @@ export * from './modules/home/model.js';
 export * from './modules/community/model.js';
 export * from './modules/showreel/model.js';
 export * from './modules/blog/model.js';
+export * from './modules/companies/model.js';
+export * from './modules/projects/model.js';
 
 /** Where the handlers are mounted unless you say otherwise. */
 export const DEFAULT_SITE_DATA_BASE_PATH = '/api/site';
@@ -33,4 +35,8 @@ export const siteDataPaths = {
   seoOverrides: () => '/seo/overrides',
   appearance: () => '/appearance',
   shots: () => '/shots',
+  companies: (slug?: string, part?: 'logo' | 'assets') => (slug ? `/companies/profile/${encodeURIComponent(slug)}${part ? `/${part}` : ''}` : '/companies'),
+  companyAssign: () => '/companies/assign',
+  projects: (slug?: string, part?: 'duplicate') => (slug ? `/projects/${encodeURIComponent(slug)}${part ? `/${part}` : ''}` : '/projects'),
+  projectsBulk: () => '/projects/bulk',
 };

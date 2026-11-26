@@ -37,4 +37,6 @@ export { home, type HomeReads, type HomeStore } from './modules/home/index.js';
 export { community, type CommunityReads, type CommunityStore } from './modules/community/index.js';
 export { showreel, type ShowreelReads, type ShowreelStore } from './modules/showreel/index.js';
 export { blog, blogEditorState, blogSummary, seedBlog, createMemoryBlogStore, createPostgresBlogStore, type BlogConfig, type BlogReads, type BlogSeed, type BlogPostStore } from './modules/blog/index.js';
+export { companies, CompanyExistsError, CompanyMissingError, type CompaniesConfig, type CompaniesReads, type CompaniesStore, type CompanyRecord } from './modules/companies/index.js';
+export { projects, type ProjectsConfig, type ProjectsReads, type ProjectsStore, type ProjectSnapshot } from './modules/projects/index.js';
 export * from './client.js';
