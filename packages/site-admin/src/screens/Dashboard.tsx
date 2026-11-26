@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState, type ReactNode } from 'react';
 import { SaveStatus, explainFailure, useListSave } from '@rcweston/save-kit';
 import { siteDataPaths, type PageVisibility as PageVisibilityRow } from '@rcweston/site-data/client';
 import { AdminPage, AdminPageHeader } from '../primitives/index.js';
@@ -17,9 +17,10 @@ const byOrder = <T extends { order?: number }>(items: T[]) =>
 /**
  * The dashboard: a count for each module that has one, its quick actions, then
  * each module's own sections (page visibility and site resources, from the
- * site-resources module).
+ * site-resources module). `intro` goes under the title, before the counts: a
+ * host's own note, such as a first-run guide.
  */
-export function Dashboard() {
+export function Dashboard({ intro }: { intro?: ReactNode } = {}) {
   const config = useAdminConfig();
   const modules = useAdminModules();
   const stats = useMemo(() => byOrder(modules.flatMap((module) => [...(module.stats ?? [])])), [modules]);
@@ -41,6 +42,7 @@ export function Dashboard() {
   return (
     <AdminPage>
       <AdminPageHeader title="Dashboard" />
+      {intro}
 
       {stats.length > 0 && (
         <div className="mb-12">
