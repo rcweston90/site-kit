@@ -9,6 +9,7 @@ import { SITE_PAGES } from '@/content/site';
 import { planStorage, readConfig, type SiteKitConfig, type StoragePlan } from './config';
 import { describeStorage, openDatabase, openDocuments, openMedia, type Database } from './storage';
 import { putSeedMedia, withSeedPhoto } from './seed-media';
+import { SEED_HEADER, SHOWREEL_RESOURCE, publishingConfig, putPublishingMedia } from './publishing';
 
 /**
  * The site's backend, built from `lib/config.ts`:
@@ -79,6 +80,7 @@ async function seedStore(store: DocumentStore, site: DemoSiteData): Promise<void
 
   await site.stores['work-order'].set('stories', seed.order);
   for (const slug of seed.hidden) await site.stores['story-placement'].set(slug, false);
+  await site.stores.home.headerImages.set('header-images', SEED_HEADER);
 }
 
 type DemoSiteData = SiteData<typeof SITE_DATA_MODULES>;
@@ -114,13 +116,14 @@ export async function createBackend(config: SiteKitConfig = readConfig()): Promi
     const site = createSiteData({
       modules: SITE_DATA_MODULES,
       sql: database?.sql,
-      config: { 'site-resources': { pages: SITE_PAGES, resources: [] } },
+      config: { 'site-resources': { pages: SITE_PAGES, resources: [SHOWREEL_RESOURCE] }, ...publishingConfig },
       services: { documents: store, media, mediaVisibility: 'public' },
     });
     if (database && config.autoMigrate) await site.migrate();
     if (database && !config.autoMigrate) await requireMigrated(database, site);
     if (config.seed) {
       await putSeedMedia(media);
+      await putPublishingMedia(media);
       await seedStore(store, site);
     }
     const auth = await createAuth(config, database);
@@ -132,7 +135,7 @@ export async function createBackend(config: SiteKitConfig = readConfig()): Promi
       mediaPolicy: createMediaPolicy({ basePath: `${STORY_BASE}/media` }),
       customBlocks: CUSTOM_BLOCK_NAMES,
       uploadVisibility: 'public',
-      otherAddresses: () => ['admin', 'api', 'samples', 'work'],
+      otherAddresses: () => ['admin', 'api', 'samples', 'work', 'community', 'showreel'],
     });
     const { handle } = site.handlers({ auth, basePath: SITE_BASE, revalidate: revalidatePaths });
     return {

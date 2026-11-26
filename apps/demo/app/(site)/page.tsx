@@ -1,25 +1,39 @@
 import { Home, Portrait } from '@/components/home/Home';
-import { ContactStripHeader, type StripPhoto } from '@/components/home/ContactStripHeader';
+import { ContactStripHeader } from '@/components/home/ContactStripHeader';
 import { RoleLockup } from '@/components/home/RoleLockup';
-import { isPageVisible, workCards, type WorkCard } from '@/lib/published';
+import { isPageVisible, workCards } from '@/lib/published';
+import type { ReactNode } from 'react';
+import { homeLibrary, shotsPhotos, type ShotPhoto } from '@/lib/publishing';
+import { backend } from '@/lib/story';
 
 export const dynamic = 'force-dynamic';
 
-/** The header's photographs: the covers of the first published studies, in the saved order. */
-function stripPhotos(work: WorkCard[]): StripPhoto[] {
-  return work.flatMap((card) => {
-    const src = card.cover?.kind === 'video' ? card.cover.poster : card.cover?.src;
-    return src ? [{ src, alt: card.cover?.alt || card.title, objectPosition: card.cover?.objectPosition }] : [];
-  });
+/**
+ * The Shots slot: the original plays its photo reel between the header and
+ * the letter, its shots turned by three so the reel doesn't open on the
+ * strip's photos. Nothing renders until the Shots module is registered (no
+ * photos come back); wiring it is the one marked line below.
+ */
+function shotsReel(photos: ShotPhoto[]): ReactNode {
+  if (!photos.length) return null;
+  const turned = [...photos.slice(3), ...photos.slice(0, 3)];
+  void turned;
+  return null; // SHOTS SLOT: return <ShotsReel shots={turned} galleryHref="/shots" />;
 }
 
 export default async function HomePage() {
-  const [work, workVisible] = await Promise.all([workCards(), isPageVisible('/work')]);
+  const { site } = await backend();
+  const [work, workVisible, about, library, shots] = await Promise.all([workCards(), isPageVisible('/work'), site.reads.home.about(), homeLibrary(), shotsPhotos()]);
+  // Admin → Home sets each of the header's three slots; an unset slot shows
+  // the library's photo in its place.
+  const photos = await site.reads.home.headerPhotos(library);
   return (
     <Home
       work={work}
       workHref={workVisible ? '/work' : null}
-      header={<ContactStripHeader shots={stripPhotos(work)} portrait={<Portrait bare />} professionalRecord={<RoleLockup treatment="stack" mobileStatementFirst />} />}
+      about={about}
+      header={<ContactStripHeader shots={photos} portrait={<Portrait bare />} professionalRecord={<RoleLockup treatment="stack" mobileStatementFirst />} />}
+      shots={shotsReel(shots)}
     />
   );
 }

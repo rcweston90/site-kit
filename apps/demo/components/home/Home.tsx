@@ -3,8 +3,10 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { SITE } from '@/content/site';
 import { HOME } from '@/content/home';
+import type { HomeAbout } from '@rcweston/site-data/client';
 import type { WorkCard } from '@/lib/published';
 import { SocialIcon } from '../site/SocialIcon';
+import { InlineRichText } from '../site/InlineRichText';
 import { WorkCover } from '../work/WorkCards';
 import styles from './Home.module.css';
 
@@ -21,8 +23,15 @@ export function Portrait({ bare = false }: { bare?: boolean }) {
   return bare ? drawing : <div className={styles.portrait} aria-hidden="true">{drawing}</div>;
 }
 
-/** The home page, after the original's: the name, a letter, the selected work, where I've worked and how. */
-export function Home({ work, workHref, header }: { work: WorkCard[]; workHref: string | null; header?: ReactNode }) {
+/**
+ * The home page, after the original's: the name, a letter, the selected work,
+ * where I've worked and how. `about` is the letter as Admin → Home saved it.
+ *
+ * `shots` is the Shots slot: where the original plays its photo reel, between
+ * the header and the letter. The Shots module fills it (see PUBLIC.md); left
+ * empty, nothing renders there.
+ */
+export function Home({ work, workHref, header, about, shots }: { work: WorkCard[]; workHref: string | null; header?: ReactNode; about: HomeAbout; shots?: ReactNode }) {
   return (
     <div className={styles.surface}>
       <div className={styles.page}>
@@ -50,16 +59,19 @@ export function Home({ work, workHref, header }: { work: WorkCard[]; workHref: s
           <div className={styles.orbit}><Portrait /></div>
         </header>}
 
+        {/* ── Shots slot ── the original's photo reel stands here. */}
+        {shots}
+
         <section className={styles.letterSpread} aria-label={`A letter from ${SITE.name.split(' ')[0]}`}>
           <div className={styles.margin}>
-            <p>{HOME.margin}</p>
+            {about.bio[0] && <p><InlineRichText text={about.bio[0]} /></p>}
           </div>
           <div className={styles.letter}>
-            <p className={styles.tagline}>{HOME.tagline}</p>
-            {HOME.letter.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
-            <ul className={styles.workBullets} aria-label="How I work">
-              {HOME.howIWork.map((fact) => <li key={fact}>{fact}</li>)}
-            </ul>
+            {about.tagline && <p className={styles.tagline}><InlineRichText text={about.tagline} /></p>}
+            {about.bio.slice(1).map((paragraph, i) => <p key={i}><InlineRichText text={paragraph} /></p>)}
+            {about.fastFacts.length > 0 && <ul className={styles.workBullets} aria-label="How I work">
+              {about.fastFacts.map((fact) => <li key={fact}><InlineRichText text={fact} /></li>)}
+            </ul>}
           </div>
         </section>
 

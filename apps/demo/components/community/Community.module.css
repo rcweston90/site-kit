@@ -1,0 +1,107 @@
+/* Community sits on the home page's paper surface (Home.module.css
+ * .surface/.page supply the palette, h2 type and link focus), so every colour
+ * here is one of its --preview-* tokens. Rules are scoped under .community
+ * because .page p / .page a:hover would otherwise win on specificity.
+ * The header is one recessed panel holding the title, the summary and the
+ * contact button, so the page opens small and hands straight over to the
+ * sections. */
+.opening { padding-top: var(--page-top); }
+.well { display: flex; align-items: center; justify-content: space-between; gap: 24px 48px; padding: 24px 32px; border: 1px solid var(--preview-line); border-radius: 16px; background: color-mix(in srgb, var(--preview-line) 28%, var(--preview-paper)); box-shadow: inset 0 1px 3px var(--preview-inset, color-mix(in srgb, var(--preview-ink) 12%, transparent)), inset 0 -1px 0 var(--preview-lip, color-mix(in srgb, var(--preview-paper) 80%, transparent)); }
+.well h1 { margin: 0; font: 500 32px/36px var(--story-font-sans); letter-spacing: -.025em; }
+.community .summary { margin-top: 12px; max-width: 720px; color: var(--preview-muted); font-size: 16px; line-height: 24px; }
+
+/* Same two-column band as Ethos on the homepage: one rule across the section,
+ * heading in the narrow column. The rule sits 48px above the section's first
+ * line (this 24 plus the heading's, the pitch's or the first row's own 24).
+ * The first section stays close under the header; the rest get a full
+ * desktop section's worth of air above their rule. */
+.section { position: relative; display: grid; grid-template-columns: 28% minmax(0,1fr); gap: 72px; align-items: start; margin-top: 72px; padding-top: 24px; }
+.section + .section { margin-top: 144px; }
+.section::before { content: ''; position: absolute; inset: 0 0 auto; border-top: 1px solid var(--preview-line); pointer-events: none; }
+.section h2 { padding-top: 24px; }
+.community .intro p { margin-top: 12px; color: var(--preview-muted); font-size: 16px; line-height: 24px; }
+/* Links typed into the copy ([label](url) in the admin). Ink text, accent
+ * underline: amber's accent is 4.29:1 on its paper, under the 4.5:1 body
+ * text needs, so the colour rides on the underline. */
+.community .inlineLink { color: var(--preview-ink); text-decoration: underline; text-decoration-color: var(--preview-accent); text-underline-offset: .16em; text-decoration-thickness: 1px; }
+.community .inlineLink:hover { text-decoration-thickness: 2px; }
+
+/* Raised keys — the contact button in the header, the booking button under Mentoring. The
+ * site's raised button in the page's palette, down to its 8px corner: a paper key on a 2px edge
+ * that lifts off it on hover and presses into it on click, so the top always
+ * travels to the base. Outline and edge are the muted ink, not
+ * the hairline: a control's edge needs 3:1. Hover only lifts where the device
+ * can hover, so a tap never leaves a key up; the press lands in 75ms, under
+ * the finger. Focus is the page's accent ring (Home.module.css). */
+.community .pill { --pill-edge: var(--preview-muted); margin-top: 24px; gap: 8px; padding: 0 20px; border: 1px solid var(--pill-edge); border-radius: 8px; background: var(--preview-paper); color: var(--preview-ink); box-shadow: 0 2px 0 var(--pill-edge), var(--shadow-key); transition: translate 150ms ease, box-shadow 150ms ease; }
+.community .pill svg { width: 16px; height: 16px; }
+.community .pill:hover { color: var(--preview-ink); text-decoration: none; }
+@media (hover: hover) {
+ .community .pill:hover { translate: 0 -1px; box-shadow: 0 3px 0 var(--pill-edge), var(--shadow-key-hover); }
+}
+.community .pill:active { translate: 0 2px; box-shadow: 0 0 0 var(--pill-edge); transition-duration: 75ms; }
+/* In the header well the key stands on the well's floor beside the title. */
+.community .pill.headerPill { flex-shrink: 0; margin-top: 0; }
+/* Reduced motion: the key stays put; the edge still shows the press. */
+@media (prefers-reduced-motion: reduce) {
+ .community .pill:hover, .community .pill:active { translate: none; }
+}
+.community .note { margin-top: 12px; color: var(--preview-muted); font-size: 15px; line-height: 24px; }
+
+.mentoring { min-width: 0; padding-top: 24px; }
+.community .pitch { font: 400 24px/36px var(--story-font-serif); }
+.community .body { max-width: 720px; color: var(--preview-muted); font-size: 16px; line-height: 24px; }
+.community .pitch + .body, .community .body + .body { margin-top: 24px; }
+.mentoring h3 { margin: 48px 0 12px; font-size: 16px; line-height: 24px; font-weight: 500; }
+.topics { display: grid; grid-template-columns: 1fr 1fr; grid-auto-flow: column; grid-template-rows: repeat(5,auto); column-gap: 48px; margin: 0; padding: 0; list-style: none; }
+.topics li { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--preview-line); font-size: 16px; line-height: 24px; }
+.topics li > span { display: flex; flex: 0 0 12px; color: var(--preview-muted); }
+.mentoring .note { margin-top: 24px; }
+/* An empty list: one quiet line where the rows would be. */
+.community .empty { padding-top: 24px; color: var(--preview-muted); font-size: 16px; line-height: 36px; }
+
+.rows { margin: 0; padding: 0; list-style: none; }
+.rows li { border-top: 1px solid var(--preview-line); }
+.rows li:first-child { border-top: 0; }
+.row { position: relative; isolation: isolate; display: grid; grid-template-columns: 72px minmax(0,1fr) auto; grid-template-areas: 'date body action'; column-gap: 24px; align-items: baseline; padding: 24px 0; color: inherit; }
+.row time { grid-area: date; color: var(--preview-muted); font-size: 16px; line-height: 36px; font-variant-numeric: tabular-nums; }
+.rowBody { grid-area: body; min-width: 0; }
+.rowBody strong { display: block; font-size: 22px; line-height: 36px; font-weight: 500; letter-spacing: -.015em; }
+.rowBody span { display: block; color: var(--preview-muted); font-size: 15px; line-height: 24px; }
+.rowBody .rowDescription { margin-top: 12px; max-width: 720px; font-size: 16px; }
+.rowAction { grid-area: action; display: inline-flex; align-items: center; gap: 8px; color: var(--preview-muted); font-size: 15px; line-height: 36px; white-space: nowrap; }
+.community .row:hover { text-decoration: none; }
+.community .row:hover strong { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .25em; }
+.row:hover .rowAction { color: var(--preview-ink); }
+/* The inset well the homepage's Experience rows use on hover and focus. */
+.row::before { content: ''; position: absolute; z-index: -1; inset: 6px -12px; border-radius: 8px; background: color-mix(in srgb, var(--preview-line) 28%, var(--preview-paper)); box-shadow: inset 0 1px 3px var(--preview-inset, color-mix(in srgb, var(--preview-ink) 12%, transparent)), inset 0 -1px 0 var(--preview-lip, color-mix(in srgb, var(--preview-paper) 80%, transparent)); opacity: 0; transition: opacity 160ms ease; pointer-events: none; }
+.row:hover::before, .row:focus-visible::before, .row:active::before { opacity: 1; }
+/* Pressed: the well deepens, so a tap on touch screens answers too. */
+.row:active::before { background: color-mix(in srgb, var(--preview-line) 48%, var(--preview-paper)); }
+.community .row:focus-visible { outline: none; }
+.row:focus-visible::before { outline: 2px solid var(--preview-accent); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .row::before { transition: none; } }
+/* Community rows have no year: name and line on the left, destination right. */
+.row.groupRow { grid-template-columns: minmax(0,1fr) auto; grid-template-areas: 'body action'; }
+
+@media (max-width: 1279px) {
+ .section { gap: 48px; }
+}
+@media (max-width: 1023px) {
+ .section { gap: 36px; grid-template-columns: 26% minmax(0,1fr); }
+ .community .pitch { font-size: 22px; }
+ .topics { display: block; }
+ /* Too narrow for three columns: year and action ride a line above the title. */
+ .row { grid-template-columns: minmax(0,1fr) auto; grid-template-areas: 'date action' 'body body'; }
+ .row time, .rowAction { line-height: 24px; }
+ .rowBody strong { font-size: 20px; line-height: 24px; }
+}
+@media (max-width: 767px) {
+ .section + .section { margin-top: 72px; }
+}
+@media (max-width: 639px) {
+ .well { flex-direction: column; align-items: flex-start; padding: 24px; }
+ .section { grid-template-columns: minmax(0,1fr); gap: 24px; margin-top: 48px; }
+ .mentoring { padding-top: 0; }
+ .mentoring h3 { margin-top: 36px; }
+}
