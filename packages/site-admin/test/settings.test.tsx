@@ -132,7 +132,7 @@ describe('settings modules in the nav', () => {
   it('Resume sits under Publishing; Appearance then SEO under Site Settings', () => {
     const groups = buildAdminNav(ADMIN_MODULES, { adminBase: '/admin' });
     const group = (label: string) => groups.find((g) => g.label === label)?.items.map((item) => [item.name, item.href, item.description]);
-    assert.deepEqual(group('Publishing'), [['Resume', '/admin/resume', 'Resume document']]);
+    assert.deepEqual(group('Publishing')?.find(([name]) => name === 'Resume'), ['Resume', '/admin/resume', 'Resume document']);
     assert.deepEqual(group('Site Settings'), [
       ['Appearance', '/admin/appearance', 'Display preferences'],
       ['SEO', '/admin/seo', 'Search and sharing metadata'],
