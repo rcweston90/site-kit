@@ -3,21 +3,22 @@ import type { Story } from '@rcweston/story-core';
 /**
  * Seed stories for the demo. Every name, number and quote here is made up:
  * Fieldnote Studio and its people don't exist. Media are the neutral
- * wireframes in public/media.
+ * wireframes in public/samples.
  */
 
 export const fieldNotes: Story = {
   slug: 'field-notes',
   company: 'Fieldnote Studio',
   title: 'Turning a pile of research notes into a weekly decision',
-  thesis: 'As the product designer, I rebuilt how the team turns interviews into one shared decision each week, which cut the time from interview to roadmap change from a month to a week.',
+  thesis: 'As the only product designer, I replaced a quarterly research report with a fifteen-minute Friday decision, and the time from interview to roadmap change fell from about a month to six days.',
   period: '2025 to 2026',
   status: 'Shipped',
-  disclosure: 'Fictional company; every number is made up for this demo.',
+  disclosure: 'Fictional company; every name and number is made up for this demo.',
   facts: [
     { id: 'role', label: 'Role', value: 'Product designer' },
-    { id: 'team', label: 'Team', value: 'Two engineers, a researcher, a PM' },
+    { id: 'team', label: 'Team', value: 'Research lead, PM, two engineers' },
     { id: 'timeline', label: 'Timeline', value: 'Ten weeks' },
+    { id: 'scope', label: 'Scope', value: 'Research workflow' },
   ],
   hero: {
     kind: 'image',
@@ -26,26 +27,33 @@ export const fieldNotes: Story = {
     aspect: 1.6,
   },
   glance: {
-    situation: 'Researchers held forty interviews a quarter, and almost none changed the roadmap.',
-    task: 'Make research change decisions within the week it happens.',
-    action: 'Replaced the quarterly report with a weekly board and one decision ritual.',
-    result: 'Roadmap changes traced to research went from two a quarter to nine.',
+    situation: 'Researchers ran about forty interviews a quarter, and two of them changed the roadmap.',
+    task: 'Make what we heard each week change a decision that same week, without a new tool.',
+    action: 'Replaced the quarterly report with a shared board, a Thursday sort and a fifteen-minute decision every Friday.',
+    result: 'Roadmap changes traced to research rose from two a quarter to nine, and the wait fell from 31 days to six.',
   },
   outcomes: [
-    { id: 'o1', value: '9', label: 'roadmap changes traced to research in a quarter', baseline: 'from 2', evidence: 'before-after', timeframe: 'first full quarter' },
-    { id: 'o2', value: '1 week', label: 'from interview to decision', baseline: 'from about a month', evidence: 'observed' },
+    { id: 'o1', value: '9', label: 'roadmap changes traced to research', baseline: 'from 2 a quarter', evidence: 'before-after', timeframe: 'first full quarter' },
+    { id: 'o2', value: '6 days', label: 'from interview to decision', baseline: 'from about 31', evidence: 'observed' },
   ],
-  counterfactual: 'Without the weekly ritual, the board would have been one more place nobody checked.',
+  counterfactual: 'Without the Friday decision, the board would have been one more place nobody checked.',
   chapters: [
     {
       key: 'situation',
-      title: 'Research was thorough, and nobody acted on it.',
+      title: 'We learned plenty. We just learned it a month too late.',
       blocks: [
         { id: 's1', type: 'prose', paragraphs: [
-          'Every quarter the research team wrote a careful report. By the time it was read, the decisions it could have changed were already made.',
-          'Interviews lived in **four different tools**, so even the researchers couldn\'t say which findings were new.',
+          'Fieldnote makes scheduling software for small service businesses. Its three-person research team ran about forty customer interviews a quarter, and the findings were good. They arrived as a forty-page report in the last week of the quarter, after the next roadmap was already set.',
+          'So by the time anyone read that a feature confused people, we had committed to building the next three on top of it. Each interview was also spread across **four different tools**: the recording in one, notes in two more, highlights in a spreadsheet. Even the researchers couldn\'t say which findings were new and which they\'d heard ten times.',
         ], large: [0] },
-        { id: 's2', type: 'quote', quote: { quote: 'We were very good at learning things a month too late.', name: 'Ada Park', role: 'Research lead' } },
+        { id: 's2', type: 'media', width: 'text', media: { kind: 'image', src: '/samples/tools-before.svg', alt: 'Four app windows side by side: recordings, interview notes, team notes and a highlights sheet.', caption: 'Before: one interview, four places to look.', aspect: 1.6 } },
+        { id: 's3', type: 'quote', quote: { quote: 'We were very good at learning things a month too late.', name: 'Ada Park', role: 'Research lead', context: 'At the kickoff, about the quarterly report.' } },
+        { id: 's4', type: 'subhead', text: 'What it cost' },
+        { id: 's5', type: 'prose', format: 'bullets', paragraphs: [
+          'Two roadmap changes a quarter traced back to research.',
+          'About 31 days from an interview to any decision it touched.',
+          'Researchers spent the last two weeks of every quarter writing, not talking to customers.',
+        ] },
       ],
     },
     {
@@ -53,26 +61,53 @@ export const fieldNotes: Story = {
       title: 'Make one decision a week, from what we heard that week.',
       blocks: [
         { id: 't1', type: 'prose', paragraphs: [
-          'The brief was small on purpose: one decision a week, made in the open, tied to the notes that justified it.',
+          'Lena, our PM, and I wrote the brief in one line: every Friday, one product decision, made in the open and linked to the notes behind it.',
+          'Keeping it to one was the point. A backlog of insights asks someone to go and look. One decision with a date on it gets made.',
         ] },
-        { id: 't2', type: 'callout', title: 'Constraint', tone: 'info', icon: 'info', body: { paragraphs: ['No new tool for the team to learn. The board had to live where notes already were.'] } },
+        { id: 't2', type: 'callout', title: 'Constraints', tone: 'info', icon: 'info', body: { paragraphs: [
+          'No new tool to learn. The board had to live where the notes already were.',
+          'No new meeting for engineers. They could join on Friday, but never had to.',
+          'Ten weeks to show it worked, before the next planning cycle.',
+        ], format: 'bullets' } },
+        { id: 't3', type: 'ledger', ledger: {
+          led: ['The weekly loop and the Friday decision format', 'How notes are tagged and sorted'],
+          made: ['Every board view and template', 'The decision log'],
+          partners: [
+            { role: 'Research', owned: 'Tagging and the Thursday sort' },
+            { role: 'Product', owned: 'Running the Friday call' },
+            { role: 'Engineering', owned: 'Importing notes from the call recorder' },
+          ],
+          notMe: ['The interview programme itself'],
+        } },
       ],
     },
     {
       key: 'action',
-      title: 'A board for the notes, and a ritual for the decision.',
+      title: 'A board for the notes, and fifteen minutes on Friday.',
       blocks: [
-        { id: 'a1', type: 'media', width: 'wide', media: { kind: 'image', src: '/samples/flow.svg', alt: 'Four steps in a row: capture, sort, review, share.', caption: 'The weekly loop, from capture to a shared decision.', aspect: 1.6 } },
-        { id: 'a2', type: 'decision', call: 'One decision per week, not a backlog of insights.', over: 'An insight backlog the PM could pull from', because: 'A backlog asks someone to go and look. A weekly decision arrives on its own.', cost: 'Some good findings waited a week for their turn.', status: 'held' },
-        { id: 'a3', type: 'steps', items: [
-          { title: 'Capture', body: 'Notes go in the same day, tagged by question.' },
-          { title: 'Sort', body: 'The researcher groups them on Thursday.' },
-          { title: 'Decide', body: 'Friday, fifteen minutes, one call written down.' },
+        { id: 'a1', type: 'prose', paragraphs: [
+          'I started by sitting in on six interviews and following each set of notes afterwards. Nothing was lost. It just never reached the people who could act on it. So the problem wasn\'t storage. It was the lack of a moment where someone had to decide.',
         ] },
-        { id: 'a4', type: 'gallery', layout: 'horizontal', columns: 'two', items: [
-          { kind: 'image', src: '/samples/board.svg', alt: 'A four-column board of note cards.', aspect: 1.6 },
-          { kind: 'image', src: '/samples/mobile.svg', alt: 'A phone showing a list of five notes.', aspect: 1.6 },
-        ], caption: 'The board on desktop, and capture on a phone.' },
+        { id: 'a2', type: 'media', width: 'wide', media: { kind: 'image', src: '/samples/flow.svg', alt: 'Four steps in a row: capture, sort, review, share.', caption: 'The weekly loop: capture on the day, sort on Thursday, decide on Friday, share the call.', aspect: 1.6 } },
+        { id: 'a3', type: 'steps', items: [
+          { title: 'Capture', body: 'Notes go on the board the same day, tagged by the question they answer.' },
+          { title: 'Sort', body: 'On Thursday the researcher groups the week\'s notes and picks the strongest question.' },
+          { title: 'Decide', body: 'On Friday, fifteen minutes, one call, written down with the notes behind it.' },
+          { title: 'Share', body: 'The call goes in the decision log and in the team channel before lunch.' },
+        ] },
+        { id: 'a4', type: 'subhead', text: 'The calls that shaped it' },
+        { id: 'a5', type: 'decision', call: 'One decision a week, not a backlog of insights.', over: 'An insight backlog the PM could pull from', because: 'A backlog asks someone to go and look. A weekly decision arrives on its own, with a date and an owner.', cost: 'Some good findings waited a week or two for their turn.', status: 'held', mine: 'Proposed it and designed the format' },
+        { id: 'a6', type: 'decision', call: 'Tag notes by the question they answer, not by feature.', context: 'We started with eight questions and cut to five after week three. Eight was too many to sort in an hour.', over: 'Feature tags, which matched the roadmap', because: 'Feature tags sorted notes into things we had already decided to build. Question tags showed what we still didn\'t know.', cost: 'The first month of notes had to be retagged by hand.', status: 'revised', mine: 'Designed the tags; research owned the list' },
+        { id: 'a7', type: 'gallery', layout: 'horizontal', columns: 'two', items: [
+          { kind: 'image', src: '/samples/board.svg', alt: 'A four-column board of note cards.', heading: 'The board', aspect: 1.6 },
+          { kind: 'image', src: '/samples/mobile.svg', alt: 'A phone showing a list of five notes.', heading: 'Capture on a phone', aspect: 1.6 },
+        ], caption: 'Researchers add notes from a phone straight after a call; the board sorts them by question.' },
+        { id: 'a8', type: 'insight', label: 'What changed my mind', title: 'The team didn\'t need more research. It needed a moment to use it.', columns: [
+          { id: 'a8a', label: 'What we saw', body: { paragraphs: ['In week two, the Friday call made a decision in eleven minutes that two quarterly reports had already flagged.'] } },
+          { id: 'a8b', label: 'What it meant', body: { paragraphs: ['The findings had always been good enough. What was missing was a time and a place where someone had to decide.'] } },
+          { id: 'a8c', label: 'The catch', highlight: true, body: { paragraphs: ['When one Friday was skipped, the next week\'s notes piled up and the habit nearly broke. We moved the call to a slot nobody could book over.'] } },
+        ] },
+        { id: 'a9', type: 'note', text: 'The Friday call was open to anyone. Five people came on an average week.' },
       ],
     },
     {
@@ -80,25 +115,44 @@ export const fieldNotes: Story = {
       title: 'Research started showing up in the roadmap.',
       blocks: [
         { id: 'r1', type: 'outcomes', layout: 'lead', items: [
-          { id: 'r1a', value: '9', label: 'roadmap changes traced to research', baseline: 'from 2 a quarter', evidence: 'before-after' },
-          { id: 'r1b', value: '15 min', label: 'for the Friday decision', evidence: 'observed' },
+          { id: 'r1a', value: '9', label: 'roadmap changes traced to research', baseline: 'from 2 a quarter', evidence: 'before-after', timeframe: 'first full quarter' },
+          { id: 'r1b', value: '6 days', label: 'from interview to decision', baseline: 'from about 31', evidence: 'observed', note: 'The baseline is an estimate from 20 interviews in the quarter before.' },
+          { id: 'r1c', value: '15 min', label: 'for the Friday decision', evidence: 'observed' },
         ] },
-        { id: 'r2', type: 'table', caption: 'Before and after, per quarter.', rows: [
+        { id: 'r2', type: 'prose', paragraphs: [
+          'The biggest change came in week four. We dropped a reporting tab three weeks before it went into build, after four customers in a row said they would never open it. That freed most of a sprint for invoice status on the day view, which customers had asked for in nine interviews.',
+        ] },
+        { id: 'r3', type: 'media', width: 'wide', media: { kind: 'image', src: '/samples/decision-log.svg', alt: 'A list of five weekly decisions, each with a date and the number of notes behind it.', caption: 'The decision log: every Friday call, with the notes that led to it.', aspect: 1.6 } },
+        { id: 'r4', type: 'table', caption: 'Per quarter, before and after.', rows: [
           ['', 'Before', 'After'],
           ['Interviews', '40', '38'],
           ['Decisions traced to research', '2', '9'],
           ['Days from interview to decision', '31', '6'],
+          ['Researcher days spent on the report', '10', '2'],
         ] },
+        { id: 'r5', type: 'callout', title: 'Still running', tone: 'success', icon: 'check', body: { paragraphs: ['A year on, the Friday call still happens. The quarterly report became a two-page summary that takes two days to write instead of two weeks.'] } },
       ],
     },
   ],
-  hindsight: { title: 'What I\'d do differently', paragraphs: ['I\'d have invited engineering to the Friday call from the first week, not the fifth.'] },
+  decisions: {
+    title: 'More on the calls',
+    intro: 'Two questions people asked when I showed this work.',
+    items: [
+      { id: 'd1', title: 'Why Friday?', detail: 'Interviews clustered early in the week, so by Friday there was a full week of notes and the researcher had Thursday to sort them. Decisions made on Friday could go into Monday\'s planning.' },
+      { id: 'd2', title: 'Why not buy a research repository?', detail: 'We trialled one. It stored notes well, but nobody opened it unless they were already looking for something. The gap was the habit, not the storage.' },
+    ],
+  },
+  hindsight: { title: 'What I\'d do differently', paragraphs: [
+    'I\'d invite engineering to the Friday call from the first week, not the fifth. Their questions made the decisions sharper, and they would have trusted the board sooner.',
+    'I\'d also measure the wait before we started, rather than rebuild it from old tickets afterwards.',
+  ] },
   credits: [
     { id: 'c1', name: 'Ada Park', role: 'Research lead' },
-    { id: 'c2', name: 'Sam Rivera', role: 'Engineering' },
+    { id: 'c2', name: 'Lena Ortiz', role: 'Product manager' },
+    { id: 'c3', name: 'Sam Rivera and Jun Ito', role: 'Engineering' },
   ],
   related: ['quiet-onboarding'],
-  summary: 'How a weekly ritual made research change the roadmap.',
+  summary: 'How a fifteen-minute Friday decision made research change the roadmap.',
 };
 
 export const quietOnboarding: Story = {
