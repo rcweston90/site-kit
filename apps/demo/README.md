@@ -10,7 +10,7 @@ pnpm dev
 
 `pnpm dev` builds the packages once, then starts the demo in development mode.
 
-For a step-by-step walkthrough aimed at designers, see [the guide](../../docs/guide.md).
+For a step-by-step walkthrough aimed at designers, see [the guide](../../GUIDE.md).
 
 Open http://localhost:3000 for the site and http://localhost:3000/admin for the admin. Under `pnpm dev` the passcode is `studio`.
 

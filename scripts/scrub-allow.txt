@@ -1,2 +1,11 @@
 # Known-safe scrub hits, one per line: "path" or "path:line", with why.
 scripts/scrub.test.mjs  # planted leaks that prove the check fails; fake names and keys only
+assets/readme/admin-dashboard.webp  # fictional demo screenshot for the README; made-up persona, no private media
+assets/readme/admin-editor.webp  # fictional demo screenshot for the README; made-up persona, no private media
+assets/readme/admin-posts.webp  # fictional demo screenshot for the README; made-up persona, no private media
+assets/readme/admin-work.webp  # fictional demo screenshot for the README; made-up persona, no private media
+assets/readme/case-study-dark.webp  # fictional demo screenshot for the README; made-up persona, no private media
+assets/readme/case-study.webp  # fictional demo screenshot for the README; made-up persona, no private media
+assets/readme/home-phone.webp  # fictional demo screenshot for the README; made-up persona, no private media
+assets/readme/home.webp  # fictional demo screenshot for the README; made-up persona, no private media
+assets/readme/work.webp  # fictional demo screenshot for the README; made-up persona, no private media

@@ -220,7 +220,7 @@ These run the site as one always-on server with a disk that lasts, so you can ke
 
 Back up by downloading the volume's contents now and then, or move to a hosted database when the site matters to you.
 
-> **Ask your AI:** "Help me deploy apps/demo to [Vercel / Railway]. Use docs/guide.md, section 7. Walk me through the screens one at a time and tell me exactly what to paste in each field. Don't put any secret in a file that gets committed."
+> **Ask your AI:** "Help me deploy apps/demo to [Vercel / Railway]. Use GUIDE.md, section 7. Walk me through the screens one at a time and tell me exactly what to paste in each field. Don't put any secret in a file that gets committed."
 
 ## 8. Keep up with updates
 

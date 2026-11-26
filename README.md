@@ -1,6 +1,27 @@
 # site-kit
 
-MIT-licensed packages pulled out of a personal site's CMS: a whole story CMS (content model, storage, reader and in-place editor) and three small packages that are useful on their own.
+A portfolio site with its own CMS, ready to make yours: case studies edited in place on the real page, posts, a home page, a resume, and an admin for all of it. MIT-licensed, with no history from the site it came from.
+
+> **New to code? Start with [GUIDE.md](GUIDE.md).** It walks a designer through getting a copy, running it, writing case studies and posts, choosing a database and putting the site online, one step at a time.
+
+```sh
+pnpm install && pnpm dev   # http://localhost:3000, admin at /admin (passcode `studio`)
+```
+
+Everything in the screenshots below is made up for the demo: Lena Ortiz and her clients don't exist.
+
+<p align="center"><img src="assets/readme/home.webp" alt="The demo site's home page: Lena Ortiz, a research-led designer, with four illustrated cards" width="100%"></p>
+
+| | |
+| --- | --- |
+| <img src="assets/readme/case-study.webp" alt="A case study page: a route map you can read from the platform"> | <img src="assets/readme/admin-editor.webp" alt="The same case study open in the in-place editor, with Edit, Preview, Settings and Publish"> |
+| A case study, as readers see it | The same page in the editor: you write on the real layout |
+| <img src="assets/readme/admin-dashboard.webp" alt="The admin dashboard with a five-step start-here tour and content counts"> | <img src="assets/readme/admin-work.webp" alt="The Work screen: companies and the case study table"> |
+| The dashboard, with a short tour to start | Work: every case study, grouped by company |
+| <img src="assets/readme/admin-posts.webp" alt="The Posts screen in the admin"> | <img src="assets/readme/work.webp" alt="The public Work page with project cards"> |
+| Posts, saved as drafts until you publish | The public Work page |
+| <img src="assets/readme/case-study-dark.webp" alt="The case study in dark mode"> | <img src="assets/readme/home-phone.webp" alt="The home page on a phone" width="60%"> |
+| Dark mode follows the reader's system | On a phone |
 
 ## The story CMS
 
@@ -13,17 +34,14 @@ Long-form stories with chapters and rich blocks, edited in place on the real pag
 | [`@rcweston/story-react`](packages/story-react) | The reader: the story page and every part of it, themed with `--story-*` tokens, custom blocks from your own registry. | React, Lucide |
 | [`@rcweston/story-editor`](packages/story-editor) | The in-place editor: block tools and continuous writing over the reader's own components, talking to any backend through one transport. | React, Tiptap, Radix UI, save-kit |
 | [`@rcweston/site-data`](packages/site-data) | The site's own settings as modules (page visibility, Work order, story placement, the image library), each with memory and Postgres stores, numbered migrations, handlers and public reads. | story-core, story-server; `pg` only if you use it |
-| [`@rcweston/site-admin`](packages/site-admin) | The admin around the stories: a passcode-gated shell, the dashboard, the Work table, new stories, the image library and the review of a published version's changes. Modules add their own screens and sidebar items. | React, Tailwind v4, Radix UI, save-kit, site-data, story-editor |
+| [`@rcweston/site-admin`](packages/site-admin) | The admin around the stories: a passcode-gated shell and fourteen screens (dashboard, Work, companies, projects, home, posts, community, shots, showreel, resume, image library, SEO, appearance and site resources), plus the review of a published version's changes. Modules add their own screens and sidebar items. | React, Tailwind v4, Radix UI, save-kit, site-data, story-editor |
 
 [`apps/demo`](apps/demo) is a whole portfolio site on it, with made-up stories. It keeps its data in an embedded Postgres under `.data/` with no setup, and in any Postgres and S3-compatible bucket when you set `SITE_KIT_DATABASE_URL` and the `SITE_KIT_S3_*` variables (see [`apps/demo/env.example`](apps/demo/env.example)):
 
 ```sh
-pnpm install && pnpm build
-pnpm --filter @rcweston/story-demo dev   # http://localhost:3000, admin at /admin (passcode `studio`)
-pnpm db:migrate                          # apply migrations yourself, when SITE_KIT_AUTO_MIGRATE=false
+pnpm install && pnpm dev   # builds the packages, then runs the demo
+pnpm db:migrate            # apply migrations yourself, when SITE_KIT_AUTO_MIGRATE=false
 ```
-
-New to this? [docs/guide.md](docs/guide.md) walks a designer through getting a copy, writing case studies and posts, choosing a database and putting the site online.
 
 ## Small packages
 
