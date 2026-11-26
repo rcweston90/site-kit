@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { jsonLdScript, personSchema, type JsonLdPerson, type SeoContentMeta } from '@rcweston/site-data';
+import { blogPostingSchema, jsonLdScript, personSchema, type JsonLdPerson, type SeoContentMeta } from '@rcweston/site-data';
 import { SITE } from '@/content/site';
 import { readConfig } from './config';
 import { backend } from './story';
@@ -31,4 +31,4 @@ export function JsonLd({ data }: { data: unknown }) {
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdScript(data) }} />;
 }
 
-export { personSchema };
+export { blogPostingSchema, personSchema };

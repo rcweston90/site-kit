@@ -19,6 +19,8 @@ export const metadata = {
   metadataBase: readConfig().siteUrl,
   title: { default: `${SITE.name} · ${SITE.role}`, template: `%s · ${SITE.name}` },
   description: `Case studies by ${SITE.name}, a made-up designer: the demo site for the story CMS and its admin.`,
+  // The drawn icon, so browsers don't ask for a /favicon.ico the site doesn't have.
+  icons: { icon: [{ url: '/icon-192.png', sizes: '192x192', type: 'image/png' }], apple: '/icon-192.png' },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

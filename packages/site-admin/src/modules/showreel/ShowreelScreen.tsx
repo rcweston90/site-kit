@@ -179,7 +179,7 @@ export function ShowreelScreen() {
           The reel that plays on {path}.{' '}
           {setting
             ? `Currently playing your reel, set ${formatDate(setting.updatedAt)}.`
-            : defaultUrl ? 'Currently playing the default shipped with the site.' : 'Nothing is set yet, so the page is empty.'}
+            : defaultUrl ? 'Currently playing the default shipped with the site.' : 'Nothing is set yet, so the page shows a poster and says the reel is on its way.'}
         </p>
       </div>
 

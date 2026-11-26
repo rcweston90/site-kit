@@ -5,7 +5,7 @@ import type { BlogPostContent, BlogSeed } from '@rcweston/site-data';
  * Lena Ortiz writes about the practice at Fieldnote Studio. Covers are the
  * generated sample drawings in public/samples.
  *
- * - Three are live; one of them was edited from an older draft after it went
+ * - Six are live; one of them was edited from an older draft after it went
  *   live, so its editor shows "The published version has updates…".
  * - Two are drafts nobody has seen.
  * - One was published and then taken down: it keeps its history, readers see nothing.
@@ -34,7 +34,7 @@ const travelFirst = post({
     '<p>The next reader is usually you, six months later, with no memory of the call. Write the date, who spoke, and what you were testing at the top. A note without its question is a quote without a source.</p>',
     callout('info', '<p><strong>Try this:</strong> before you close a note, read only its first line. If it doesn’t say what you learned, rewrite it until it does.</p>'),
     '<h2>Keep the words</h2>',
-    '<p>Paraphrase is where findings drift. When Jun Ito said a form “felt like a test I hadn’t studied for”, that sentence did more in the review than any chart.</p>',
+    '<p>Paraphrase is where findings drift. When one participant said a form “felt like a test I hadn’t studied for”, that sentence did more in the review than any chart.</p>',
     '<ul><li><p>Quote, then summarise.</p></li><li><p>Mark what you inferred with <em>I think</em>.</p></li><li><p>Link the recording, never paste it.</p></li></ul>',
     card('case-study', 'field-notes'),
   ].join(''),
@@ -106,7 +106,59 @@ const update = post({
   description: 'An older note about who joined and what we were working on.',
   tags: ['studio'],
   imageUrl: '/samples/dashboard.svg',
-  html: '<p>Jun Ito joined to lead research operations, and we moved the studio library onto shelves people can actually reach.</p>',
+  html: '<p>Jun Ito joined as our product manager, and we moved the studio library onto shelves people can actually reach.</p>',
+});
+
+const maps = post({
+  title: 'Maps people read in five seconds',
+  description: 'What a bus map taught the studio about labels, and why we now test reading time before anything else.',
+  tags: ['transit', 'research'],
+  imageUrl: '/api/story/media/stories/transit-map/cover.webp',
+  html: [
+    '<p>At Tidewater Transit we timed riders reading the old network map at the stop. The median was forty seconds. The bus is at the door for twelve.</p>',
+    '<h2>Answer the question at the door</h2>',
+    '<p>Riders weren’t asking where a street was. They were asking whether this bus goes past the market, the hospital or the ferry. So the map stopped showing streets and started showing places people name.</p>',
+    '<ul><li><p>Lines, not streets: every route as one colour and one stroke.</p></li><li><p>Landmarks, not addresses: twelve places, chosen by drivers.</p></li><li><p>One diagram, everywhere: the same picture on every stop and in the app.</p></li></ul>',
+    callout('success', '<p><strong>The number we watched:</strong> complaints about boarding the wrong bus, which fell from 41 a month to 17 in the first quarter.</p>'),
+    '<h2>Test the read, not the look</h2>',
+    '<p>We printed each draft at full size, taped it to a real shelter and gave people a destination. Five seconds, then the question. If they hesitated, the draft lost.</p>',
+    '<blockquote><p>“A map you have to study is a map for the people who made it.”</p></blockquote>',
+    card('case-study', 'transit-map'),
+  ].join(''),
+});
+
+const theWait = post({
+  title: 'Measure the wait, not the click',
+  description: 'Booking went from nine screens to three. The number that mattered was how long people waited to hear back.',
+  tags: ['health', 'metrics'],
+  imageUrl: '/api/story/media/stories/clinic-booking/cover.webp',
+  html: [
+    '<p>When Harbor Lane Clinics asked us to improve online booking, the dashboard counted clicks. Patients counted something else: the days between asking for a visit and knowing they had one.</p>',
+    '<h2>Two clocks</h2>',
+    '<p>The first clock runs while someone fills in the form. The second runs after they press the button. We had spent a year shortening the first and never looked at the second.</p>',
+    '<ol><li><p>Ask for the time first, so nobody fills in details for a slot that is gone.</p></li><li><p>Confirm on the spot, with the visit in the calendar before the page closes.</p></li><li><p>Send one reminder, the day before, with the address and the door to use.</p></li></ol>',
+    callout('info', '<p>Online bookings rose from 22% to 48% of all visits. Calls to the front desk about “did my booking go through?” nearly stopped.</p>'),
+    '<p>The flow is shorter, but that isn’t why it works. It works because nobody waits to find out.</p>',
+    card('case-study', 'clinic-booking'),
+  ].join(''),
+});
+
+const fridays = post({
+  title: 'A year of Friday decisions',
+  description: 'Fifty-one Fridays, one decision each. What the log taught us, and the three weeks we skipped it.',
+  tags: ['process', 'research'],
+  imageUrl: '/api/story/media/stories/field-notes/cover.webp',
+  html: [
+    '<p>A year ago the studio started making one research decision every Friday, written down with a date and the notes behind it. We have now made fifty-one of them.</p>',
+    '<h2>What held</h2>',
+    '<p>Fifteen minutes is enough when the notes are sorted on Thursday. The log is the only research document people outside the team open without being asked.</p>',
+    '<h2>What didn’t</h2>',
+    '<p>We skipped three Fridays during a launch and it took a month to catch up. A missed decision doesn’t disappear; it turns into three smaller arguments.</p>',
+    callout('neutral', '<p><strong>Steal this:</strong> a decision line has four parts. The date, the call, who made it, and the two or three notes that tipped it.</p>'),
+    '<p>Ada Park keeps the log now. Jun Ito reads it on Monday mornings and plans the week from it, which is the best review it could get.</p>',
+    card('case-study', 'field-notes'),
+    card('post', 2),
+  ].join(''),
 });
 
 export const blogSeed: BlogSeed[] = [
@@ -115,5 +167,8 @@ export const blogSeed: BlogSeed[] = [
   { slug: 'a-week-of-sketching', createdAt: '2026-04-15T09:00:00.000Z', versions: [sketching], published: 0 },
   { slug: 'small-tools-quiet-defaults', createdAt: '2026-05-02T09:00:00.000Z', versions: [quietDefaults], published: null },
   { slug: 'notes-on-naming-things', createdAt: '2026-05-20T09:00:00.000Z', versions: [naming], published: null },
+  { slug: 'maps-people-read-in-five-seconds', createdAt: '2026-06-18T09:00:00.000Z', versions: [maps], published: 0 },
+  { slug: 'measure-the-wait', createdAt: '2026-08-27T09:00:00.000Z', versions: [theWait], published: 0 },
+  { slug: 'a-year-of-friday-decisions', createdAt: '2026-10-21T09:00:00.000Z', versions: [fridays], published: 0 },
   { slug: 'studio-update-spring', createdAt: '2025-04-01T09:00:00.000Z', versions: [update], published: 0, hidden: true },
 ];

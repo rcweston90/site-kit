@@ -5,3 +5,9 @@
 .showreel .open { color: var(--preview-muted); font-size: 15px; line-height: 24px; text-decoration: underline; text-underline-offset: .2em; }
 .frame { overflow: hidden; aspect-ratio: 16 / 9; border: 1px solid var(--preview-line); border-radius: 16px; background: color-mix(in srgb, var(--preview-line) 28%, var(--preview-paper)); }
 .frame video, .frame iframe { display: block; width: 100%; height: 100%; border: 0; object-fit: contain; }
+/* No reel set yet: the poster in the frame, and a line under it. */
+.waiting { margin: 0; aspect-ratio: auto; display: flex; flex-direction: column; }
+.waiting img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.waiting figcaption { display: flex; flex-wrap: wrap; gap: 4px 8px; padding: 16px 20px; border-top: 1px solid var(--preview-line); background: var(--preview-paper); color: var(--preview-muted); font-size: 15px; line-height: 24px; }
+.waiting figcaption strong { color: var(--preview-ink); font-weight: 500; }
+.waiting figcaption a { color: inherit; text-decoration: underline; text-underline-offset: .2em; }

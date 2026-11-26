@@ -3,6 +3,7 @@ import { Reader } from '@/components/Reader';
 import { backend } from '@/lib/story';
 import { forReaders, publishedTeasers, storyCompany } from '@/lib/published';
 import { JsonLd, pageMetadata, sitePerson } from '@/lib/seo';
+import { creditHref, photoCredits } from '@/lib/credits';
 import { creativeWorkSchema, type SeoContentMeta } from '@rcweston/site-data';
 import { storyCardMedia, type Story } from '@rcweston/story-core';
 
@@ -44,6 +45,25 @@ export default async function StoryRoute({ params }: { params: Promise<{ slug: s
     <>
       <JsonLd data={creativeWorkSchema(sitePerson(), { path: `/stories/${result.slug}`, title: readable.title, company: readable.company || undefined, description: meta.description, image: meta.image })} />
       <Reader story={readable} next={next} company={company} />
+      <CoverCredit slug={result.slug} hero={readable.hero} />
     </>
+  );
+}
+
+/** The cover photograph's credit under the story, while the cover is still the credited photo. */
+async function CoverCredit({ slug, hero }: { slug: string; hero: Story['hero'] }) {
+  const src = (hero?.kind === 'image' ? hero.src : '') ?? '';
+  if (!src.endsWith(`/stories/${slug}/cover.jpg`)) return null;
+  const credit = (await photoCredits()).find((entry) => entry.slug === slug);
+  if (!credit) return null;
+  const profile = creditHref(credit.profileUrl);
+  const photo = creditHref(credit.photoUrl);
+  return (
+    <p className="mx-auto max-w-2xl px-(--page-inset) pb-minor-2 text-center text-xs leading-baseline text-foreground-muted">
+      Cover {photo ? <a href={photo} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4 hover:text-foreground">photo</a> : 'photo'}
+      {' by '}
+      {profile ? <a href={profile} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4 hover:text-foreground">{credit.photographer}</a> : credit.photographer}
+      {credit.license ? ` · ${credit.license}` : ''}
+    </p>
   );
 }

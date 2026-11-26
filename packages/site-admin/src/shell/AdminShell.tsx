@@ -62,16 +62,18 @@ export function AdminShell({ children, extraNav }: { children: ReactNode; extraN
     if (safe) replace(safe);
   }, [isAuthenticated, pathname, replace, config.adminBase]);
 
+  // The theme provider wraps every state, so its pre-paint script is part of
+  // the server's HTML (the sign-in and loading screens take the admin theme
+  // too) rather than rendered later on the client, where it would never run.
+  let body: ReactNode;
   if (isChecking) {
-    return (
+    body = (
       <div className="min-h-screen flex items-center justify-center" style={ADMIN_ACCENT}>
         <div className="text-center text-foreground-muted font-mono text-sm uppercase tracking-wider">Loading...</div>
       </div>
     );
-  }
-
-  if (!isAuthenticated) {
-    return (
+  } else if (!isAuthenticated) {
+    body = (
       <div className="min-h-screen flex items-center justify-center" style={ADMIN_ACCENT}>
         <div className="w-full max-w-sm px-6">
           <h1 className="font-mono text-3xl font-bold text-foreground uppercase tracking-wide text-center mb-8">Admin</h1>
@@ -87,15 +89,17 @@ export function AdminShell({ children, extraNav }: { children: ReactNode; extraN
         </div>
       </div>
     );
+  } else {
+    body = (
+      <>
+        <AdminWorkspace pathname={pathname} logout={logout} extraNav={extraNav}>{children}</AdminWorkspace>
+        <UndoToast />
+        <SessionEndedDialog renderSignIn={({ onSignedIn }) => <PasscodeForm authenticate={authenticate} onSuccess={onSignedIn} />} />
+      </>
+    );
   }
 
-  return (
-    <AdminThemeProvider>
-      <AdminWorkspace pathname={pathname} logout={logout} extraNav={extraNav}>{children}</AdminWorkspace>
-      <UndoToast />
-      <SessionEndedDialog renderSignIn={({ onSignedIn }) => <PasscodeForm authenticate={authenticate} onSuccess={onSignedIn} />} />
-    </AdminThemeProvider>
-  );
+  return <AdminThemeProvider>{body}</AdminThemeProvider>;
 }
 
 /** Layout only: fixtures and previews can render the workspace without an account or a store. */

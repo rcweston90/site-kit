@@ -10,9 +10,10 @@ import { THEME_OPTIONS } from './siteControls';
 
 /**
  * The site footer: the pages again, the profiles, the copyright and the
- * colour theme. Each row is one 48px step, so the stack needs no gaps.
+ * colour theme, with a link to the photo credits once there are any. Each
+ * row is one 48px step, so the stack needs no gaps.
  */
-export function SiteFooter({ items, theme, onSetTheme }: { items: SiteNavItem[]; theme: SiteTheme; onSetTheme: (theme: SiteTheme) => void }) {
+export function SiteFooter({ items, theme, onSetTheme, credits = false }: { items: SiteNavItem[]; theme: SiteTheme; onSetTheme: (theme: SiteTheme) => void; credits?: boolean }) {
   const links = [{ label: 'Readme', href: '/' }, ...items];
   return (
     <RevealGroup as="footer" className="reveal-fade border-t border-default mt-major bg-background">
@@ -45,6 +46,11 @@ export function SiteFooter({ items, theme, onSetTheme }: { items: SiteNavItem[];
           <p className="py-half mb-0 text-[16px] leading-baseline text-foreground-muted font-mono uppercase tracking-wider">
             {`© ${new Date().getFullYear()} – ${SITE.name}`}
           </p>
+          {credits && (
+            <Link href="/credits" className="press-well block px-2 py-half font-mono text-xs leading-baseline uppercase tracking-wider text-foreground-muted">
+              Photo credits
+            </Link>
+          )}
 
           <div className="mt-minor flex flex-wrap items-center justify-center gap-half">
             <div className="surface-well flex h-minor-2 items-stretch gap-1 rounded-lg px-1" role="radiogroup" aria-label="Color theme">

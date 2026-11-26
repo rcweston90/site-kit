@@ -9,7 +9,12 @@ import type { Story } from '@rcweston/story-core';
  */
 
 /** Where the story handlers serve a seeded picture. */
-export const seedMedia = (slug: string, file: string) => `/api/story/media/stories/${slug}/${file}`;
+/**
+ * A seed picture's address in the media store. The drawings are kept as SVG
+ * here and written to the store as WebP (lib/seed-media.ts), the way an
+ * upload would be, so the image library lists them.
+ */
+export const seedMedia = (slug: string, file: string) => `/api/story/media/stories/${slug}/${file.replace(/\.svg$/, '.webp')}`;
 const cover = (slug: string, alt: string): Story['hero'] => ({ kind: 'image', src: seedMedia(slug, 'cover.svg'), alt, aspect: 1.6 });
 
 export const fieldNotes: Story = {
@@ -45,7 +50,7 @@ export const fieldNotes: Story = {
       title: 'We learned plenty. We just learned it a month too late.',
       blocks: [
         { id: 's1', type: 'prose', paragraphs: [
-          'Fieldnote makes scheduling software for small service businesses. Its three-person research team ran about forty customer interviews a quarter, and the findings were good. They arrived as a forty-page report in the last week of the quarter, after the next roadmap was already set.',
+          'Fieldnote Studio makes research tools for small product teams. Its own three-person research team ran about forty customer interviews a quarter, and the findings were good. They arrived as a forty-page report in the last week of the quarter, after the next roadmap was already set.',
           'So by the time anyone read that a feature confused people, we had committed to building the next three on top of it. Each interview was also spread across **four different tools**: the recording in one, notes in two more, highlights in a spreadsheet. Even the researchers couldn\'t say which findings were new and which they\'d heard ten times.',
         ], large: [0] },
         { id: 's2', type: 'media', width: 'text', media: { kind: 'image', src: seedMedia('field-notes', 'tools-before.svg'), alt: 'Four app windows side by side: recordings, interview notes, team notes and a highlights sheet.', caption: 'Before: one interview, four places to look.', aspect: 1.6 } },
@@ -162,7 +167,7 @@ export const quietOnboarding: Story = {
   company: 'Fieldnote Studio',
   title: 'An onboarding that gets out of the way',
   thesis: 'As the designer on growth, I replaced a seven-step tour with one useful first task, and more new teams came back in their second week.',
-  period: '2026',
+  period: 'Jan to Apr 2026',
   projectYear: '2026',
   status: 'Beta',
   disclosure: 'Fictional company; every number is made up for this demo.',
@@ -170,7 +175,7 @@ export const quietOnboarding: Story = {
     { id: 'role', label: 'Role', value: 'Designer, growth' },
     { id: 'timeline', label: 'Timeline', value: 'Six weeks' },
   ],
-  hero: { kind: 'image', src: seedMedia('field-notes', 'mobile.svg'), alt: 'A phone showing a short list of notes.', aspect: 1.6 },
+  hero: cover('quiet-onboarding', 'A phone resting on pale linen, one card on its screen.'),
   glance: {
     situation: 'New teams finished the tour and never came back.',
     task: 'Get a new team to one useful result in its first session.',
@@ -222,7 +227,7 @@ export const transitMap: Story = {
   company: 'Tidewater Transit',
   title: 'A route map you can read from the platform',
   thesis: 'As the lead designer on a three-month contract, I redrew a regional bus map around the questions riders ask on the platform, and wrong-bus complaints fell by more than half.',
-  period: '2024',
+  period: 'Mar to May 2024',
   projectYear: '2024',
   status: 'Shipped',
   disclosure: 'Fictional client; every name and number is made up for this demo.',
@@ -248,7 +253,7 @@ export const transitMap: Story = {
         'The map in every shelter was a street map with the routes drawn over it. It was accurate, and riders still could not tell which of three buses at a stop would take them to the hospital.',
         'Drivers told us the same story: the question at the door was never "where is this street?" It was "do you go past the market?"',
       ] },
-      { id: 'tm2', type: 'quote', quote: { quote: 'I answer the same four questions all day, and none of them are about streets.', name: 'Sam Rivera', role: 'Driver adviser', context: 'On a ride-along in week one.' } },
+      { id: 'tm2', type: 'quote', quote: { quote: 'I answer the same four questions all day, and none of them are about streets.', name: 'Night-route driver', role: 'Tidewater Transit', context: 'On a ride-along in week one.' } },
     ] },
     { key: 'task', title: 'Five seconds, from the platform.', blocks: [
       { id: 'tm3', type: 'prose', format: 'bullets', paragraphs: ['Readable from two metres away.', 'The same diagram on the map, the stop sign and the web.', 'No street names unless a stop is named after one.'] },
@@ -270,8 +275,8 @@ export const transitMap: Story = {
     ] },
   ],
   credits: [
-    { id: 'c1', name: 'Sam Rivera', role: 'Driver adviser' },
-    { id: 'c2', name: 'Ada Park', role: 'Rider research' },
+    { id: 'c1', name: 'Ada Park', role: 'Rider research' },
+    { id: 'c2', name: 'Sam Rivera', role: 'Engineering' },
   ],
   related: ['field-notes'],
   summary: 'Redrawing a bus map around the questions riders ask on the platform.',
@@ -282,7 +287,7 @@ export const clinicBooking: Story = {
   company: 'Harbor Lane Clinics',
   title: 'Booking a clinic visit in under a minute',
   thesis: 'As the product designer, I cut the online booking flow from nine screens to three, and more patients booked without calling.',
-  period: '2023',
+  period: 'Jan to Sep 2023',
   projectYear: '2023',
   status: 'Shipped',
   disclosure: 'Fictional client; every name and number is made up for this demo.',
@@ -326,7 +331,7 @@ export const buttonAudit: Story = {
   company: 'Fieldnote Studio',
   title: 'Forty buttons down to four',
   thesis: 'As the designer who owned the component library, I audited every button in the product and replaced forty variants with four, and new screens shipped faster.',
-  period: '2025',
+  period: 'Feb to Jun 2025',
   projectYear: '2025',
   status: 'Shipped',
   disclosure: 'Fictional company; every number is made up for this demo.',
@@ -392,7 +397,7 @@ export const archiveSearch: Story = {
   company: 'Northfold Library',
   title: 'Search that finds the letter, not the folder',
   thesis: '',
-  projectYear: '2026',
+  projectYear: '2021',
   facts: [],
   hero: cover('archive-search', 'Archive shelves lined with boxes and bound spines.'),
   glance: { situation: 'Researchers found the right box, then searched it by hand.', task: '', action: '', result: '' },

@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import { backend } from '@/lib/story';
+import { pageMetadata } from '@/lib/seo';
 import { isPageVisible } from '@/lib/published';
 import { ShotsClient } from '@/components/shots/ShotsClient';
 
@@ -8,10 +9,10 @@ import { ShotsClient } from '@/components/shots/ShotsClient';
 // table is cheap, and the gallery always shows the latest upload or order.
 export const dynamic = 'force-dynamic';
 
-export const metadata = {
+export const generateMetadata = () => pageMetadata('/shots', {
   title: 'Shots',
   description: 'A collection of photographs displayed in a collage layout',
-};
+});
 
 /** Shots, unless it's switched off in the admin. */
 export default async function ShotsPage() {

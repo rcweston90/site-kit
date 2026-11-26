@@ -34,7 +34,7 @@ const PLAIN: SiteThemeSettings = { defaultTheme: 'default', sunny: false };
  * with its theme switch. A visitor's pick is kept in their browser; until
  * they make one, the default theme from Admin → Appearance applies.
  */
-export function SiteChrome({ nav, appearance = PLAIN, children }: { nav: SiteNavItem[]; appearance?: SiteThemeSettings; children: ReactNode }) {
+export function SiteChrome({ nav, appearance = PLAIN, credits = false, children }: { nav: SiteNavItem[]; appearance?: SiteThemeSettings; credits?: boolean; children: ReactNode }) {
   const { defaultTheme, sunny } = appearance;
   const [theme, setTheme] = useState<SiteTheme>(defaultTheme);
   useEffect(() => setTheme(readTheme(defaultTheme)), [defaultTheme]);
@@ -69,7 +69,7 @@ export function SiteChrome({ nav, appearance = PLAIN, children }: { nav: SiteNav
       <div className="relative z-[1] gradient-bg">
         <SiteNavigation items={nav} />
         <main id="main-content" className="pt-major w-full overflow-x-clip">{children}</main>
-        <SiteFooter items={nav} theme={theme} onSetTheme={applyTheme} />
+        <SiteFooter items={nav} theme={theme} onSetTheme={applyTheme} credits={credits} />
       </div>
     </>
   );
