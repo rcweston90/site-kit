@@ -8,7 +8,7 @@ import { blogSeed } from '@/content/blog-seed';
 import { CUSTOM_BLOCK_NAMES } from '@/content/blocks-registry';
 import { SITE, SITE_PAGES } from '@/content/site';
 import { RESUME_BASE, SEO_FALLBACKS, SITE_RESOURCES } from './settings';
-import { planStorage, readConfig, type SiteKitConfig, type StoragePlan } from './config';
+import { adminProblem, planStorage, readConfig, type SiteKitConfig, type StoragePlan } from './config';
 import { describeStorage, openDatabase, openDocuments, openMedia, type Database } from './storage';
 import { putSeedMedia, withSeedPhoto } from './seed-media';
 import { seedShots } from './seed-shots';
@@ -27,7 +27,8 @@ import { SEED_HEADER, SHOWREEL_RESOURCE, publishingConfig, putPublishingMedia } 
  * - Sign-in: a passcode. Set SITE_KIT_ADMIN_PASSCODE and
  *   SITE_KIT_SESSION_SECRET (32 or more characters). Under `next dev` both
  *   have defaults: the passcode is `studio`, and the secret is made up at
- *   start, so a restart signs you out. A production server needs both.
+ *   start, so a restart signs you out. A production server needs both;
+ *   without them the public site runs and the admin says what to set.
  *
  * The seed stories are written once, into an empty store.
  */
@@ -37,10 +38,12 @@ const SITE_BASE = '/api/site';
 export const DEV_PASSCODE = 'studio';
 
 async function createAuth(config: SiteKitConfig, database: Database | null): Promise<AuthAdapter & { usingDevPasscode: boolean }> {
-  const { passcode, secret } = config.auth;
-  if (!(passcode && secret) && config.production) {
-    throw new Error('Set SITE_KIT_ADMIN_PASSCODE and SITE_KIT_SESSION_SECRET before starting a production server (see env.example).');
+  const problem = adminProblem(config);
+  if (problem) {
+    console.warn(`[site-kit] ${problem}`);
+    return Object.assign(lockedAuth(problem), { usingDevPasscode: false });
   }
+  const { passcode, secret } = config.auth;
   // With a database, sign-in attempts are counted there, so the limit holds across instances.
   const rateLimiter = database
     ? (await import('@rcweston/story-server/postgres')).createPostgresRateLimiter({ pool: database.sql })
@@ -51,6 +54,21 @@ async function createAuth(config: SiteKitConfig, database: Database | null): Pro
     ...(rateLimiter ? { rateLimiter } : {}),
   });
   return Object.assign(auth, { usingDevPasscode: !passcode });
+}
+
+/**
+ * Sign-in when it isn't set up: nobody is signed in, and every admin request
+ * (signing in included) gets a 503 that says what to set. Public reads don't
+ * ask the adapter for more than "not signed in", so the site keeps working.
+ */
+function lockedAuth(problem: string): AuthAdapter & { signIn(request: Request): Promise<Response> } {
+  const refuse = () => Response.json({ error: problem }, { status: 503, headers: { 'cache-control': 'no-store' } });
+  return {
+    getSession: async () => null,
+    requireAdmin: async () => { throw refuse(); },
+    canViewProtected: async () => false,
+    signIn: async () => refuse(),
+  };
 }
 
 const SEED = { kind: 'seed', ref: 'content/seed.ts' };

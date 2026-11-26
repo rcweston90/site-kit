@@ -115,6 +115,22 @@ export function readConfig(env: Env = process.env, cwd = process.cwd()): SiteKit
   };
 }
 
+/**
+ * Why the admin is switched off, or null when it can sign people in. Under
+ * `next dev` the passcode and secret have defaults; a production server needs
+ * both set. Without them the public site still runs and only the admin (its
+ * pages and its API) says what to set.
+ */
+export function adminProblem(config: Pick<SiteKitConfig, 'auth' | 'production'>): string | null {
+  const { passcode, secret } = config.auth;
+  if (secret !== undefined && secret.length < 32) {
+    return 'SITE_KIT_SESSION_SECRET is too short. Use 32 or more random characters (for example `openssl rand -hex 32`) and restart the server.';
+  }
+  if (!config.production || (passcode && secret)) return null;
+  const missing = [!passcode && 'SITE_KIT_ADMIN_PASSCODE', !secret && 'SITE_KIT_SESSION_SECRET'].filter(Boolean).join(' and ');
+  return `The admin is switched off because ${missing} ${missing.includes(' and ') ? 'are' : 'is'} not set. Set SITE_KIT_ADMIN_PASSCODE and SITE_KIT_SESSION_SECRET (32 or more random characters) in the server’s environment and restart it. The public site keeps working meanwhile.`;
+}
+
 /** Hosts whose disk is read-only or wiped between requests. */
 const SERVERLESS_MARKERS = ['VERCEL', 'AWS_LAMBDA_FUNCTION_NAME', 'NETLIFY', 'K_SERVICE', 'FUNCTION_TARGET'] as const;
 

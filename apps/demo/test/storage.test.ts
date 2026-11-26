@@ -3,7 +3,7 @@ import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, describe, it } from 'node:test';
-import { ConfigError, planStorage, readConfig } from '../lib/config.ts';
+import { ConfigError, adminProblem, planStorage, readConfig } from '../lib/config.ts';
 import { openDatabase, openMedia } from '../lib/storage.ts';
 import { createBackend } from '../lib/story.ts';
 
@@ -107,5 +107,33 @@ describe('the embedded database', () => {
     writeFileSync(`${dir}.pid`, String(process.ppid));
     await assert.rejects(openDatabase({ kind: 'pglite', dir }), /Another server/);
     await database!.close();
+  });
+});
+
+describe('sign-in that isn’t set up', () => {
+  it('has defaults under next dev and names what a production server is missing', () => {
+    assert.equal(adminProblem(readConfig({})), null);
+    assert.match(adminProblem(readConfig({ NODE_ENV: 'production' }))!, /SITE_KIT_ADMIN_PASSCODE and SITE_KIT_SESSION_SECRET are not set/);
+    assert.match(adminProblem(readConfig({ NODE_ENV: 'production', SITE_KIT_ADMIN_PASSCODE: 'harbor' }))!, /because SITE_KIT_SESSION_SECRET is not set/);
+    assert.match(adminProblem(readConfig({ SITE_KIT_SESSION_SECRET: 'short' }))!, /too short/);
+    assert.equal(adminProblem(readConfig({ NODE_ENV: 'production', SITE_KIT_ADMIN_PASSCODE: 'harbor', SITE_KIT_SESSION_SECRET: 'x'.repeat(32) })), null);
+  });
+
+  it('keeps the public site up and refuses only the admin', async () => {
+    const site = await createBackend(readConfig({ NODE_ENV: 'production', SITE_KIT_STORAGE: 'memory' }));
+    try {
+      assert.ok((await site.store.list()).length > 0, 'seeded and readable');
+      const read = await site.story.handle(new Request('http://localhost/api/story/session'));
+      assert.deepEqual(await read.json(), { authenticated: false, role: null });
+      const signIn = await site.story.handle(new Request('http://localhost/api/story/session', {
+        method: 'POST', headers: { origin: 'http://localhost', 'content-type': 'application/json' }, body: JSON.stringify({ passcode: 'studio' }),
+      }));
+      assert.equal(signIn.status, 503);
+      assert.match((await signIn.json() as { error: string }).error, /SITE_KIT_ADMIN_PASSCODE/);
+      const save = await site.siteHandler(new Request('http://localhost/api/site/work-order', { method: 'PUT', body: '{}' }));
+      assert.equal(save.status, 503);
+    } finally {
+      await site.close();
+    }
   });
 });
