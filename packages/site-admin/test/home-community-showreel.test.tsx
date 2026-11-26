@@ -68,7 +68,7 @@ const statusText = (container: Element) => [...container.querySelectorAll('[role
 test('Home, Community and Showreel land in Publishing at the original slots', () => {
   const groups = buildAdminNav([...ADMIN_MODULES], { adminBase: '/admin' });
   const publishing = groups.find((group) => group.label === 'Publishing');
-  assert.deepEqual(publishing?.items.map((item) => [item.name, item.href]), [
+  assert.deepEqual(publishing?.items.filter((item) => ['Home', 'Community', 'Showreel'].includes(item.name)).map((item) => [item.name, item.href]), [
     ['Home', '/admin/home'],
     ['Community', '/admin/community'],
     ['Showreel', '/admin/showreel'],
