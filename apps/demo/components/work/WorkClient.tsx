@@ -1,9 +1,9 @@
-import type { WorkCard } from '@/lib/published';
-import { WorkGrid } from './WorkCards';
+import type { PrototypeCard, WorkCard } from '@/lib/published';
+import { PrototypeGrid, WorkGrid } from './WorkCards';
 import styles from './Work.module.css';
 
 /** Work: the headline, then every case study switched on for Work, in the order set in the admin. */
-export function WorkClient({ cards }: { cards: WorkCard[] }) {
+export function WorkClient({ cards, prototypes = [] }: { cards: WorkCard[]; prototypes?: PrototypeCard[] }) {
   return (
     <div className={styles.page} data-work-list="">
       <section className={styles.intro} aria-labelledby="work-title">
@@ -29,6 +29,15 @@ export function WorkClient({ cards }: { cards: WorkCard[] }) {
           </div>
         )}
       </section>
+      {prototypes.length > 0 && (
+        <section aria-labelledby="work-prototypes-heading" className={styles.prototypes} data-prototype-list="">
+          <div className={styles.switchRow}>
+            <h2 id="work-prototypes-heading" className={styles.heading}>Prototypes</h2>
+            <span className={styles.count}>{prototypes.length} {prototypes.length === 1 ? 'prototype' : 'prototypes'}</span>
+          </div>
+          <PrototypeGrid cards={prototypes} />
+        </section>
+      )}
     </div>
   );
 }

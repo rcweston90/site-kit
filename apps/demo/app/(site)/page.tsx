@@ -14,7 +14,9 @@ function stripPhotos(work: WorkCard[]): StripPhoto[] {
 }
 
 export default async function HomePage() {
-  const [work, workVisible] = await Promise.all([workCards(), isPageVisible('/work')]);
+  const [cards, workVisible] = await Promise.all([workCards(), isPageVisible('/work')]);
+  // Selected work is case studies; a site feature's card stays on Work.
+  const work = cards.filter((card) => !card.href);
   return (
     <Home
       work={work}

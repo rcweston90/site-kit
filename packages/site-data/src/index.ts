@@ -29,4 +29,6 @@ export { siteResources, type SiteResourcesReads, type SiteResourcesStore } from 
 export { workOrder, type WorkOrderReads, type WorkOrderStore } from './modules/work-order/index.js';
 export { storyPlacement, currentPlacements, type StoryPlacement, type StoryPlacementReads, type StoryPlacementStore } from './modules/story-placement/index.js';
 export { mediaLibrary, type MediaLibraryConfig, type MediaLibraryReads } from './modules/media-library/index.js';
+export { companies, CompanyExistsError, CompanyMissingError, type CompaniesConfig, type CompaniesReads, type CompaniesStore, type CompanyRecord } from './modules/companies/index.js';
+export { projects, type ProjectsConfig, type ProjectsReads, type ProjectsStore, type ProjectSnapshot } from './modules/projects/index.js';
 export * from './client.js';

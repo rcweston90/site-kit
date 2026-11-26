@@ -34,10 +34,14 @@ export {
   type AdminStat,
 } from './modules/define.js';
 export { dashboardModule, imageLibraryModule, siteResourcesModule, storiesModule } from './modules/core.js';
+export * from './modules/companies/index.js';
+export * from './modules/projects/index.js';
 export { ADMIN_MODULES } from './registry.js';
 
 export { Dashboard, PageVisibilitySettings, SiteResourceVisibilitySettings } from './screens/Dashboard.js';
 export { WorkScreen, storyRecordKey } from './screens/work/WorkScreen.js';
+export type { WorkScreenExtension, WorkFeatureRow } from './screens/work/WorkScreen.js';
+export type { StoryRow, WorkSort } from './screens/work/model.js';
 export { WorkRow, WorkSection, WorkTable, WorkEmpty, formatUpdated, moveMenuEntries, useRowDrag, type WorkMenuEntry, type WorkRowProps, type WorkStatus, type WorkTone } from './screens/work/WorkTable.js';
 export { NewStory } from './screens/NewStory.js';
 export { ImageLibrary } from './screens/ImageLibrary.js';

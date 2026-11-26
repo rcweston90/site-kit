@@ -8,12 +8,16 @@ import { mediaLibrary } from './modules/media-library/index.js';
 import { siteResources } from './modules/site-resources/index.js';
 import { storyPlacement } from './modules/story-placement/index.js';
 import { workOrder } from './modules/work-order/index.js';
+import { companies } from './modules/companies/index.js';
+import { projects } from './modules/projects/index.js';
 
 export const SITE_DATA_MODULES = [
   siteResources,
   workOrder,
   storyPlacement,
   mediaLibrary,
+  companies,
+  projects,
 ] as const;
 
 export type SiteDataModules = typeof SITE_DATA_MODULES;

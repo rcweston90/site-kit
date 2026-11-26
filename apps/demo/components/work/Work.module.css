@@ -50,6 +50,9 @@
 .meta { min-width: 0; display: flex; align-items: center; gap: 8px; }
 .org, .category { font: 400 13px/24px var(--font-mono); color: var(--foreground-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .meta > .category:not(:first-child)::before { content: '·'; margin-right: 8px; }
+/* A company's mark beside its name: a small square crop of the wordmark's glyph end. */
+.logo { flex: none; width: auto; height: 20px; max-width: 24px; object-fit: cover; object-position: left center; border-radius: 4px; }
+.summary { margin: 0; color: var(--foreground-muted); font: 400 14px/20px var(--font-sans); text-wrap: pretty; }
 .tile:focus-visible { outline: 3px solid var(--accent-primary); outline-offset: 6px; }
 a.tile:active { opacity: .85; }
 
@@ -74,6 +77,9 @@ a.tile:active { opacity: .85; }
 @media (prefers-reduced-motion: reduce) {
   .tile::after, .cover { transition: none; }
 }
+
+/* --- Prototypes, after the case studies ---------------------------------- */
+.prototypes { margin-top: calc(var(--rhythm-major) * 2); }
 
 /* --- Nothing published yet ---------------------------------------------- */
 .empty { display: grid; min-height: 240px; justify-items: start; align-content: start; gap: 8px; padding-top: var(--rhythm-major); border-top: 1px solid var(--border); color: var(--foreground-muted); }

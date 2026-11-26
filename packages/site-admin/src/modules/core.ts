@@ -13,7 +13,7 @@ export const dashboardModule = defineAdminModule({
 export const storiesModule = defineAdminModule({
   id: 'stories',
   title: 'Work',
-  nav: [{ group: 'Portfolio', name: 'Work', path: 'stories', description: 'Case studies, their order and visibility', order: 0 }],
+  nav: [{ group: 'Portfolio', name: 'Work', path: 'stories', description: 'Case studies, their order and visibility', order: 0, owns: ['projects'] }],
   stats: [{
     label: 'Work',
     path: 'stories',

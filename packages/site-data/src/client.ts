@@ -7,6 +7,8 @@ export * from './modules/site-resources/model.js';
 export * from './modules/work-order/model.js';
 export * from './modules/story-placement/model.js';
 export * from './modules/media-library/model.js';
+export * from './modules/companies/model.js';
+export * from './modules/projects/model.js';
 
 /** Where the handlers are mounted unless you say otherwise. */
 export const DEFAULT_SITE_DATA_BASE_PATH = '/api/site';
@@ -20,4 +22,8 @@ export const siteDataPaths = {
   placement: (slug: string) => `/story-placement/${encodeURIComponent(slug)}`,
   mediaLibrary: (params?: URLSearchParams) => `/media-library${params && [...params].length ? `?${params}` : ''}`,
   mediaLibraryItem: (key: string) => `/media-library/item?key=${encodeURIComponent(key)}`,
+  companies: (slug?: string, part?: 'logo' | 'assets') => (slug ? `/companies/profile/${encodeURIComponent(slug)}${part ? `/${part}` : ''}` : '/companies'),
+  companyAssign: () => '/companies/assign',
+  projects: (slug?: string, part?: 'duplicate') => (slug ? `/projects/${encodeURIComponent(slug)}${part ? `/${part}` : ''}` : '/projects'),
+  projectsBulk: () => '/projects/bulk',
 };

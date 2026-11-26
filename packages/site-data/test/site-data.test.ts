@@ -69,7 +69,7 @@ describe('migrations', () => {
 
   it('keeps each module inside its own number range', () => {
     const names = collectMigrations(SITE_DATA_MODULES).map((migration) => migration.name);
-    assert.deepEqual(names, ['1000_site_page_visibility.sql', '1100_site_work_order.sql', '1200_site_story_placement.sql']);
+    assert.deepEqual(names.filter((name) => name < '2400'), ['1000_site_page_visibility.sql', '1100_site_work_order.sql', '1200_site_story_placement.sql']);
     const stray = defineModule({ ...SITE_DATA_MODULES[1], id: 'stray', migrationRange: [2000, 2099] }) as SiteDataModule;
     assert.throws(() => collectMigrations([stray]), /outside its range 2000–2099/);
     assert.throws(() => collectMigrations([SITE_DATA_MODULES[0], { ...SITE_DATA_MODULES[1], migrationRange: [1050, 1150] } as SiteDataModule]), /overlapping/);
@@ -80,11 +80,11 @@ describe('migrations', () => {
     const db = new PGlite();
     try {
       const dry = await migrate({ client: db, modules: SITE_DATA_MODULES, dryRun: true });
-      assert.equal(dry.pending.length, 3);
+      assert.equal(dry.pending.length, collectMigrations(SITE_DATA_MODULES).length);
       const { rows } = await db.query<{ name: string | null }>(`SELECT to_regclass('site_data_migrations')::text AS name`);
       assert.equal(rows[0].name, null);
       const first = await migrate({ client: db, modules: SITE_DATA_MODULES });
-      assert.equal(first.applied.length, 3);
+      assert.equal(first.applied.length, collectMigrations(SITE_DATA_MODULES).length);
       const again = await migrate({ client: db, modules: SITE_DATA_MODULES });
       assert.deepEqual(again.applied, []);
       const edited = SITE_DATA_MODULES.map((module) =>

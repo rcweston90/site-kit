@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { SaveRequestError, SaveStatus, deleteWithUndo, useListSave } from '@rcweston/save-kit';
+import { SaveRequestError, SaveStatus, deleteWithUndo, useListSave, type SaveStatusState } from '@rcweston/save-kit';
 import type { StoryEditorState, StorySummary } from '@rcweston/story-core';
 import { moveTo, placeVisibleOrder, siteDataPaths, sortByWorkOrder, type StoryPlacement } from '@rcweston/site-data/client';
 import { Button } from '../../primitives/Button.js';
@@ -9,11 +9,53 @@ import { AdminLink as Link, useAdminRouter } from '../../router.js';
 import { useAdminConfig, adminPath } from '../../config.js';
 import { adminRequest } from '../../request.js';
 import { copySlug, fullOrder, placesOf, sortStoryRows, storyRows, type StoryRow, type WorkSort } from './model.js';
-import { moveMenuEntries, useRowDrag, WorkEmpty, WorkRow, WorkSection, WorkTable } from './WorkTable.js';
+import { moveMenuEntries, useRowDrag, WorkEmpty, WorkRow, WorkSection, WorkTable, type WorkMenuEntry } from './WorkTable.js';
 import StoryPlacementSwitch from './StoryPlacementSwitch.js';
 import RecordActions, { type RecordAction } from './RecordActions.js';
 
 export const storyRecordKey = (slug: string) => `story:${slug}`;
+
+/** A card on Work whose page is managed in code (a site feature). */
+export interface WorkFeatureRow {
+  slug: string;
+  title: string;
+  updatedAt: string;
+  /** Where its Work card is edited. */
+  editHref: string;
+  /** The page itself. */
+  siteHref: string;
+}
+
+/**
+ * What a later module adds to Work (the projects module: companies,
+ * prototypes, site features and project details). Every part is optional.
+ */
+export interface WorkScreenExtension {
+  /** The line under the heading. */
+  summary?: (counts: { caseStudies: number; published: number }) => ReactNode;
+  /** Beside New case study. */
+  headerActions?: ReactNode;
+  /** Above the table, given the case-study rows. */
+  beforeTable?: (rows: readonly StoryRow[]) => ReactNode;
+  /** Which case studies the table keeps (a company filter). */
+  showRow?: (row: StoryRow) => boolean;
+  /** In place of a row's company line. */
+  rowMeta?: (row: StoryRow) => ReactNode[];
+  /** Added to a row's More menu after Story settings. */
+  rowMenu?: (row: StoryRow) => WorkMenuEntry[];
+  /** Cards placed and ordered among the case studies. */
+  features?: readonly WorkFeatureRow[];
+  /** Below the case studies, given the search, the page's save status and the case-study rows. */
+  afterTable?: (context: { query: string; status: SaveStatusState; rows: readonly StoryRow[] }) => ReactNode;
+  /** The page has other rows, so it isn't empty without stories. */
+  hasOtherRows?: boolean;
+}
+
+type CaseRow = StoryRow & { feature?: WorkFeatureRow };
+const featureRow = (feature: WorkFeatureRow, placements: ReadonlyMap<string, { listed: boolean; version: number }>): CaseRow => ({
+  slug: feature.slug, title: feature.title, company: '', year: '', updatedAt: feature.updatedAt, version: 0, published: true,
+  listed: placements.get(feature.slug)?.listed ?? true, placementVersion: placements.get(feature.slug)?.version ?? 0, cover: null, feature,
+});
 
 interface WorkOrderRecord {
   slugs: string[];
@@ -35,7 +77,7 @@ function coverThumbnail(cover: StoryRow['cover'], mediaSrc: (src: string) => str
   return { src: mediaSrc(still), alt: cover.alt, ...(cover.objectPosition ? { objectPosition: cover.objectPosition } : {}) };
 }
 
-export function WorkScreen({ beforeTable, newStoryPath = 'stories/new' }: { beforeTable?: ReactNode; newStoryPath?: string }) {
+export function WorkScreen({ beforeTable, newStoryPath = 'stories/new', extend = {} }: { beforeTable?: ReactNode; newStoryPath?: string; extend?: WorkScreenExtension }) {
   const config = useAdminConfig();
   const { push } = useAdminRouter();
   const { status, hidden } = useListSave();
@@ -86,16 +128,19 @@ export function WorkScreen({ beforeTable, newStoryPath = 'stories/new' }: { befo
   }, [load]);
 
   const rows = useMemo(() => storyRows(stories.filter((story) => !hidden.has(storyRecordKey(story.slug))), placements), [stories, placements, hidden]);
+  const { features } = extend;
+  // Site features share the case studies' order and placement.
+  const placedRows = useMemo<CaseRow[]>(() => [...rows, ...(features ?? []).filter((feature) => !rows.some((row) => row.slug === feature.slug)).map((feature) => featureRow(feature, placements))], [rows, features, placements]);
   // The list in full, as the site will show it, whatever the search hides.
   const fullWorkOrder = useMemo(
-    () => fullOrder(workOrder.slugs, sortStoryRows(rows, { key: 'order', direction: 'asc' }, workOrder.slugs).map((row) => row.slug)),
-    [rows, workOrder.slugs],
+    () => fullOrder(workOrder.slugs, sortStoryRows(placedRows, { key: 'order', direction: 'asc' }, workOrder.slugs).map((row) => row.slug)),
+    [placedRows, workOrder.slugs],
   );
   // Numbered among the rows switched on to Work, so # reads 1, 2, 3 with
   // nothing missing and #1 is the first one the site shows.
   const positions = useMemo(() => placesOf(
-    sortStoryRows(rows, { key: 'order', direction: 'asc' }, fullWorkOrder).filter((row) => row.listed).map((row) => row.slug),
-  ), [rows, fullWorkOrder]);
+    sortStoryRows(placedRows, { key: 'order', direction: 'asc' }, fullWorkOrder).filter((row) => row.listed).map((row) => row.slug),
+  ), [placedRows, fullWorkOrder]);
   const publishedCount = rows.filter((row) => row.published).length;
 
   /** Save the order after rows moved. Optimistic: rows go back only if the save fails. */
@@ -187,13 +232,14 @@ export function WorkScreen({ beforeTable, newStoryPath = 'stories/new' }: { befo
           <div>
             <h1 className="font-mono text-3xl font-bold uppercase tracking-wide text-foreground md:text-4xl">Work</h1>
             <p className="mt-half text-sm leading-baseline text-foreground-muted">
-              One inventory for {rows.length} case {rows.length === 1 ? 'study' : 'studies'}, {publishedCount} published. Visible lists a case study on Work; publishing makes it live for readers.
+              {extend.summary ? extend.summary({ caseStudies: rows.length, published: publishedCount }) : <>One inventory for {rows.length} case {rows.length === 1 ? 'study' : 'studies'}, {publishedCount} published. Visible lists a case study on Work; publishing makes it live for readers.</>}
             </p>
           </div>
           <div className="flex flex-wrap gap-half">
             <Link href={adminPath(config, newStoryPath)} className="inline-flex min-h-12 items-center justify-center rounded-lg bg-foreground px-5 font-mono text-xs font-semibold uppercase tracking-wider text-background hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2">
               New case study
             </Link>
+            {extend.headerActions}
           </div>
         </div>
       </header>
@@ -218,6 +264,7 @@ export function WorkScreen({ beforeTable, newStoryPath = 'stories/new' }: { befo
       </section>
 
       {beforeTable}
+      {extend.beforeTable?.(rows)}
 
       <SaveStatus status={status} className="mb-minor" />
       {pageNotice && (
@@ -226,7 +273,7 @@ export function WorkScreen({ beforeTable, newStoryPath = 'stories/new' }: { befo
         </p>
       )}
 
-      {rows.length === 0 && stories.length === 0 ? (
+      {rows.length === 0 && stories.length === 0 && !extend.hasOtherRows && !features?.length ? (
         <section className="rounded-lg border border-default bg-card-bg p-minor text-center">
           <h2 className="font-mono text-lg font-bold uppercase tracking-wide">No case studies yet</h2>
           <p className="mt-half text-sm leading-baseline text-foreground-muted">Start one, and it shows up here as a private draft.</p>
@@ -235,7 +282,8 @@ export function WorkScreen({ beforeTable, newStoryPath = 'stories/new' }: { befo
       ) : (
         <div className="space-y-minor-2">
           <CaseStudyTable
-            rows={rows}
+            rows={placedRows.filter((row) => row.feature || !extend.showRow || extend.showRow(row))}
+            extend={extend}
             query={query}
             order={fullWorkOrder}
             positions={positions}
@@ -246,6 +294,7 @@ export function WorkScreen({ beforeTable, newStoryPath = 'stories/new' }: { befo
             onPlacementSaved={(saved) => setPlacements((current) => new Map(current).set(saved.slug, { ...saved, updatedAt: new Date().toISOString() }))}
             onRecordAction={setRecordAction}
           />
+          {extend.afterTable?.({ query, status, rows })}
         </div>
       )}
 
@@ -259,8 +308,9 @@ export function WorkScreen({ beforeTable, newStoryPath = 'stories/new' }: { befo
   );
 }
 
-function CaseStudyTable({ rows, query, order, positions, orderSaveable, placementAvailable, onReorder, savePlacement, onPlacementSaved, onRecordAction }: {
-  rows: StoryRow[];
+function CaseStudyTable({ rows, extend, query, order, positions, orderSaveable, placementAvailable, onReorder, savePlacement, onPlacementSaved, onRecordAction }: {
+  rows: CaseRow[];
+  extend: WorkScreenExtension;
   query: string;
   order: string[];
   positions: ReadonlyMap<string, number>;
@@ -293,19 +343,19 @@ function CaseStudyTable({ rows, query, order, positions, orderSaveable, placemen
     onPlacementSaved(saved);
   };
   const editorHref = (slug: string, settings = false) => `${config.editorHref(slug)}${settings ? '?settings=1' : ''}`;
-  const renderRow = (row: StoryRow, index: number, movableRow: boolean) => (
+  const renderRow = (row: CaseRow, index: number, movableRow: boolean) => (
     <WorkRow
       key={row.slug}
       title={row.title}
       position={positions.get(row.slug)}
       onDragEnd={movableRow ? drag.onDragEnd : undefined}
-      href={editorHref(row.slug)}
-      editLabel="Edit story"
+      href={row.feature ? row.feature.editHref : editorHref(row.slug)}
+      editLabel={row.feature ? 'Edit Work card' : 'Edit story'}
       thumbnail={coverThumbnail(row.cover, config.mediaSrc)}
-      meta={[row.company || 'Company not set']}
+      meta={row.feature ? ['Site feature · page managed in code'] : extend.rowMeta ? extend.rowMeta(row) : [row.company || 'Company not set']}
       year={row.year || '—'}
       slug={row.slug}
-      status={{
+      status={row.feature ? { tone: 'neutral', label: 'Site feature', detail: 'Work card only' } : {
         tone: row.published ? 'success' : 'neutral',
         label: row.published ? 'Live' : 'Draft',
         detail: !row.published && row.listed ? 'Listed after publishing' : `v${row.version}`,
@@ -320,8 +370,12 @@ function CaseStudyTable({ rows, query, order, positions, orderSaveable, placemen
         />
       )}
       updated={row.updatedAt}
-      menu={[
+      menu={row.feature ? [
+        { label: 'Open site feature', href: row.feature.siteHref },
+        ...(movableRow && shown.length > 1 ? ['separator' as const, ...moveMenuEntries(index, shown.length, (to) => move(index, to))] : []),
+      ] : [
         { label: 'Story settings', href: editorHref(row.slug, true) },
+        ...(extend.rowMenu?.(row) ?? []),
         ...(row.published ? [{ label: 'Reader preview', href: config.storyHref(row.slug), external: true }] : []),
         { label: 'Duplicate as draft', onSelect: () => onRecordAction({ action: 'duplicate', slug: row.slug, title: row.title, versions: row.version, published: row.published }) },
         { label: 'Review deletion', danger: true, onSelect: () => onRecordAction({ action: 'delete', slug: row.slug, title: row.title, versions: row.version, published: row.published }) },
@@ -333,7 +387,7 @@ function CaseStudyTable({ rows, query, order, positions, orderSaveable, placemen
   return (
     <WorkSection
       id="case-studies"
-      title="Case studies"
+      title={rows.some((row) => row.feature) ? 'Case studies and site features' : 'Case studies'}
       shown={visible.length}
       total={rows.length}
       note={orderSaveable ? undefined : 'Order can’t be saved here yet'}

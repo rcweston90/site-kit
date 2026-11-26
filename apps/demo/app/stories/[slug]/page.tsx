@@ -1,7 +1,7 @@
 import { notFound, redirect } from 'next/navigation';
 import { Reader } from '@/components/Reader';
 import { backend } from '@/lib/story';
-import { forReaders, publishedTeasers } from '@/lib/published';
+import { forReaders, publishedTeasers, storyCompany } from '@/lib/published';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,8 +13,8 @@ export default async function StoryRoute({ params }: { params: Promise<{ slug: s
   if (result.status === 'failed') throw result.error;
   if (result.redirectFrom) redirect(`/stories/${result.slug}`);
 
-  const teasers = await publishedTeasers();
+  const [teasers, company] = await Promise.all([publishedTeasers(), storyCompany(result.story)]);
   const related = result.story.related ?? [];
   const next = teasers.find((teaser) => related.includes(teaser.slug)) ?? teasers.find((teaser) => teaser.slug !== result.slug);
-  return <Reader story={forReaders(result.story)} next={next} />;
+  return <Reader story={forReaders(result.story)} next={next} company={company} />;
 }
