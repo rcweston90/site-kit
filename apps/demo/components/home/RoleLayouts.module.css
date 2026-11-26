@@ -1,0 +1,122 @@
+/* The professional record under the home header: the statement, then the
+ * role, studio and city (the original's "stack" lockup and its siblings). */
+.frame {
+  --role-well: #eef0ed;
+  --role-inset-shadow: inset 0 1px 3px #27313812, 0 1px 0 #fff;
+  --role-radius: 16px;
+  container: role-record / inline-size;
+  margin-top: 24px;
+  color: var(--preview-ink);
+  font-family: var(--story-font-sans), sans-serif;
+}
+.record { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,336px); gap: 48px; border-top: 1px solid var(--preview-line); padding-top: calc(24px - 1px); align-items: start; }
+.record > * { min-width: 0; }
+/* Fluid type; line boxes round to 4px, so the three lines (one per span) sum to whole 12px
+   baselines and none moves more than 2px (docs/RHYTHM.md rule 2). The plain ratio is the fallback. */
+.record .statement { margin: 0; font: 400 clamp(32px,4cqw,56px)/1.2 var(--story-font-serif); line-height: round(nearest, 1.2em, 4px); letter-spacing: -.025em; }
+.statement span { display: block; }
+.credential { min-width: 0; }
+.frame .company { display: inline-flex; align-items: center; justify-content: flex-start; width: fit-content; min-height: 48px; border-radius: 4px; color: var(--preview-ink); }
+.company img { display: block; width: 102px; height: 20px; object-fit: contain; filter: var(--preview-logo-filter, none); }
+.frame .role p, .frame .location { margin: 0; }
+.frame .title { font: 500 24px/36px var(--story-font-sans); letter-spacing: -.035em; color: var(--preview-ink); }
+.frame .affiliation { font: 400 14px/24px var(--story-font-sans); color: var(--preview-muted); letter-spacing: -.01em; }
+.frame .location { display: flex; align-items: center; gap: 9px; white-space: nowrap; font: 400 12px/24px var(--story-font-sans); color: var(--preview-muted); }
+.location > span { width: 5px; height: 5px; flex: 0 0 5px; border-radius: 50%; background: var(--preview-accent); box-shadow: 0 0 0 3px var(--role-well); }
+.stack .credential { width: 100%; max-width: 264px; justify-self: end; align-self: stretch; display: flex; flex-direction: column; justify-content: space-between; gap: 0; }
+.stack .title { font-size: 22px; line-height: 24px; }
+.split { grid-template-columns: minmax(0,1fr) minmax(0,408px); align-items: center; }
+.split .credential { display: grid; grid-template-columns: 96px minmax(0,1fr); gap: 24px; align-items: start; }
+.split .company { min-height: 36px; }
+.split .company img { width: 90px; }
+.split .details { border-left: 1px solid var(--preview-line); padding-left: 24px; }
+.split .location { margin-top: 24px; }
+.roleFirst .credential { align-self: end; }
+.roleFirst .title { font-size: 32px; line-height: 36px; }
+.baseline { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 24px; border-top: 1px solid var(--preview-line); padding-top: 12px; }
+.baseline .company img { width: 84px; }
+.inset .credential { padding: 12px 24px 24px; border: 1px solid var(--preview-line); border-radius: var(--role-radius); background: var(--role-well); box-shadow: var(--role-inset-shadow); }
+.panelTop { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+.panelTop .company img { width: 84px; }
+.inset .title { font-size: 26px; line-height: 36px; }
+.inset .location > span { box-shadow: none; }
+.frame .company:focus-visible { outline: 2px solid var(--preview-accent); outline-offset: 4px; }
+.frame .company:active { opacity: .65; }
+@media (hover:hover) { .frame .company:hover { outline: 1px solid var(--preview-accent); outline-offset: 4px; } }
+@container role-record (max-width: 900px) {
+  .record { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 36px; }
+  .split .credential { grid-template-columns: 72px minmax(0,1fr); gap: 12px; }
+  .split .company img { width: 72px; }
+  .split .details { padding-left: 12px; }
+  .split .title { font-size: 21px; line-height: 24px; }
+  .split .affiliation { font-size: 13px; }
+  .inset .credential { padding-inline: 20px; }
+}
+@container role-record (max-width: 640px) {
+  .record { grid-template-columns: minmax(0,1fr); gap: 36px; }
+  .record .statement { font-size: 11cqw; line-height: 1.15; line-height: round(nearest, 1.15em, 4px); }
+  .stack .credential { justify-self: start; gap: 12px; }
+  .split .credential { grid-template-columns: 90px minmax(0,1fr); gap: 24px; }
+  .split .company img { width: 90px; }
+  .split .details { padding-left: 24px; }
+  .roleFirst .credential { max-width: 336px; }
+  .inset .credential { max-width: 336px; }
+}
+@container role-record (max-width: 300px) {
+  .split .credential { grid-template-columns: 68px minmax(0,1fr); gap: 12px; }
+  .split .company img { width: 68px; }
+  .split .details { padding-left: 12px; }
+  .split .title { font-size: 20px; }
+  .inset .credential { padding-inline: 16px; }
+  .inset .title { font-size: 24px; }
+  .panelTop { gap: 8px; }
+  .panelTop .company img { width: 72px; }
+}
+
+/* Review-only chrome; the main homepage never imports this gallery. */
+.review { max-width: 1440px; margin: 0 auto; padding: 48px 72px 72px; }
+.intro { margin-bottom: 72px; }
+.intro h1 { font: 500 clamp(32px,4vw,48px)/1.1 var(--story-font-sans); letter-spacing: -.045em; margin: 24px 0; }
+.intro p { max-width: 560px; font: 400 16px/24px var(--story-font-sans); color: var(--preview-muted); margin: 0; }
+.jumpLinks { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+.jumpLinks a { min-width: 44px; min-height: 44px; display: grid; place-items: center; border: 1px solid var(--preview-line); border-radius: 8px; font-size: 13px; }
+.study { scroll-margin-top: 96px; margin-bottom: 72px; }
+.caption { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 24px; }
+.caption h2 { display: flex; align-items: baseline; gap: 12px; margin: 0; font: 500 16px/24px var(--story-font-sans); }
+.caption h2 span { color: var(--preview-muted); font-weight: 400; }
+.study .frame { margin-top: 0; padding-bottom: 24px; }
+.note { max-width: 660px; margin: 24px 0 0; font: 400 14px/24px var(--story-font-sans); color: var(--preview-muted); }
+.textLink { display: inline-flex; align-items: center; min-height: 44px; gap: 8px; font-size: 13px; white-space: nowrap; text-decoration: underline; text-underline-offset: 4px; }
+.review a:focus-visible, .previewNav a:focus-visible { outline: 2px solid var(--preview-accent); outline-offset: 4px; }
+.review a:active, .previewNav a:active { opacity: .65; }
+@media (hover:hover) {
+  .textLink:hover { text-decoration-thickness: 2px; color: var(--preview-accent); }
+  .jumpLinks a:hover { border-color: var(--preview-accent); }
+}
+.previewNav { max-width: 1440px; margin: 0 auto; padding: 12px 72px; display: flex; justify-content: space-between; align-items: center; gap: 12px 24px; flex-wrap: wrap; border-bottom: 1px solid var(--preview-line); font-size: 13px; }
+.previewNav > div { display: flex; flex-wrap: wrap; gap: 24px; }
+.previewNav > span { color: var(--preview-muted); }
+@media (max-width:1279px) { .review, .previewNav { padding-inline: 48px; } }
+@media (max-width:1023px) { .review, .previewNav { padding-inline: 32px; } }
+@media (max-width:639px) { .review, .previewNav { padding-inline: 24px; } .intro { margin-bottom: 48px; } .study { margin-bottom: 48px; } .previewNav > span { flex-basis: 100%; order: 1; } }
+@media (max-width:374px) { .review, .previewNav { padding-inline: 20px; } }
+
+/* On the selected homepage header only, let the existing statement and
+ * credential occupy separate mobile grid rows around the contact strip. The
+ * DOM stays singular, so entrance/build targets and reading order still point
+ * at the authored elements rather than responsive copies. */
+@media (max-width: 639px) {
+  .mobileStatementFirst,
+  .mobileStatementFirst .record { display: contents; }
+  .mobileStatementFirst .statement { grid-area: statement; }
+  .mobileStatementFirst .credential {
+    grid-area: credential;
+    width: 100%;
+    max-width: none;
+    padding-top: calc(24px - 1px);
+    border-top: 1px solid var(--preview-line);
+  }
+}
+
+/* site-kit: the studio's name set as a wordmark where the original has a logo. */
+.frame .wordmark { font: 500 16px/24px var(--story-font-sans), sans-serif; letter-spacing: -.02em; }

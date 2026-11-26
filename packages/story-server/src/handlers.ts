@@ -102,7 +102,9 @@ export interface StoryHandlers {
   rename: StoryHandler;
   uploadMedia: StoryHandler;
   serveMedia: StoryHandler;
-  /** `POST` signs in, `DELETE` signs out, when the auth adapter can (see `createPasscodeAuth`). */
+  /** `DELETE /stories/:slug`: removes every version, the publication and old addresses, when the store can. */
+  remove: StoryHandler;
+  /** `GET` says whether the request is signed in; `POST` signs in, `DELETE` signs out, when the auth adapter can (see `createPasscodeAuth`). */
   session: StoryHandler;
   /** What the editor loads for a story, for server-rendered editor pages. Doesn't check the session. */
   editorState(slug: string): Promise<StoryEditorState>;
@@ -134,6 +136,7 @@ export const HANDLER_MESSAGES = {
   versionMissing: 'That version isn’t saved under this story.',
   otherPage: 'That address belongs to another page.',
   mediaFailed: 'Couldn’t load that file. Try again in a moment.',
+  deleteOff: 'Stories can’t be deleted on this server.',
 } as const;
 
 /** Read a JSON object body, or null when it isn't one. */
@@ -358,6 +361,19 @@ export function createStoryHandlers(options: StoryHandlerOptions): StoryHandlers
     return json(await editorState(slug));
   });
 
+  const remove: StoryHandler = (request, params) => run('remove', async () => {
+    await admin(request, true);
+    if (!store.delete) return refuse(503, { error: HANDLER_MESSAGES.deleteOff });
+    const slug = slugFrom(request, params, 'load');
+    if (!slug || !isStorySlug(slug)) return notFound();
+    const { movedTo } = await store.aliases(slug);
+    if (movedTo) return refuse(409, { error: HANDLER_MESSAGES.moved, code: 'STORY_MOVED', movedTo });
+    if (!(await store.latest(slug))) return notFound();
+    await store.delete(slug);
+    await notify('remove', () => revalidator?.deleted?.(slug));
+    return json({ deleted: slug });
+  });
+
   const rename: StoryHandler = (request, params) => run('rename', async () => {
     const session = await admin(request, true);
     if (!renameEnabled) return refuse(503, { error: options.renameUnavailableReason ?? HANDLER_MESSAGES.renameOff });
@@ -446,25 +462,29 @@ export function createStoryHandlers(options: StoryHandlerOptions): StoryHandlers
 
   const signer = auth as AuthAdapter & { signIn?: (request: Request) => Promise<Response>; signOut?: (request: Request) => Promise<Response> };
   const session: StoryHandler = (request) => run('session', async () => {
+    if (request.method === 'GET') {
+      const current = await auth.getSession(request);
+      return json({ authenticated: current?.role === 'admin', role: current?.role ?? null });
+    }
     if (request.method === 'POST' && signer.signIn) {
       if (!sameOrigin(request)) return refuse(403, { error: HANDLER_MESSAGES.crossSite, code: 'UNAUTHORIZED' });
       return signer.signIn(request);
     }
     if (request.method === 'DELETE' && signer.signOut) return signer.signOut(request);
     if (!signer.signIn && !signer.signOut) return notFound();
-    return refuse(405, { error: HANDLER_MESSAGES.method }, { allow: [signer.signIn && 'POST', signer.signOut && 'DELETE'].filter(Boolean).join(', ') });
+    return refuse(405, { error: HANDLER_MESSAGES.method }, { allow: ['GET', signer.signIn && 'POST', signer.signOut && 'DELETE'].filter(Boolean).join(', ') });
   });
 
   const METHODS: Record<StoryRoute['name'], { methods: string[]; handler: StoryHandler }> = {
     list: { methods: ['GET'], handler: list },
-    load: { methods: ['GET'], handler: load },
+    load: { methods: ['GET', 'DELETE'], handler: (request, params) => (request.method === 'DELETE' ? remove(request, params) : load(request, params)) },
     saveDraft: { methods: ['POST'], handler: saveDraft },
     publish: { methods: ['POST'], handler: publish },
     unpublish: { methods: ['POST'], handler: unpublish },
     rename: { methods: ['POST'], handler: rename },
     uploadMedia: { methods: ['POST'], handler: uploadMedia },
     serveMedia: { methods: ['GET', 'HEAD'], handler: serveMedia },
-    session: { methods: ['POST', 'DELETE'], handler: session },
+    session: { methods: ['GET', 'POST', 'DELETE'], handler: session },
   };
 
   async function handle(request: Request): Promise<Response> {
@@ -501,5 +521,5 @@ export function createStoryHandlers(options: StoryHandlerOptions): StoryHandlers
     }
   }
 
-  return { handle, list, load, saveDraft, publish, unpublish, rename, uploadMedia, serveMedia, session, editorState, getPublishedStory };
+  return { handle, list, load, saveDraft, publish, unpublish, rename, remove, uploadMedia, serveMedia, session, editorState, getPublishedStory };
 }

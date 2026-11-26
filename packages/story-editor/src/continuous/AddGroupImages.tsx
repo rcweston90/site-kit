@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Dialog } from 'radix-ui';
 import type { StoryMedia } from '@rcweston/story-core';
+import { ImageCatalog } from '../ImageCatalog.js';
 import { uploadStoryMedia, useStoryMediaUploadTarget } from '../media-upload-client.js';
 import { continuousStyles as styles, chromeStyles } from '../classes.js';
 
 export function AddGroupImages({ onAdd, onClose, trigger }: { onAdd: (media: StoryMedia[]) => boolean; onClose: () => void; trigger: HTMLButtonElement }) {
   const target = useStoryMediaUploadTarget();
+  const [mode, setMode] = useState<'existing' | 'upload'>(target?.library ? 'existing' : 'upload');
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const input = useRef<HTMLInputElement>(null);
@@ -43,7 +45,7 @@ export function AddGroupImages({ onAdd, onClose, trigger }: { onAdd: (media: Sto
   return <Dialog.Root open onOpenChange={next => { if (!next) { stop(); onClose(); } }}>
     <Dialog.Portal>
       <Dialog.Overlay className={`${styles.groupUploadOverlay} ${chromeStyles.addGroupImagesOverlay}`} />
-      <Dialog.Content className={`${styles.groupUploadDialog} ${chromeStyles.addGroupImagesContent}`} onCloseAutoFocus={event => {
+      <Dialog.Content className={`${styles.groupUploadDialog} ${chromeStyles.addGroupImagesContent}`} data-catalog={mode === 'existing' || undefined} onCloseAutoFocus={event => {
         event.preventDefault();
         if (trigger.isConnected) trigger.focus({ preventScroll: true });
       }} onPaste={event => {
@@ -54,7 +56,16 @@ export function AddGroupImages({ onAdd, onClose, trigger }: { onAdd: (media: Sto
         void load(files);
       }}>
         <Dialog.Title>Add images</Dialog.Title>
-        <Dialog.Description>Upload image files or paste an image here. New images are added at the end.</Dialog.Description>
+        {target.library ? <>
+          <Dialog.Description>Reuse a saved image, upload a file, or paste an image here.</Dialog.Description>
+          <div className={styles.groupUploadModes} role="group" aria-label="Image source">
+            <button type="button" aria-pressed={mode === 'existing'} onClick={() => setMode('existing')}>Choose existing</button>
+            <button type="button" aria-pressed={mode === 'upload'} onClick={() => setMode('upload')}>Upload new</button>
+          </div>
+          {mode === 'existing' && <ImageCatalog source={target.library} slug={target.slug} disabled={busy}
+            onChoose={(images) => { const ok = onAdd(images); if (ok) onClose(); return ok; }} />}
+          {mode === 'upload' && <p>Choose image files below or paste from your clipboard. New images are added at the end.</p>}
+        </> : <Dialog.Description>Upload image files or paste an image here. New images are added at the end.</Dialog.Description>}
         <input hidden ref={input} type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple onChange={event => {
           const files = Array.from(event.currentTarget.files ?? []);
           event.currentTarget.value = '';
@@ -64,7 +75,7 @@ export function AddGroupImages({ onAdd, onClose, trigger }: { onAdd: (media: Sto
         {message && <p role="alert">{message}</p>}
         <div className={styles.groupUploadActions}>
           <Dialog.Close>Cancel</Dialog.Close>
-          <button type="button" disabled={busy} onClick={() => input.current?.click()}>Choose images</button>
+          {mode === 'upload' && <button type="button" disabled={busy} onClick={() => input.current?.click()}>Choose images</button>}
         </div>
       </Dialog.Content>
     </Dialog.Portal>

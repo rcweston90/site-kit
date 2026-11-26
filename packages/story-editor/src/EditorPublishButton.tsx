@@ -35,6 +35,9 @@ export interface EditorPublishButtonProps {
   onShowIssue: (row: PublicationChecklistRow, returnFocus: HTMLElement | null) => void;
   /** Public URL once published. */
   liveHref: string | null;
+  /** Updates in the published version this draft doesn't have (a host's
+   *  drift review): listed as a note that opens the host's review. */
+  publishedUpdates?: { count: number; onReview: (returnFocus: HTMLElement | null) => void };
 }
 
 const focusRing = chromeStyles.publishButtonFocusRing;
@@ -68,6 +71,7 @@ export default function EditorPublishButton({
   onPublish,
   onShowIssue,
   liveHref,
+  publishedUpdates,
 }: EditorPublishButtonProps) {
   const [open, setOpen] = useState(false);
   const [failed, setFailed] = useState(false);
@@ -87,7 +91,8 @@ export default function EditorPublishButton({
   }, [checkedStory, savedReadiness]);
   const errors = rows.filter((row) => row.severity === 'error');
   const notes = rows.filter((row) => row.severity === 'warning');
-  const noteCount = notes.length;
+  const updatesNote = publishedUpdates && publishedUpdates.count > 0 ? publishedUpdates : null;
+  const noteCount = notes.length + (updatesNote ? 1 : 0);
 
   const actionLabel = publishedVersion === null ? 'Publish' : 'Publish changes';
   const triggerLabel = publishing
@@ -116,6 +121,14 @@ export default function EditorPublishButton({
     onShowIssue(row, triggerRef.current);
   };
 
+  const reviewUpdates = () => {
+    if (!updatesNote) return;
+    // The review dialog takes focus and hands it back to this button.
+    jumpingRef.current = true;
+    setOpen(false);
+    updatesNote.onReview(triggerRef.current);
+  };
+
 
   let heading: string;
   let detail: string | null = null;
@@ -130,7 +143,7 @@ export default function EditorPublishButton({
     heading = 'Everything looks good.';
   }
   // Once live, only the page's own gaps are still worth listing.
-  const hasList = isPublishedCurrent ? notes.length > 0 : rows.length > 0;
+  const hasList = isPublishedCurrent ? notes.length > 0 : rows.length > 0 || Boolean(updatesNote);
   // The same count the popover's heading gives.
   const flagCount = isPublishedCurrent ? notes.length : errors.length + noteCount;
   const flag = flagCount > 0 && !publishing && (
@@ -226,6 +239,21 @@ export default function EditorPublishButton({
             {!isPublishedCurrent && hasList && noteCount > 0 && (
               <>
                 {errors.length > 0 && <p className={`${chromeStyles.publishButtonP} ${mutedLine}`}>Notes</p>}
+                {updatesNote && (
+                  <ul>
+                    <li>
+                      <button type="button" className={checklistRow} aria-haspopup="dialog" onClick={reviewUpdates}>
+                        <span className={chromeStyles.publishButtonPart4}>
+                          <span className={chromeStyles.publishButtonHint}>Published version</span>
+                          <span className={chromeStyles.publishButtonSmallText}>
+                            The published version has {plural(updatesNote.count, 'update', 'updates')} this draft doesn’t include
+                          </span>
+                        </span>
+                        <ChevronRight aria-hidden="true" className={chromeStyles.publishButtonIcon2} />
+                      </button>
+                    </li>
+                  </ul>
+                )}
                 {notes.length > 0 && <ChecklistRows story={checkedStory} rows={notes} onShow={showIssue} />}
               </>
             )}

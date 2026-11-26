@@ -1,0 +1,267 @@
+/* The home page: a port of the original's name-led opening, the letter, the
+   selected work and the credential bands. The animated showpieces (orbit,
+   showreel, optics, activity chart) are left out or drawn still. */
+.surface {
+  --preview-paper: var(--background);
+  --preview-ink: #273138;
+  --preview-muted: #5d6870;
+  --preview-line: #d0d8dc;
+  --preview-accent: #8a6334;
+  --foreground: var(--preview-ink);
+  --foreground-muted: var(--preview-muted);
+  --border: var(--preview-line);
+  --font-mono: var(--story-font-sans);
+  --font-sans: var(--story-font-sans);
+  background: var(--preview-paper);
+  color: var(--preview-ink);
+  font-family: var(--story-font-sans), sans-serif;
+  font-synthesis: none;
+}
+/* The paper is the site background in every theme, so the page matches the
+ * nav, which sits outside .surface. The rest of the palette above is the
+ * default theme only. Amber and dark swap the same tokens (mirroring
+ * --foreground/… in globals.css) so everything downstream — including
+ * ContactStripHeader — follows the theme. */
+:global([data-theme='amber']) .surface {
+  --preview-ink: #33291E;
+  --preview-muted: #6B5E50;
+  --preview-line: #DDD4C6;
+  --preview-accent: var(--accent-primary);
+  --preview-well: #F0E8DD;
+  --preview-inset: rgb(40 30 15 / .12);
+  --preview-lip: rgb(255 255 255 / .6);
+  /* Logos are near-black SVGs; warm them toward the amber ink. */
+  --preview-logo-filter: grayscale(1) sepia(.5) brightness(.85);
+}
+:global([data-theme='dark']) .surface {
+  --preview-ink: #E7E9EC;
+  --preview-muted: #9BA2AA;
+  --preview-line: #2A3038;
+  --preview-accent: #D4A66A;
+  --preview-well: #171B21;
+  --preview-inset: rgb(0 0 0 / .5);
+  --preview-lip: rgb(255 255 255 / .06);
+  /* Flatten the near-black logos to a single light tone so they read on dark. */
+  --preview-logo-filter: brightness(0) invert(.82);
+}
+.page { max-width: var(--page-max); margin: 0 auto; padding: 0 var(--page-gutter) 72px; }
+.page h2 { font: 500 32px/36px var(--story-font-sans); letter-spacing: -.025em; margin: 0; }
+.page p { margin: 0; }
+.page a { text-decoration: none; }
+.page a:hover { color: var(--preview-ink); text-decoration: underline; text-underline-offset: .2em; text-decoration-thickness: 2px; }
+.page .margin a, .page .letter a { color: var(--preview-accent); text-decoration: underline; text-underline-offset: .16em; text-decoration-thickness: 1px; }
+.page .margin a:hover, .page .letter a:hover { color: var(--preview-ink); text-decoration-thickness: 2px; }
+.page a:focus-visible, .page button:focus-visible, .page input:focus-visible { outline: 2px solid var(--preview-accent); outline-offset: 4px; }
+.page .company:hover, .page .education a:hover { text-decoration: none; }
+.page .company:hover span { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .25em; }
+.opening { display: grid; grid-template-columns: minmax(0,1fr) 336px; align-items: center; column-gap: 72px; padding: 24px 0 48px; }
+.introduction { min-width: 0; max-width: 780px; container: introduction / inline-size; }
+.name { margin: 0; font: 500 104px/108px var(--story-font-sans); letter-spacing: -.055em; overflow-wrap: anywhere; }
+.name span { display: inline-block; }
+.descriptors { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 12px; font-size: 20px; line-height: 36px; letter-spacing: -.025em; }
+.descriptors span { white-space: nowrap; }
+.descriptors span:first-child { font-weight: 500; }
+.signatureBand { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 24px; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--preview-line); }
+.currentWork { display: flex; align-items: center; gap: 24px; min-width: 0; }
+.currentCompany { display: flex; align-items: center; gap: 12px; min-height: 48px; flex-shrink: 0; color: var(--preview-muted); }
+.currentStatus { position: relative; width: 6px; height: 6px; flex-shrink: 0; border-radius: 50%; background: var(--preview-accent); }
+.currentStatus::after { content: ''; position: absolute; inset: -3px; border: 1px solid var(--preview-accent); border-radius: inherit; opacity: .3; }
+@media (prefers-reduced-motion: no-preference) {
+ .currentStatus::after { animation: currentPulse 3s ease-out infinite; }
+}
+@keyframes currentPulse {
+ 0%, 100% { transform: scale(.75); opacity: 0; }
+ 20% { opacity: .4; }
+ 70% { transform: scale(1.5); opacity: 0; }
+}
+.currentCompany img { width: 82px; height: 24px; object-fit: contain; object-position: left center; padding-block: 4px; filter: var(--preview-logo-filter, none); }
+.page .currentRole { margin: 0; font-size: 14px; line-height: 24px; letter-spacing: -.01em; color: var(--preview-ink); }
+.currentRole span { display: block; }
+.currentRole span:first-child { font-weight: 500; }
+.currentRole span + span { color: var(--preview-muted); font-size: 13px; }
+.heroSocials { display: flex; align-items: center; gap: 0; margin-right: -12px; }
+.heroSocial { width: 44px; height: 44px; min-width: 44px; min-height: 44px; padding: 0; border-radius: 8px; background: transparent; color: var(--preview-muted); }
+.heroSocial svg { width: 16px; height: 16px; }
+.heroSocial:hover { background: transparent; }
+@container introduction (max-width: 600px) {
+ .signatureBand { align-items: flex-start; }
+ .heroSocials { flex-basis: 100%; margin-left: -12px; margin-right: 0; }
+}
+@container introduction (max-width: 500px) {
+ .descriptors { font-size: 18px; line-height: 24px; }
+ .descriptors span:first-child { flex-basis: 100%; }
+}
+@container introduction (max-width: 300px) {
+ .currentWork { gap: 16px; }
+ .currentCompany img { width: 72px; }
+ .currentRole span + span { font-size: 12px; }
+}
+.orbit { width: 336px; display: flex; flex-direction: column; align-items: center; }
+.orbit > div { width: 100%; min-height: 0; }
+.orbit > div > button { width: 100%; height: auto; aspect-ratio: 1; }
+.letterSpread, .credentialBand, .activity, .principles { display: grid; grid-template-columns: 28% minmax(0,1fr); gap: 72px; align-items: start; }
+.letterSpread { padding-top: 72px; }
+.margin { font-size: 20px; line-height: 36px; }
+.optics { max-width: 260px; margin-top: 24px; }
+.optics > div { width: 100%; }
+.letter { min-width: 0; display: flex; flex-direction: column; gap: 24px; font: 400 24px/36px var(--story-font-serif); }
+.letter .tagline { font-size: 44px; line-height: 48px; letter-spacing: -.025em; }
+/* These blocks set their leading on the container; the base layer's p { line-height: 1.5 }
+   would otherwise win and knock the paragraphs off the 12px grid (20px → 30, 22px → 33). */
+.margin > p, .letter > p, .principles p { line-height: inherit; }
+.workBullets { margin: 0; padding-left: 20px; list-style: disc; font: 400 16px/24px var(--story-font-sans); color: var(--preview-muted); }
+.workBullets li + li { margin-top: 12px; }
+/* Each band starts with one rule. The next rule also closes the previous band. */
+.credentials { margin-top: 72px; }
+.selectedWork { display: grid; grid-template-columns: 28% minmax(0,1fr); gap: 72px; margin-top: 72px; padding-top: 24px; border-top: 1px solid var(--preview-line); }
+.selectedWork > div { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px 48px; }
+.selectedWork a { display: block; min-height: 168px; padding: 24px 0; border-bottom: 1px solid var(--preview-line); }
+.selectedWork span { display: block; color: var(--preview-muted); font-size: 13px; line-height: 24px; }
+.selectedWork strong { display: block; font-size: 24px; line-height: 36px; font-weight: 500; }
+.selectedWork p { color: var(--preview-muted); font-size: 15px; line-height: 24px; }
+.credentialBand, .activity {
+ padding-block: calc(var(--rhythm-minor) * 2);
+ box-shadow: inset 0 1px 0 var(--preview-line);
+}
+/* Experience’s first row is taller, so center its heading 12px sooner. */
+.credentialBand:first-child { padding-block: calc(var(--rhythm-minor) + var(--rhythm-half)); }
+.credentialBand > h2 { display: flex; align-items: center; min-height: 72px; }
+.credentialBand + .credentialBand > h2 { min-height: 48px; }
+.companies { min-width: 0; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); column-gap: 72px; }
+.company { display: flex; justify-content: space-between; align-items: center; gap: 24px; min-height: 72px; padding-inline: var(--rhythm-half); box-shadow: inset 0 -1px 0 var(--preview-line); font-size: 16px; line-height: 24px; }
+/* No row rule beneath the final row: the next band already has a full-width one. */
+.company:last-child { box-shadow: none; }
+@media (min-width: 1024px) {
+ .company:nth-child(odd):nth-last-child(2) { box-shadow: none; }
+ .companies[data-experience-years] .company:nth-child(odd) { padding-inline-end: calc(var(--rhythm-minor) * 2 + var(--rhythm-half)); }
+ .companies[data-experience-years] .company:nth-child(even) { padding-inline-start: calc(var(--rhythm-minor) * 2 + var(--rhythm-half)); }
+}
+.company img { width: 118px; height: 36px; object-fit: contain; object-position: left center; filter: var(--preview-logo-filter, grayscale(1)); }
+.company span { text-align: right; }
+.companies[data-experience-years] { column-gap: 0; }
+.companies[data-experience-years] .company span { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.education { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.education a { min-height: 48px; display: flex; align-items: center; }
+.education img { width: 132px; height: 36px; object-fit: contain; object-position: left center; filter: var(--preview-logo-filter, grayscale(1)); }
+.company, .education a { position: relative; isolation: isolate; }
+.company::before, .education a::before {
+ content: '';
+ position: absolute;
+ z-index: -1;
+ inset: 6px -12px;
+ border-radius: 8px;
+ background: color-mix(in srgb, var(--preview-line) 28%, var(--preview-paper));
+ box-shadow: inset 0 1px 3px var(--preview-inset, rgb(39 49 56 / .12)), inset 0 -1px 0 var(--preview-lip, rgb(255 255 255 / .8));
+ opacity: 0;
+ transition: opacity 160ms ease;
+ pointer-events: none;
+}
+/* Keep the company well inside the same row as the native link. */
+.company::before { inset-inline: 0; }
+.education a::before { inset-block: -6px; }
+.company:hover::before, .company:focus-visible::before,
+.education a:hover::before, .education a:focus-visible::before { opacity: 1; }
+.page .company:focus-visible, .page .education a:focus-visible { outline: none; }
+.company:focus-visible::before, .education a:focus-visible::before { outline: 2px solid var(--preview-accent); outline-offset: 3px; }
+.company:focus-visible::before { outline-offset: -2px; }
+@media (prefers-reduced-motion: reduce) {
+ .company::before, .education a::before { transition: none; }
+}
+.interests { margin-top: 72px; }
+.activity > * { min-width: 0; }
+/* Keep the motion control and title on one clean, clipping-safe row. */
+.activityHead { display: flex; align-items: center; gap: 4px; min-height: 48px; }
+.page .activityTotal { color: var(--preview-muted); font-size: var(--text-xs); line-height: var(--rhythm-minor); font-variant-numeric: tabular-nums; }
+.motionToggle { flex: 0 0 48px; display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border: 0; border-radius: 8px; color: var(--preview-muted); background: transparent; cursor: pointer; }
+.motionFace { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 6px; }
+.motionToggle:active .motionFace { transform: translateY(1px); }
+@media (hover: hover) { .motionToggle:hover .motionFace { color: var(--preview-ink); } }
+@media (prefers-reduced-motion: reduce) { .motionToggle { display: none; } }
+/* One rule across the whole section, like the credential bands above; it sits
+   exactly on the first items' rules, so the columns' gap reads as one line. Item
+   rules are inset shadows, not borders, so rows stay 120px (RHYTHM rule 6). */
+.principles { position: relative; }
+.principles::before { content: ''; position: absolute; inset: 0 0 auto; border-top: 1px solid var(--preview-line); pointer-events: none; }
+.principles h2 { padding-top: 48px; }
+.interests > h2 { margin-bottom: 24px; }
+/* Two independent columns, not grid rows: a shared row stretched the shorter
+   item beside a three-line one, leaving a blank line under it. */
+.principles ul { columns: 2; column-gap: 72px; padding: 0; margin: 0; list-style: none; }
+.principles li { display: flex; align-items: flex-start; gap: 24px; break-inside: avoid; box-shadow: inset 0 1px 0 var(--preview-line); padding: 24px 0; font-size: 22px; line-height: 36px; letter-spacing: -.015em; }
+.principles li > span { display: flex; align-items: center; flex: 0 0 24px; height: 36px; color: var(--preview-muted); }
+@media (max-width: 1279px) {
+ .opening { column-gap: 48px; }
+ .name { font-size: 80px; line-height: 84px; }
+ .descriptors { font-size: 20px; }
+ .letterSpread, .credentialBand, .activity, .principles, .selectedWork { gap: 48px; }
+ .letter .tagline { font-size: 40px; }
+ .companies { column-gap: 36px; }
+ .company { gap: 12px; }
+ .company img { width: 96px; }
+ .education img { width: 108px; }
+}
+@media (max-width: 1023px) {
+ .opening { grid-template-columns: minmax(0,1fr) 288px; column-gap: 24px; }
+ .name { font-size: 72px; line-height: 72px; }
+ .name span { display: block; }
+ .orbit { width: 288px; }
+ .descriptors { font-size: 18px; line-height: 24px; }
+ .letterSpread, .credentialBand, .activity, .principles, .selectedWork { gap: 36px; grid-template-columns: 26% minmax(0,1fr); }
+ .activity { grid-template-columns: max(200px, 26%) minmax(0,1fr); }
+ .margin { font-size: 18px; line-height: 24px; }
+ .letter { font-size: 22px; line-height: 36px; }
+ .letter .tagline { font-size: 34px; line-height: 36px; }
+ .page h2 { font-size: 28px; line-height: 36px; }
+ .companies { grid-template-columns: minmax(0,1fr); }
+ .company img { width: 118px; }
+ .company span { font-size: 16px; }
+ .education a { min-width: 0; flex: 1; }
+ .education img { width: 100%; max-width: 108px; }
+ .principles ul { columns: auto; }
+ .principles li { font-size: 20px; gap: 12px; }
+}
+@media (max-width: 639px) {
+ .heroSocials { display: none; }
+}
+@media (max-width: 639px) {
+ .page { padding-bottom: 48px; }
+ .opening { display: flex; flex-direction: column; align-items: stretch; gap: 12px; padding: 24px 0; }
+ .name { font-size: 64px; line-height: 60px; }
+ .orbit { width: 240px; align-self: center; }
+ .descriptors { font-size: 18px; line-height: 24px; }
+ .letterSpread { display: flex; flex-direction: column; gap: 36px; padding-top: 48px; }
+ .margin { font-size: 18px; line-height: 24px; }
+ .optics { width: 144px; margin-top: 24px; }
+ .letter { font-size: 21px; line-height: 36px; }
+ .letter .tagline { font-size: 32px; line-height: 36px; }
+ .credentialBand, .activity, .principles, .selectedWork { grid-template-columns: minmax(0,1fr); gap: 24px; }
+ .selectedWork > div { grid-template-columns: minmax(0,1fr); }
+ .credentialBand > h2, .credentialBand + .credentialBand > h2 { min-height: 0; }
+ .credentials, .interests { margin-top: 48px; }
+ .credentialBand:first-child { padding-block: calc(var(--rhythm-minor) * 2); }
+ .company img { width: 108px; }
+ .education { gap: 12px; }
+ .education img { width: 100%; height: 32px; }
+}
+@media (max-width: 359px) { .name { font-size: 60px; line-height: 60px; } }
+
+/* The still that stands where the original's orbit was. */
+.portrait { width: 100%; aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: var(--preview-well, color-mix(in srgb, var(--preview-line) 35%, var(--preview-paper))); box-shadow: inset 0 1px 3px var(--preview-inset, rgb(39 49 56 / .12)), inset 0 -1px 0 var(--preview-lip, rgb(255 255 255 / .8)); color: var(--preview-ink); }
+.portrait svg { display: block; width: 100%; height: 100%; }
+/* Selected work carries each study's cover, the same picture as its card on Work. */
+.selectedWork a { display: grid; grid-template-columns: 112px minmax(0,1fr); column-gap: 24px; align-items: start; color: inherit; }
+.selectedWork a > :not(.thumb) { grid-column: 2; }
+.thumb { grid-column: 1; grid-row: 1 / span 3; display: block; aspect-ratio: 3/2; border-radius: 6px; overflow: hidden; background: color-mix(in srgb, var(--preview-line) 40%, var(--preview-paper)); }
+.thumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform 420ms cubic-bezier(.16, 1, .3, 1); }
+.selectedWork a:hover .thumb img { transform: scale(1.03); }
+.selectedWork a:hover strong { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: .2em; }
+.selectedWork a:hover, .selectedWork a:hover span, .selectedWork a:hover p { text-decoration: none; }
+.selectedMore { grid-column: 2; justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 48px; font-size: 15px; line-height: 24px; }
+.page .selectedMore { color: var(--preview-accent); }
+.companyName { font-size: 16px; line-height: 24px; font-weight: 500; }
+.educationName { font-size: 15px; line-height: 24px; color: var(--preview-muted); }
+@media (max-width: 639px) {
+ .selectedWork a { grid-template-columns: 88px minmax(0,1fr); column-gap: 16px; min-height: 0; }
+ .selectedMore { grid-column: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .thumb img { transition: none; } }

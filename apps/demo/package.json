@@ -15,20 +15,29 @@
   "dependencies": {
     "@fontsource-variable/geist": "5.3.0",
     "@rcweston/save-kit": "workspace:^",
+    "@rcweston/site-admin": "workspace:^",
+    "@rcweston/site-data": "workspace:^",
     "@rcweston/story-core": "workspace:^",
     "@rcweston/story-editor": "workspace:^",
     "@rcweston/story-react": "workspace:^",
     "@rcweston/story-server": "workspace:^",
     "@rcweston/xray": "workspace:^",
+    "lucide-react": "0.562.0",
     "next": "16.4.5",
+    "next-mdx-remote": "6.0.0",
     "pg": "^8.16.0",
+    "radix-ui": "1.8.1",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "remark-gfm": "4.0.1"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "4.1.18",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.15.0",
     "@types/react": "^19.3.3",
-    "@types/react-dom": "^19.3.0"
+    "@types/react-dom": "^19.3.0",
+    "postcss": "8.5.23",
+    "tailwindcss": "4.1.18"
   }
 }

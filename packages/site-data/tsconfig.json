@@ -1,0 +1,31 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "types": [
+      "node"
+    ],
+    "paths": {
+      "@rcweston/story-core": [
+        "../story-core/src/index.ts"
+      ],
+      "@rcweston/story-server": [
+        "../story-server/src/index.ts"
+      ],
+      "@rcweston/story-server/memory": [
+        "../story-server/src/memory/index.ts"
+      ],
+      "@rcweston/story-server/postgres": [
+        "../story-server/src/postgres/index.ts"
+      ],
+      "@rcweston/story-server/passcode": [
+        "../story-server/src/passcode/index.ts"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    "test"
+  ]
+}

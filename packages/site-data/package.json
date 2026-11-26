@@ -1,0 +1,62 @@
+{
+  "name": "@rcweston/site-data",
+  "version": "0.1.0",
+  "description": "Typed site settings beside your stories: page visibility, ordering, placement and a media library, as modules with memory and Postgres stores, explicit migrations and framework-free request handlers.",
+  "license": "MIT",
+  "author": "Charlie Weston",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "site-data-migrate": "./dist/bin/site-data-migrate.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "MODULES.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "cms",
+    "settings",
+    "postgres",
+    "migrations",
+    "ordering"
+  ],
+  "scripts": {
+    "build": "node scripts/embed-migrations.mjs && rm -rf dist && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsx --test 'test/*.test.ts'"
+  },
+  "dependencies": {
+    "@rcweston/story-core": "workspace:^",
+    "@rcweston/story-server": "workspace:^",
+    "gray-matter": "4.0.3",
+    "reading-time": "1.5.0"
+  },
+  "peerDependencies": {
+    "pg": "^8.11"
+  },
+  "peerDependenciesMeta": {
+    "pg": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.3.0",
+    "@types/mdast": "4.0.4",
+    "@types/node": "^22.0.0",
+    "@types/pg": "^8.15.0",
+    "pg": "^8.16.0"
+  }
+}

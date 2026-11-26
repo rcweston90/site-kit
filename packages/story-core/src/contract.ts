@@ -1,3 +1,4 @@
+import type { StoryCardMedia } from './card-media.js';
 /**
  * The contract between the parts of the CMS.
  *
@@ -114,6 +115,10 @@ export interface StorySummary {
   slug: string;
   title: string;
   company: string;
+  /** The latest version's project year, when it has one. */
+  projectYear?: string;
+  /** What a card shows for the latest version: its hero, per `storyCardMedia`. */
+  cover?: StoryCardMedia;
   latestVersion: number;
   latestDocumentId: string;
   publishedDocumentId: string | null;
@@ -162,6 +167,12 @@ export interface DocumentStore {
     publishedBy?: string | null;
   }): Promise<{ document: StoryDocument; publication: StoryPublication }>;
   unpublish(slug: string): Promise<void>;
+  /**
+   * Remove a story for good: every saved version, its publication and the
+   * addresses that redirect to it. Optional: a store without it can't delete,
+   * and the delete route answers that it's turned off.
+   */
+  delete?(slug: string): Promise<void>;
   published(slug: string): Promise<PublishedLookup>;
   publications(): Promise<StoryPublication[]>;
   rename(input: RenameInput): Promise<RenameResult>;
@@ -242,6 +253,7 @@ export interface Revalidator {
   published?(slug: string): void | Promise<void>;
   unpublished?(slug: string): void | Promise<void>;
   renamed?(from: string, to: string): void | Promise<void>;
+  deleted?(slug: string): void | Promise<void>;
 }
 
 // ─── What the editor loads ──────────────────────────────────────────────────

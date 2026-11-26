@@ -1,0 +1,166 @@
+/* The site navigation, a port of the original recessed nav ("index" look):
+ * pages in a rail with the current one recessed, a phone menu below 640px. */
+.header {
+  --nav-font: var(--story-font-sans);
+  --nav-paper: var(--background);
+  --nav-ink: var(--foreground);
+  --nav-muted: var(--foreground-muted);
+  --nav-rule: var(--border);
+  --nav-well: var(--well-bg);
+  --nav-chip: var(--card-bg);
+  --nav-hover: color-mix(in srgb, var(--foreground) 5%, transparent);
+  --nav-wash: color-mix(in srgb, var(--background) 94%, transparent);
+  --nav-gutter: clamp(20px, 4vw, 64px);
+  position: fixed;
+  z-index: 50;
+  inset: 0 0 auto;
+  padding: 12px var(--nav-gutter);
+  background: var(--nav-wash);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid transparent;
+  font-family: var(--nav-font), sans-serif;
+  color: var(--nav-ink);
+}
+.header[data-home]:not([data-scrolled]) { background: transparent; backdrop-filter: none; }
+.header[data-scrolled] { border-bottom-color: var(--nav-rule); }
+.frame { width: 100%; min-height: 48px; display: flex; justify-content: space-between; align-items: center; gap: 24px; }
+.identity { flex: none; display: inline-flex; min-height: 44px; align-items: center; gap: 12px; font-size: 16px; line-height: 24px; font-weight: 500; white-space: nowrap; text-decoration: none; }
+.header[data-home]:not([data-scrolled]):not([data-concept]) .identity:not(:focus-visible) { visibility: hidden; }
+/* The bar only takes shape on phones, where it holds the docked mark. */
+.bar { display: contents; }
+.dock { display: none; }
+.menuButton { display: none; }
+.socials { display: none; }
+
+/* The rail. Pages keep their natural width and the row scrolls sideways once
+   they outgrow it, so adding a page never wraps, squeezes or hides another.
+   The padding (cancelled by the margin) is room for the 3px-offset focus
+   ring, which a scroller would otherwise clip. */
+.navigation {
+  --rail-pad: 5px;
+  --rail-fade: 24px;
+  min-width: 0;
+  margin: calc(-1 * var(--rhythm-half)) calc(-1 * var(--rail-pad));
+  padding: var(--rhythm-half) var(--rail-pad);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-padding-inline: var(--rail-fade);
+  scrollbar-width: none;
+}
+.navigation::-webkit-scrollbar { display: none; }
+/* Fade only the end with more pages past it (the component sets data-more-*).
+   A mask only reads alpha, so any opaque token works as the stop. */
+.navigation[data-more-before] { mask-image: linear-gradient(to right, transparent, var(--nav-ink) var(--rail-fade)); }
+.navigation[data-more-after] { mask-image: linear-gradient(to left, transparent, var(--nav-ink) var(--rail-fade)); }
+.navigation[data-more-before][data-more-after] { mask-image: linear-gradient(to right, transparent, var(--nav-ink) var(--rail-fade), var(--nav-ink) calc(100% - var(--rail-fade)), transparent); }
+.links { display: flex; width: max-content; align-items: stretch; gap: 2px; margin: 0; padding: 2px; list-style: none; border-radius: 8px; background: var(--nav-well); box-shadow: var(--shadow-well); }
+.links li { flex: none; }
+.link { position: relative; display: flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 18px; border-radius: 8px; font-size: 15px; line-height: 24px; white-space: nowrap; color: var(--nav-muted); text-decoration: none; transition: color 150ms ease; }
+.link[aria-current] { color: var(--nav-ink); }
+.selected { position: absolute; inset: 0; border-radius: inherit; background: var(--nav-chip); box-shadow: var(--shadow-chip); pointer-events: none; }
+/* Above every chip, so a page the selection slides past stays readable. */
+.label { position: relative; z-index: 1; display: inline-flex; align-items: center; }
+.pending { position: absolute; bottom: -5px; inset-inline: 0; height: 2px; background: var(--accent-primary); transform: scaleX(0); transform-origin: left; }
+.label[data-pending] .pending { transform: scaleX(1); transition: transform 250ms ease; }
+.link:hover:not([aria-current]) { background: var(--nav-hover); color: var(--nav-ink); }
+.link:active { transform: translateY(1px); }
+.identity:hover { color: var(--accent-primary); }
+.link:focus-visible, .identity:focus-visible, .dock:focus-visible, .menuButton:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 3px; }
+@media (max-width: 1023px) { .link { padding-inline: 14px; font-size: 14px; } }
+
+/* Phones: one 72px identity row with a content-sized menu below it. Desktop
+   keeps the persistent horizontal rail. */
+@media (max-width: 639px) {
+  .header { --nav-gutter: 18px; }
+  /* In flow, a border would make it 73px and knock the page off the grid; the
+     same rule drawn as an inset shadow takes no space. */
+  .header:not([data-sample]) { position: sticky; inset: 0 auto auto; border-bottom: 0; transition: background-color 200ms ease, box-shadow 200ms ease; }
+  .header[data-menu-open]:not([data-sample]) { position: fixed; inset: 0 0 auto; }
+  .header[data-scrolled]:not([data-sample]) { box-shadow: inset 0 -1px 0 var(--nav-rule); }
+  .header[data-home]:not([data-sample]) { background: var(--nav-wash); backdrop-filter: blur(12px); }
+  .header:not([data-sample]) ~ :global(main) { padding-top: 0; }
+  .frame { flex-direction: row; align-items: center; gap: 12px; }
+  .identity { min-height: 48px; }
+  .bar { display: contents; }
+  .header:not([data-sample]) .dock { display: none; }
+  /* Keep the 48px target, but let its raised face and glyph sit more quietly
+     beside the identity. */
+  .menuButton { position: relative; display: flex; flex: none; align-items: center; justify-content: center; width: 48px; height: 48px; margin-inline-start: auto; padding: 0; border: 0; border-radius: 10px; color: var(--nav-ink); background: transparent; cursor: pointer; }
+  .menuButton::before { content: ''; position: absolute; inset: 4px; border-radius: 8px; background: var(--nav-well); box-shadow: var(--shadow-well); }
+  .menuIcon { position: relative; z-index: 1; display: block; width: 18px; height: 13px; }
+  .menuIcon span { position: absolute; inset-inline: 0; height: 1px; border-radius: 1px; background: currentColor; transition: transform 150ms ease, opacity 150ms ease, inset-block-start 150ms ease; }
+  .menuIcon span:nth-child(1) { inset-block-start: 0; }
+  .menuIcon span:nth-child(2) { inset-block-start: 6px; }
+  .menuIcon span:nth-child(3) { inset-block-start: 12px; }
+  .menuButton[aria-expanded='true'] .menuIcon span:nth-child(1) { inset-block-start: 6px; transform: rotate(45deg); }
+  .menuButton[aria-expanded='true'] .menuIcon span:nth-child(2) { opacity: 0; }
+  .menuButton[aria-expanded='true'] .menuIcon span:nth-child(3) { inset-block-start: 6px; transform: rotate(-45deg); }
+  /* The menu ends with its choices instead of painting an empty viewport. */
+  .header:not([data-sample]) .navigation { position: absolute; inset: 100% 0 auto; max-height: calc(100dvh - 72px); margin: 0; padding: var(--rhythm-half) var(--nav-gutter) var(--rhythm-minor); overflow: auto; overscroll-behavior: contain; background: var(--nav-paper); box-shadow: inset 0 -1px 0 var(--nav-rule), var(--shadow-lg); visibility: hidden; opacity: 0; pointer-events: none; transition: opacity 150ms ease; }
+  .header:not([data-sample]) .navigation[data-open] { visibility: visible; opacity: 1; pointer-events: auto; }
+  .header:not([data-sample]) .links { width: 100%; flex-direction: column; gap: 2px; }
+  .header:not([data-sample]) .links li { width: 100%; }
+  .header:not([data-sample]) .link { justify-content: flex-start; width: 100%; min-height: 48px; padding-inline: 18px; }
+  .header:not([data-sample]) .socials { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--nav-rule); }
+  .header:not([data-sample]) .socials a { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 10px; color: var(--nav-muted); transition: color 150ms ease, background-color 150ms ease; }
+  .header:not([data-sample]) .socials a:hover { color: var(--accent-primary); background: var(--nav-hover); }
+  .header:not([data-sample]) .socials a:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 3px; }
+  .header:not([data-sample]) .socials svg { width: 20px; height: 20px; }
+}
+@media (prefers-reduced-motion: reduce) { .header, .link, .pending, .dock, .menuIcon span, .navigation, .socials a { transition: none; } .link:active { transform: none; } }
+@media (forced-colors: active) { .links { border: 1px solid ButtonText; } .link[aria-current] { outline: 2px solid Highlight; outline-offset: -3px; } }
+
+/* Four opt-in directions. A 28px face sits inside a 44px link target. */
+.header[data-concept] {
+  --nav-shadow: color-mix(in srgb, var(--foreground) 18%, transparent);
+  --nav-soft-shadow: color-mix(in srgb, var(--foreground) 7%, transparent);
+  --nav-glint: color-mix(in srgb, var(--background) 75%, white);
+  --nav-recess: color-mix(in srgb, var(--background) 91%, var(--foreground));
+  --nav-recess-selected: color-mix(in srgb, var(--background) 85%, var(--foreground));
+  --nav-signal: #bc610c;
+  --nav-radius: 8px;
+  /* Target height, and the inset that keeps the visible face at 28px in it. */
+  --nav-target: 44px;
+  --nav-inset: 8px;
+}
+.header[data-concept] .identity { visibility: visible; display: inline-flex; gap: 9px; font-size: 15px; font-weight: 500; letter-spacing: -.025em; }
+.mark { display: grid; width: 28px; height: 28px; flex: 0 0 28px; }
+/* site-kit: the mark is an inline SVG in currentColor, so one serves both themes. */
+.mark svg { width: 100%; height: 100%; }
+:global([data-theme='dark']) .header[data-concept] { --nav-glint: color-mix(in srgb, var(--background) 92%, white); --nav-shadow: #000a; --nav-recess: color-mix(in srgb, var(--background) 75%, black); --nav-recess-selected: color-mix(in srgb, var(--background) 55%, black); --nav-signal: #fa9619; }
+.header[data-concept] .links { position: relative; gap: 0; padding: 0; background: transparent; box-shadow: none; border-radius: var(--nav-radius); }
+.header[data-concept] .links::before { content: ''; position: absolute; inset: var(--nav-inset) 0; border-radius: inherit; background: var(--nav-recess); box-shadow: inset 0 1px 2px var(--nav-shadow), inset 0 3px 5px var(--nav-soft-shadow), 0 1px 0 var(--nav-glint); pointer-events: none; }
+.header[data-concept] .link { height: var(--nav-target); min-width: 44px; padding: 0 16px; font-size: 13px; line-height: 24px; border-radius: var(--nav-radius); }
+.header[data-concept] .link:hover { background: transparent; }
+.header[data-concept] .link::before { content: ''; position: absolute; inset: var(--nav-inset) 0; border-radius: inherit; pointer-events: none; }
+.header[data-concept] .link:hover:not([aria-current])::before { background: var(--nav-hover); }
+.header[data-concept] .link:active { transform: none; }
+.header[data-concept] .link:active::before { background: var(--nav-recess-selected); box-shadow: inset 0 1px 3px var(--nav-shadow); }
+.header[data-concept] .selected { inset: var(--nav-inset) 0; background: var(--nav-recess-selected); box-shadow: inset 0 1px 3px var(--nav-shadow), 0 1px 0 var(--nav-glint); }
+.header[data-concept] .pending { bottom: 0; height: 1px; }
+.header[data-concept='keys'] .links { gap: 6px; }
+.header[data-concept='keys'] .links::before, .header[data-concept='index'] .links::before { display: none; }
+.header[data-concept='keys'] .link::before { background: var(--nav-recess); box-shadow: inset 0 1px 2px var(--nav-shadow), 0 1px 0 var(--nav-glint); }
+.header[data-concept='keys'] .link { padding-inline: 18px; }
+.header[data-concept='keys'] .link[aria-current] .label::before { content: ''; width: 3px; height: 3px; border-radius: 50%; position: absolute; left: -8px; background: var(--nav-signal); }
+.header[data-concept='index'] .links { gap: 4px; }
+.header[data-concept='index'] .selected { background: var(--nav-recess); }
+.header[data-concept='index'] .link { padding-inline: 12px; }
+.header[data-concept='slider'] .links::before { border-radius: 4px; }
+.header[data-concept='slider'] .selected { inset: auto 14px var(--nav-inset); height: 2px; border-radius: 1px; background: var(--nav-signal); box-shadow: none; }
+.header[data-concept='slider'] .link[aria-current] { font-weight: 500; }
+.header[data-sample] { --nav-gutter: 0px; position: relative; inset: auto; z-index: auto; padding: 0; background: transparent; backdrop-filter: none; border: 0; }
+@media (max-width: 639px) {
+  /* Public-menu labels step up without changing their 48px touch targets.
+     Static concept samples keep the original compact comparison treatment. */
+  .header[data-concept]:not([data-sample]) { --nav-target: 48px; --nav-inset: 4px; }
+  .header[data-concept]:not([data-sample]) .links { gap: 0; }
+  .header[data-concept]:not([data-sample]) .link { padding-inline: 18px; font-size: 17px; font-weight: 500; }
+  .header[data-concept][data-sample] { --nav-target: 48px; --nav-inset: 10px; }
+  .header[data-concept][data-sample] .link { padding-inline: 12px; }
+  .header[data-concept='keys'] .links { gap: 4px; }
+  .header[data-concept='keys'] .link { padding-inline: 14px; }
+}
+@media (forced-colors: active) {
+  .header[data-concept] .links::before { border: 1px solid ButtonText; }
+}

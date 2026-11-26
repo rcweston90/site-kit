@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type DragEvent } from 'react';
 import type { UploadedMedia } from '@rcweston/story-core';
+import type { ImageLibrarySource } from './ImageCatalog.js';
 import { SaveRequestError, explainFailure, markSessionEnded } from '@rcweston/save-kit';
 import {
   STORY_UPLOAD_SIGNATURE_BYTES,
@@ -24,6 +25,8 @@ export interface StoryMediaUploadTarget {
   upload: (file: File, context: { slug: string; signal?: AbortSignal }) => Promise<UploadedMedia>;
   /** The largest file the server takes. Default 4 MB. */
   maxBytes?: number;
+  /** Saved images to reuse (Add images → Choose existing). Without it, uploading is the only way. */
+  library?: ImageLibrarySource;
 }
 
 /** Provided by the editor shell. Without it the upload controls stay hidden. */

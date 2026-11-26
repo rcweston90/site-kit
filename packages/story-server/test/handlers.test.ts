@@ -204,8 +204,24 @@ describe('handlers, end to end through the memory transport', () => {
     const cookie = (signIn.headers.get('set-cookie') ?? '').split(';')[0];
     const signedIn = createFetchTransport({ baseUrl: 'http://story.local/api/story', headers: { cookie }, fetch: (url, init) => transport.fetch(url, init) });
     assert.equal((await signedIn.load('field-notes')).story.slug, 'field-notes');
+    const checked = await transport.fetch('/api/story/session', { headers: { cookie } });
+    assert.deepEqual(await checked.json(), { authenticated: true, role: 'admin' });
+    const anonymous = await transport.fetch('/api/story/session');
+    assert.deepEqual(await anonymous.json(), { authenticated: false, role: null });
     const signOut = await transport.fetch('/api/story/session', { method: 'DELETE', headers: { cookie } });
     assert.match(signOut.headers.get('set-cookie') ?? '', /Max-Age=0/);
+  });
+
+  it('deletes a story and frees its address', async () => {
+    const transport = createMemoryTransport();
+    await transport.saveDraft({ slug: 'field-notes', content: sampleStory('field-notes'), parentDocumentId: null });
+    const removed = await transport.fetch('/api/story/stories/field-notes', { method: 'DELETE' });
+    assert.equal(removed.status, 200);
+    assert.deepEqual(await removed.json(), { deleted: 'field-notes' });
+    assert.deepEqual(await transport.list(), []);
+    assert.equal((await transport.fetch('/api/story/stories/field-notes', { method: 'DELETE' })).status, 404);
+    const crossSite = await transport.fetch('/api/story/stories/field-notes', { method: 'DELETE', headers: { origin: 'https://elsewhere.example' } });
+    assert.equal(crossSite.status, 403);
   });
 
   it('refuses writes from another site', async () => {

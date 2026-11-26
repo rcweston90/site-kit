@@ -174,6 +174,20 @@ export function documentStoreContract(name: string, harness: StoreHarness) {
       await store.unpublish('field-notes');
     });
 
+    it('deletes a story with its versions, publication and old addresses, when it can', async () => {
+      if (!store.delete) return;
+      const { first } = await saveTwo();
+      await store.publish({ slug: 'field-notes', documentId: first.id, expectedPublishedDocumentId: null });
+      await store.saveDraft({ slug: 'other-notes', content: sampleStory('other-notes'), parentDocumentId: null, source });
+      await store.delete('field-notes');
+      assert.deepEqual(await store.versions('field-notes'), []);
+      assert.deepEqual(await store.published('field-notes'), { status: 'none' });
+      assert.deepEqual((await store.list()).map((summary) => summary.slug), ['other-notes']);
+      // The address is free again.
+      const fresh = await store.saveDraft({ slug: 'field-notes', content: sampleStory('field-notes'), parentDocumentId: null, source });
+      assert.equal(fresh.version, 1);
+    });
+
     it('says "failed" when the lookup fails, never "none"', async () => {
       const { first } = await saveTwo();
       await store.publish({ slug: 'field-notes', documentId: first.id, expectedPublishedDocumentId: null });

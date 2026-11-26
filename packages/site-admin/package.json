@@ -1,0 +1,73 @@
+{
+  "name": "@rcweston/site-admin",
+  "version": "0.1.0",
+  "description": "The admin around your stories: a passcode-gated shell with a collapsible sidebar, a dashboard, an ordered story list with visibility, a new-story flow and an image library, drawn with Tailwind v4 tokens.",
+  "license": "MIT",
+  "author": "Charlie Weston",
+  "type": "module",
+  "sideEffects": [
+    "*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./theme.css": "./dist/theme.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "MODULES.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "react",
+    "admin",
+    "cms",
+    "tailwind",
+    "dashboard"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && cp src/*.css dist/",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "tsx --test 'test/*.test.ts' 'test/*.test.tsx'"
+  },
+  "dependencies": {
+    "@radix-ui/react-use-controllable-state": "1.2.6",
+    "@rcweston/save-kit": "workspace:^",
+    "@rcweston/site-data": "workspace:^",
+    "@rcweston/story-core": "workspace:^",
+    "@rcweston/story-editor": "workspace:^",
+    "@rcweston/story-react": "workspace:^",
+    "@tiptap/core": "3.35.0",
+    "@tiptap/extension-code-block-lowlight": "3.35.0",
+    "@tiptap/extension-image": "3.35.0",
+    "@tiptap/extension-link": "3.35.0",
+    "@tiptap/extension-placeholder": "3.35.0",
+    "@tiptap/extension-underline": "3.35.0",
+    "@tiptap/pm": "3.35.0",
+    "@tiptap/react": "3.35.0",
+    "@tiptap/starter-kit": "3.35.0",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "lowlight": "3.3.0",
+    "lucide-react": "0.562.0",
+    "radix-ui": "1.8.1",
+    "tailwind-merge": "3.7.0"
+  },
+  "peerDependencies": {
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "devDependencies": {
+    "@types/jsdom": "^30.0.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.3.3",
+    "@types/react-dom": "^19.3.0",
+    "jsdom": "^26.1.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  }
+}

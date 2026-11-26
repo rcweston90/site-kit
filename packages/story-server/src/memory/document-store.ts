@@ -24,6 +24,7 @@ import {
   type StoryPublication,
   type StorySummary,
 } from '@rcweston/story-core';
+import { withCover } from '../cover.js';
 import { InvalidStoryError, StoryNotFoundError, contractRenameError } from '../errors.js';
 import { planStoryRename, validateStory, validateStoryDraft } from '../validation.js';
 
@@ -126,6 +127,8 @@ export function createMemoryDocumentStore(options: MemoryDocumentStoreOptions = 
           slug,
           title: latest.content.title,
           company: latest.content.company,
+          ...(latest.content.projectYear ? { projectYear: latest.content.projectYear } : {}),
+          ...withCover(latest.content),
           latestVersion: latest.version,
           latestDocumentId: latest.id,
           publishedDocumentId: publications.get(slug)?.documentId ?? null,
@@ -200,6 +203,14 @@ export function createMemoryDocumentStore(options: MemoryDocumentStoreOptions = 
     unpublish(slug) {
       return exclusive(() => {
         publications.delete(slug);
+      });
+    },
+
+    delete(slug) {
+      return exclusive(() => {
+        publications.delete(slug);
+        documents.delete(slug);
+        for (const [from, row] of redirects) if (row.to === slug) redirects.delete(from);
       });
     },
 

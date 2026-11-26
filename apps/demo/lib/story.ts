@@ -1,95 +1,138 @@
+import { randomBytes } from 'node:crypto';
 import { createStoryHandlers, createMediaPolicy, type StoryHandlers } from '@rcweston/story-server';
-import { createMemoryDocumentStore, createMemoryMediaStore, createOpenAuth } from '@rcweston/story-server/memory';
+import { createMemoryDocumentStore, createMemoryMediaStore } from '@rcweston/story-server/memory';
 import { createPasscodeAuth } from '@rcweston/story-server/passcode';
-import type { AuthAdapter, DocumentStore, MediaStore } from '@rcweston/story-core';
+import { SITE_DATA_MODULES, createSiteData, type SiteData } from '@rcweston/site-data';
+import type { AuthAdapter, DocumentStore, MediaStore, Story } from '@rcweston/story-core';
+import type { Pool } from 'pg';
 import { seed } from '@/content/seed';
 import { CUSTOM_BLOCK_NAMES } from '@/content/blocks-registry';
+import { SITE_PAGES } from '@/content/site';
+import { putSeedMedia, withSeedPhoto } from './seed-media';
 
 /**
  * The demo's backend, picked from the environment:
  *
- * - Storage: in memory by default (resets on restart). Set DATABASE_URL to
- *   use Postgres; the demo runs the migrations on first use.
- * - Media: in memory by default. Set STORY_MEDIA_DIR to keep uploads on disk.
- * - Sign-in: set STORY_ADMIN_PASSCODE and STORY_SESSION_SECRET to require a
- *   passcode. Without them the editor is open to anyone, which the demo
- *   allows only in `next dev`, or when STORY_DEMO_OPEN_EDITING=1 says you
- *   mean it (for `next start` on your own machine).
+ * - Storage: in memory by default (resets on restart). Set
+ *   SITE_KIT_DATABASE_URL to use Postgres; the demo runs story-server's and
+ *   site-data's migrations on first use.
+ * - Media: in memory by default. Set SITE_KIT_MEDIA_DIR to keep uploads on disk.
+ * - Sign-in: a passcode. Set SITE_KIT_ADMIN_PASSCODE (six characters) and
+ *   SITE_KIT_SESSION_SECRET (32 or more). Under `next dev` both have
+ *   defaults: the passcode is `studio`, and the secret is made up at start,
+ *   so a restart signs you out. A production build needs both.
  */
 
-const BASE_PATH = '/api/story';
+const STORY_BASE = '/api/story';
+const SITE_BASE = '/api/site';
+export const DEV_PASSCODE = 'studio';
 
-async function createStore(): Promise<DocumentStore> {
-  const url = process.env.DATABASE_URL;
-  if (!url) return createMemoryDocumentStore();
-  const [{ default: pg }, { createPostgresDocumentStore, migrate }] = await Promise.all([
-    import('pg'),
-    import('@rcweston/story-server/postgres'),
-  ]);
-  const pool = new pg.Pool({ connectionString: url });
+async function createDatabase(): Promise<Pool | null> {
+  const url = process.env.SITE_KIT_DATABASE_URL;
+  if (!url) return null;
+  const { default: pg } = await import('pg');
+  return new pg.Pool({ connectionString: url });
+}
+
+async function createStore(pool: Pool | null): Promise<DocumentStore> {
+  if (!pool) return createMemoryDocumentStore();
+  const { createPostgresDocumentStore, migrate } = await import('@rcweston/story-server/postgres');
   await migrate({ client: pool });
   return createPostgresDocumentStore({ pool });
 }
 
 async function createMedia(): Promise<MediaStore> {
-  const dir = process.env.STORY_MEDIA_DIR;
+  const dir = process.env.SITE_KIT_MEDIA_DIR;
   if (!dir) return createMemoryMediaStore();
   const { createFsMediaStore } = await import('@rcweston/story-server/fs');
   return createFsMediaStore({ dir });
 }
 
-function createAuth(): AuthAdapter & { open: boolean } {
-  const passcode = process.env.STORY_ADMIN_PASSCODE;
-  const secret = process.env.STORY_SESSION_SECRET;
-  if (passcode && secret) return Object.assign(createPasscodeAuth({ passcode, secret }), { open: false });
-  if (process.env.NODE_ENV === 'production' && process.env.STORY_DEMO_OPEN_EDITING !== '1') {
-    throw new Error(
-      'Set STORY_ADMIN_PASSCODE and STORY_SESSION_SECRET before running the demo in production, ' +
-        'or STORY_DEMO_OPEN_EDITING=1 to let anyone edit on your own machine.',
-    );
+function createAuth(): AuthAdapter & { usingDevPasscode: boolean } {
+  const passcode = process.env.SITE_KIT_ADMIN_PASSCODE;
+  const secret = process.env.SITE_KIT_SESSION_SECRET;
+  if (passcode && secret) return Object.assign(createPasscodeAuth({ passcode, secret }), { usingDevPasscode: false });
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('Set SITE_KIT_ADMIN_PASSCODE and SITE_KIT_SESSION_SECRET before running the demo in production.');
   }
-  return Object.assign(createOpenAuth(), { open: true });
+  return Object.assign(createPasscodeAuth({ passcode: passcode ?? DEV_PASSCODE, secret: secret ?? randomBytes(32).toString('hex') }), { usingDevPasscode: !passcode });
 }
 
-/** Publishes the seed stories and saves the draft-only one, once, on an empty store. */
-async function seedStore(store: DocumentStore): Promise<void> {
+const SEED = { kind: 'seed', ref: 'content/seed.ts' };
+
+/** Publishes the seed stories, saves the drafts and sets the Work order, once, on an empty store. */
+async function seedStore(store: DocumentStore, site: DemoSiteData): Promise<void> {
   if ((await store.list()).length > 0) return;
-  const source = { kind: 'seed', ref: 'content/seed.ts' };
+  const save = (content: Story, parentDocumentId: string | null, source = SEED) =>
+    store.saveDraft({ slug: content.slug, content: withSeedPhoto(content), parentDocumentId, source });
+  const publish = (slug: string, documentId: string, expectedPublishedDocumentId: string | null = null) =>
+    store.publish({ slug, documentId, expectedPublishedDocumentId, publishedBy: 'seed' });
+
   for (const content of seed.published) {
-    const document = await store.saveDraft({ slug: content.slug, content, parentDocumentId: null, source });
-    await store.publish({ slug: content.slug, documentId: document.id, expectedPublishedDocumentId: null, publishedBy: 'seed' });
+    const document = await save(content, null);
+    await publish(content.slug, document.id);
   }
-  for (const content of seed.drafts) {
-    await store.saveDraft({ slug: content.slug, content, parentDocumentId: null, source });
-  }
+  for (const content of seed.drafts) await save(content, null);
+
+  // A draft restored from before the last publish: the editor shows what the
+  // published version has that the draft doesn't.
+  const { first, published, restored } = seed.drift;
+  const firstDraft = await save(first, null);
+  const live = await save(published, firstDraft.id);
+  await publish(published.slug, live.id);
+  await save(restored, live.id, { kind: 'restore', ref: firstDraft.id });
+
+  await site.stores['work-order'].set('stories', seed.order);
+  for (const slug of seed.hidden) await site.stores['story-placement'].set(slug, false);
 }
+
+type DemoSiteData = SiteData<typeof SITE_DATA_MODULES>;
 
 export interface DemoBackend {
   story: StoryHandlers;
   store: DocumentStore;
-  /** True when anyone can edit (no passcode set). */
-  openEditing: boolean;
+  site: DemoSiteData;
+  siteHandler: (request: Request) => Promise<Response>;
+  auth: AuthAdapter;
+  /** True when the passcode is the development default. */
+  usingDevPasscode: boolean;
 }
 
 async function createBackend(): Promise<DemoBackend> {
-  const [store, media] = await Promise.all([createStore(), createMedia()]);
-  await seedStore(store);
+  const pool = await createDatabase();
+  const [store, media] = await Promise.all([createStore(pool), createMedia()]);
+  const site = createSiteData({
+    modules: SITE_DATA_MODULES,
+    sql: pool ?? undefined,
+    config: { 'site-resources': { pages: SITE_PAGES, resources: [] } },
+    services: { documents: store, media, mediaVisibility: 'public' },
+  });
+  if (pool) await site.migrate();
+  await putSeedMedia(media);
+  await seedStore(store, site);
   const auth = createAuth();
   const story = createStoryHandlers({
     store,
     media,
     auth,
-    basePath: BASE_PATH,
-    mediaPolicy: createMediaPolicy({ basePath: `${BASE_PATH}/media` }),
+    basePath: STORY_BASE,
+    mediaPolicy: createMediaPolicy({ basePath: `${STORY_BASE}/media` }),
     customBlocks: CUSTOM_BLOCK_NAMES,
     uploadVisibility: 'public',
-    otherAddresses: () => ['admin', 'api', 'samples'],
+    otherAddresses: () => ['admin', 'api', 'samples', 'work'],
   });
-  return { story, store, openEditing: auth.open };
+  const { handle } = site.handlers({ auth, basePath: SITE_BASE, revalidate: revalidatePaths });
+  return { story, store, site, siteHandler: handle, auth, usingDevPasscode: auth.usingDevPasscode };
+}
+
+/** Pages read on every request here, but a host with cached pages refreshes the ones a save changed. */
+async function revalidatePaths(paths: string[]) {
+  const { revalidatePath } = await import('next/cache');
+  for (const path of paths) revalidatePath(path);
 }
 
 // Kept on globalThis so the in-memory store survives hot reloads in `next dev`.
-const globalKey = Symbol.for('story-demo.backend');
+const globalKey = Symbol.for('site-kit-demo.backend');
 type Holder = { [globalKey]?: Promise<DemoBackend> };
 
 export function backend(): Promise<DemoBackend> {

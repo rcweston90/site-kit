@@ -10,7 +10,8 @@
  * - Saves explain themselves through @rcweston/save-kit: the leave guard,
  *   kept edits, ⌘S and signing back in over the page.
  */
-export { default as StoryEditor, default, type StoryEditorProps } from './StoryEditor.js';
+export { default as StoryEditor, default, type StoryEditorProps, type StoryEditorExtension, type StoryEditorExtensionContext } from './StoryEditor.js';
+export { SettingsSheet } from './EditorDrawer.js';
 export { EDITOR_UI } from './editing-slots.js';
 export { default as StoryInspector, type StoryAddressSettings } from './StoryInspector.js';
 export { default as ContinuousStoryEditor } from './continuous/ContinuousStoryEditor.js';
@@ -50,3 +51,4 @@ export {
 } from './media-upload-client.js';
 export { STORY_UPLOAD_ACCEPT, STORY_UPLOAD_MAX_BYTES, checkStoryUpload, type StoryUploadKind } from './upload-checks.js';
 export * from './classes.js';
+export { ImageCatalog, fetchImageLibrary, type ImageCatalogItem, type ImageCatalogPage, type ImageCatalogQuery, type ImageLibrarySource } from './ImageCatalog.js';

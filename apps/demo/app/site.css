@@ -1,0 +1,7 @@
+/* The public pages' shared rules, as the original's globals set them. */
+.gradient-bg { background: var(--background); }
+:root[data-js] [data-reveal-group].reveal-fade:not([data-revealed]) { opacity: 0; }
+[data-reveal-group][data-revealed].reveal-fade { animation: enter-fade 0.5s cubic-bezier(0, 0, 0.2, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal-group][data-revealed].reveal-fade { animation: none; }
+}

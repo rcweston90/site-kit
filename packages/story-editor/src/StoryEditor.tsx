@@ -74,6 +74,7 @@ import { flowCaret, pageEditable } from './caret-flow.js';
 import { publicationTarget, type PublicationTarget } from './publication-target.js';
 import type { PublicationChecklistRow } from './publication-issue-labels.js';
 import { STORY_BLOCK_LABELS, withUploadedFile } from './StoryBlockEditor.js';
+import type { ImageLibrarySource } from './ImageCatalog.js';
 import { StoryMediaUploadContext, uploadStoryMedia, type StoryMediaUploadTarget } from './media-upload-client.js';
 import { EDITOR_UI } from './editing-slots.js';
 import {
@@ -318,7 +319,40 @@ export interface StoryEditorProps {
   initialNotice?: string;
   /** Called with every state the transport answers (load, save, publish, rename). */
   onStateChange?: (state: StoryEditorState) => void;
+  /** Saved images to reuse in an image group (Add images → Choose existing), e.g. `fetchImageLibrary()`. */
+  imageLibrary?: ImageLibrarySource;
+  /**
+   * A React hook the editor calls on every render, so a host can add its own
+   * review around the draft: a line under the top bar, a dialog, a note in the
+   * publish checklist. `@rcweston/site-admin` uses it for "The published
+   * version has 2 updates your draft doesn't have." Pass the same hook for the
+   * editor's whole life (it follows the rules of hooks).
+   */
+  useExtension?: (context: StoryEditorExtensionContext) => StoryEditorExtension | null;
 }
+
+/** What `useExtension` is given. */
+export interface StoryEditorExtensionContext {
+  slug: string;
+  /** The transport's last answer; null until the first load. */
+  state: StoryEditorState | null;
+  /** The story as it stands in the editor, unsaved edits included. */
+  story: Story;
+  /** Replace the draft in one undoable edit, with a status line. */
+  apply: (story: Story, notice: string) => void;
+}
+
+/** What `useExtension` adds to the editor. */
+export interface StoryEditorExtension {
+  /** Shown under the top bar. */
+  notice?: ReactNode;
+  /** Rendered once inside the editor (dialogs, sheets). */
+  overlay?: ReactNode;
+  /** A note in the publish checklist that opens the host's review. */
+  publishedUpdates?: { count: number; onReview: (returnFocus: HTMLElement | null) => void };
+}
+
+const useNoExtension = (): StoryEditorExtension | null => null;
 
 const NEW_STORY_FALLBACK = (slug: string): Story => ({
   slug,
@@ -350,6 +384,8 @@ export default function StoryEditor({
   initialSettingsOpen = false,
   initialNotice,
   onStateChange,
+  imageLibrary,
+  useExtension = useNoExtension,
 }: StoryEditorProps) {
   // Without `navigate`, a rename moves the editor in place.
   const [slug, setSlug] = useState(initialSlug);
@@ -1155,14 +1191,25 @@ export default function StoryEditor({
   // Uploads go through the transport, filed under the story's address.
   // Portalled popovers and sheets inherit this, so one provider covers both.
   const mediaUploadTarget = useMemo<StoryMediaUploadTarget>(
-    () => ({ slug: editor.story.slug, upload: (file, context) => transport.uploadMedia(file, context) }),
-    [editor.story.slug, transport],
+    () => ({ slug: editor.story.slug, upload: (file, context) => transport.uploadMedia(file, context), ...(imageLibrary ? { library: imageLibrary } : {}) }),
+    [editor.story.slug, transport, imageLibrary],
   );
+
+  const extension = useExtension({
+    slug,
+    state: response,
+    story: editor.story,
+    apply: (story, text) => {
+      applyStory(story, 'record');
+      setNotice({ text, story });
+    },
+  });
 
   const environment = (children: ReactNode) => (
     <StoryProvider blocks={blocks} renderLink={renderLink} media={media}>
       <StoryMediaUploadContext.Provider value={mediaUploadTarget}>
         {children}
+        {extension?.overlay}
         {renderSignIn && <SessionEndedDialog renderSignIn={renderSignIn} />}
       </StoryMediaUploadContext.Provider>
     </StoryProvider>
@@ -1710,6 +1757,7 @@ export default function StoryEditor({
               onShowIssue={showIssue}
               savedReadiness={!hasUnsavedChanges && latestDocument ? response.readinessByDocumentId[latestDocument.id] : undefined}
               liveHref={liveHref}
+              publishedUpdates={extension?.publishedUpdates}
             />
           </div>
           {themeToggle(true) && <div className={chromeStyles.editorPart9}>{themeToggle(true)}</div>}
@@ -1761,6 +1809,7 @@ export default function StoryEditor({
               onShowIssue={showIssue}
               savedReadiness={!hasUnsavedChanges && latestDocument ? response.readinessByDocumentId[latestDocument.id] : undefined}
               liveHref={liveHref}
+              publishedUpdates={extension?.publishedUpdates}
               compact
               iconOnly
             />
@@ -1797,6 +1846,12 @@ export default function StoryEditor({
               </button>
             </div>
           </aside>
+        )}
+
+        {extension?.notice && (
+          <div className={chromeStyles.editorPart12}>
+            <div className={chromeStyles.editorKeptEditsNotice}>{extension.notice}</div>
+          </div>
         )}
 
         {recovery.offer && (

@@ -13,7 +13,7 @@ export function Reader({ story, next }: { story: Story; next?: StoryTeaser }) {
       blocks={blocks}
       renderLink={renderLink}
       media={{ mediaUrl }}
-      backLink={{ href: '/', label: 'Stories' }}
+      backLink={{ href: '/work', label: 'Work' }}
       hrefFor={(slug) => `/stories/${slug}`}
     />
   );

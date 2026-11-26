@@ -38,3 +38,4 @@ export * from './pdf.js';
 export * from './callout-appearance.js';
 export * from './cta.js';
 export * from './project-year.js';
+export * from './card-media.js';

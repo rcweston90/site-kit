@@ -25,6 +25,7 @@ import {
   type StoryPublication,
   type StorySummary,
 } from '@rcweston/story-core';
+import { withCover } from '../cover.js';
 import { InvalidStoryError, StoryNotFoundError, contractRenameError, isConcurrencyFailure } from '../errors.js';
 import { RENAME_STALE_MESSAGE, StoryRenameError, planStoryRename, validateStory, validateStoryDraft } from '../validation.js';
 import { createSqlRunner, parseJson, toIso, type SqlClient, type SqlPool } from './client.js';
@@ -130,7 +131,8 @@ export function createPostgresDocumentStore({ pool }: PostgresDocumentStoreOptio
       return sql.read(async (client) => {
         const { rows } = await client.query(`
           WITH latest AS (
-            SELECT DISTINCT ON (slug) id, slug, version, content->>'title' AS title, content->>'company' AS company, updated_at
+            SELECT DISTINCT ON (slug) id, slug, version, content->>'title' AS title, content->>'company' AS company, content->>'projectYear' AS project_year,
+              jsonb_build_object('hero', content->'hero', 'workPreview', content->'workPreview', 'heroGraphic', content->'heroGraphic', 'heroLayout', content->'heroLayout', 'chapters', content->'chapters') AS card, updated_at
             FROM story_documents
             ORDER BY slug, version DESC
           )
@@ -144,6 +146,8 @@ export function createPostgresDocumentStore({ pool }: PostgresDocumentStoreOptio
           slug: row.slug,
           title: row.title ?? '',
           company: row.company ?? '',
+          ...(row.project_year ? { projectYear: row.project_year } : {}),
+          ...withCover(typeof row.card === 'string' ? JSON.parse(row.card) : row.card),
           latestVersion: Number(row.version),
           latestDocumentId: row.id,
           publishedDocumentId: row.published_document_id ?? null,
@@ -258,6 +262,16 @@ export function createPostgresDocumentStore({ pool }: PostgresDocumentStoreOptio
       await sql.transaction(async (tx) => {
         await lock(tx, slug);
         await tx.query('DELETE FROM story_publications WHERE slug = $1', [slug]);
+      }, 'READ COMMITTED');
+    },
+
+    async delete(slug) {
+      await sql.transaction(async (tx) => {
+        await lock(tx, slug);
+        await tx.query('DELETE FROM story_publications WHERE slug = $1', [slug]);
+        await tx.query('DELETE FROM story_slug_redirects WHERE to_slug = $1', [slug]);
+        // One statement, so the versions' parent links are checked once, after every row is gone.
+        await tx.query('DELETE FROM story_documents WHERE slug = $1', [slug]);
       }, 'READ COMMITTED');
     },
 

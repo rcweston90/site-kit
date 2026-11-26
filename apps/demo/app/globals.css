@@ -1,0 +1,5 @@
+/* Tailwind v4 and the admin's tokens. The @source line points Tailwind at
+   site-admin's built components so the class names they use are generated. */
+@import "tailwindcss";
+@import "@rcweston/site-admin/theme.css";
+@source "../node_modules/@rcweston/site-admin/dist";
