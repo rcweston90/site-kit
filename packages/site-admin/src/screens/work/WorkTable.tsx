@@ -213,16 +213,19 @@ function useHandleDrag(slug: string, onDragEnd: (() => void) | undefined) {
       drag.values.current = next;
       drag.onReorder(next);
     };
+    // On the window, not the handle: moving the held row in the DOM (a drag
+    // downwards does) releases its pointer capture, and the handle would stop
+    // hearing the pointer, so the drop would never save.
     const end = () => {
-      handle.removeEventListener('pointermove', move);
-      handle.removeEventListener('pointerup', end);
-      handle.removeEventListener('pointercancel', end);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', end);
+      window.removeEventListener('pointercancel', end);
       setDragging(false);
       onDragEnd();
     };
-    handle.addEventListener('pointermove', move);
-    handle.addEventListener('pointerup', end);
-    handle.addEventListener('pointercancel', end);
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', end);
+    window.addEventListener('pointercancel', end);
   };
   return { dragging, start };
 }

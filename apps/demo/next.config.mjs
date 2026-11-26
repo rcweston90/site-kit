@@ -1,7 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Postgres is optional and loaded only when DATABASE_URL is set.
-  serverExternalPackages: ['pg'],
+  // Storage drivers load from node_modules at run time: pg for a hosted
+  // Postgres, PGlite (with its WebAssembly files) for the embedded default.
+  serverExternalPackages: ['pg', '@electric-sql/pglite'],
   // Keep the demo self-contained: no telemetry-dependent features, no remote images.
   images: { unoptimized: true },
   // Don't write an AGENTS.md into the demo on `next dev`.

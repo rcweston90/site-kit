@@ -12,12 +12,15 @@ Long-form stories with chapters and rich blocks, edited in place on the real pag
 | [`@rcweston/story-server`](packages/story-server) | Request handlers plus adapters: memory and Postgres stores with explicit migrations, memory, local-disk and S3 media, a passcode sign-in. | story-core; `pg` and `aws4fetch` only if you use them |
 | [`@rcweston/story-react`](packages/story-react) | The reader: the story page and every part of it, themed with `--story-*` tokens, custom blocks from your own registry. | React, Lucide |
 | [`@rcweston/story-editor`](packages/story-editor) | The in-place editor: block tools and continuous writing over the reader's own components, talking to any backend through one transport. | React, Tiptap, Radix UI, save-kit |
+| [`@rcweston/site-data`](packages/site-data) | The site's own settings as modules (page visibility, Work order, story placement, the image library), each with memory and Postgres stores, numbered migrations, handlers and public reads. | story-core, story-server; `pg` only if you use it |
+| [`@rcweston/site-admin`](packages/site-admin) | The admin around the stories: a passcode-gated shell, the dashboard, the Work table, new stories, the image library and the review of a published version's changes. Modules add their own screens and sidebar items. | React, Tailwind v4, Radix UI, save-kit, site-data, story-editor |
 
-[`apps/demo`](apps/demo) runs all of it locally with made-up stories:
+[`apps/demo`](apps/demo) is a whole portfolio site on it, with made-up stories. It keeps its data in an embedded Postgres under `.data/` with no setup, and in any Postgres and S3-compatible bucket when you set `SITE_KIT_DATABASE_URL` and the `SITE_KIT_S3_*` variables (see [`apps/demo/env.example`](apps/demo/env.example)):
 
 ```sh
 pnpm install && pnpm build
-pnpm --filter @rcweston/story-demo dev   # http://localhost:3000, editor at /admin
+pnpm --filter @rcweston/story-demo dev   # http://localhost:3000, admin at /admin (passcode `studio`)
+pnpm db:migrate                          # apply migrations yourself, when SITE_KIT_AUTO_MIGRATE=false
 ```
 
 ## Small packages

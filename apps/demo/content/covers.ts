@@ -1,8 +1,8 @@
 /**
  * Stand-in cover pictures, drawn here so the demo works offline and ships no
  * binary files. Each is a quiet, editorial still life in flat shapes: paper,
- * shelves, a route map. `scripts/fetch-photos.mjs` swaps them for photographs
- * when you have them (see README, "Photos").
+ * shelves, a route map. Photographs listed in public/samples/photos take
+ * their place when present (see lib/seed-media.ts).
  *
  * 1600 × 1000, the 1.6 aspect the story hero and the Work cards share.
  */

@@ -8,3 +8,6 @@ coverage/
 .next/
 next-env.d.ts
 AGENTS.md
+
+# The demo's embedded database and local uploads.
+.data/

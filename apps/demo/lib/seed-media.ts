@@ -6,12 +6,12 @@ import { seedFiles, seedMedia } from '@/content/seed';
 
 /**
  * Puts the seed's pictures in the media store, so stories load them from the
- * same route as uploads and the image library lists them. Run on every start:
- * the keys are fixed, so it only rewrites the same bytes.
+ * same route as uploads and the image library lists them. Run on every start,
+ * it writes only the pictures the store doesn't have yet.
  *
- * When `scripts/fetch-photos.mjs` has saved photographs into
- * public/samples/photos, a story with one gets it as its cover (and a smaller
- * copy for cards) in place of the drawn stand-in.
+ * None ship, but when public/samples/photos/manifest.json lists photographs
+ * saved beside it, a story with one gets it as its cover (and a smaller copy
+ * for cards) in place of the drawn stand-in.
  */
 
 const PUBLIC = join(process.cwd(), 'public');
@@ -38,8 +38,10 @@ function readPhotos(): SeedPhoto[] {
 const photos = readPhotos();
 
 export async function putSeedMedia(media: MediaStore): Promise<void> {
-  const put = (key: string, bytes: Uint8Array, contentType: string) =>
-    media.put({ key, bytes, contentType, visibility: 'public', cacheControl: 'public, max-age=3600' });
+  const put = async (key: string, bytes: Uint8Array, contentType: string) => {
+    if (await media.head(key)) return;
+    await media.put({ key, bytes, contentType, visibility: 'public', cacheControl: 'public, max-age=3600' });
+  };
   const encoder = new TextEncoder();
   await Promise.all([
     ...Object.entries(covers).map(([slug, draw]) => put(`stories/${slug}/cover.svg`, encoder.encode(draw()), 'image/svg+xml')),

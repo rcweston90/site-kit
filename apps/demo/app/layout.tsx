@@ -12,8 +12,11 @@ import '@rcweston/story-editor/styles.css';
 import './demo.css';
 import { SITE_THEME_SCRIPT } from '@/components/site/theme-script';
 import { SITE } from '@/content/site';
+import { readConfig } from '@/lib/config';
 
 export const metadata = {
+  // SITE_KIT_SITE_URL, so shared links and images point at the real address.
+  metadataBase: readConfig().siteUrl,
   title: { default: `${SITE.name} · ${SITE.role}`, template: `%s · ${SITE.name}` },
   description: `Case studies by ${SITE.name}, a made-up designer: the demo site for the story CMS and its admin.`,
 };

@@ -1,68 +1,63 @@
 import { randomBytes } from 'node:crypto';
 import { createStoryHandlers, createMediaPolicy, type StoryHandlers } from '@rcweston/story-server';
-import { createMemoryDocumentStore, createMemoryMediaStore } from '@rcweston/story-server/memory';
 import { createPasscodeAuth } from '@rcweston/story-server/passcode';
 import { SITE_DATA_MODULES, createSiteData, type SiteData } from '@rcweston/site-data';
-import type { AuthAdapter, DocumentStore, MediaStore, Story } from '@rcweston/story-core';
-import type { Pool } from 'pg';
+import type { AuthAdapter, DocumentStore, Story } from '@rcweston/story-core';
 import { seed } from '@/content/seed';
 import { CUSTOM_BLOCK_NAMES } from '@/content/blocks-registry';
 import { SITE_PAGES } from '@/content/site';
+import { planStorage, readConfig, type SiteKitConfig, type StoragePlan } from './config';
+import { describeStorage, openDatabase, openDocuments, openMedia, type Database } from './storage';
 import { putSeedMedia, withSeedPhoto } from './seed-media';
 
 /**
- * The demo's backend, picked from the environment:
+ * The site's backend, built from `lib/config.ts`:
  *
- * - Storage: in memory by default (resets on restart). Set
- *   SITE_KIT_DATABASE_URL to use Postgres; the demo runs story-server's and
- *   site-data's migrations on first use.
- * - Media: in memory by default. Set SITE_KIT_MEDIA_DIR to keep uploads on disk.
- * - Sign-in: a passcode. Set SITE_KIT_ADMIN_PASSCODE (six characters) and
- *   SITE_KIT_SESSION_SECRET (32 or more). Under `next dev` both have
- *   defaults: the passcode is `studio`, and the secret is made up at start,
- *   so a restart signs you out. A production build needs both.
+ * - Stories and site settings: embedded Postgres (PGlite) in `.data/` by
+ *   default, so they last across restarts; any Postgres when
+ *   SITE_KIT_DATABASE_URL is set; memory with SITE_KIT_STORAGE=memory.
+ *   Migrations run on first use unless SITE_KIT_AUTO_MIGRATE=false, in which
+ *   case run `pnpm db:migrate`.
+ * - Uploads: on disk in `.data/media` by default, or an S3-compatible bucket
+ *   when the SITE_KIT_S3_* variables are set.
+ * - Sign-in: a passcode. Set SITE_KIT_ADMIN_PASSCODE and
+ *   SITE_KIT_SESSION_SECRET (32 or more characters). Under `next dev` both
+ *   have defaults: the passcode is `studio`, and the secret is made up at
+ *   start, so a restart signs you out. A production server needs both.
+ *
+ * The seed stories are written once, into an empty store.
  */
 
 const STORY_BASE = '/api/story';
 const SITE_BASE = '/api/site';
 export const DEV_PASSCODE = 'studio';
 
-async function createDatabase(): Promise<Pool | null> {
-  const url = process.env.SITE_KIT_DATABASE_URL;
-  if (!url) return null;
-  const { default: pg } = await import('pg');
-  return new pg.Pool({ connectionString: url });
-}
-
-async function createStore(pool: Pool | null): Promise<DocumentStore> {
-  if (!pool) return createMemoryDocumentStore();
-  const { createPostgresDocumentStore, migrate } = await import('@rcweston/story-server/postgres');
-  await migrate({ client: pool });
-  return createPostgresDocumentStore({ pool });
-}
-
-async function createMedia(): Promise<MediaStore> {
-  const dir = process.env.SITE_KIT_MEDIA_DIR;
-  if (!dir) return createMemoryMediaStore();
-  const { createFsMediaStore } = await import('@rcweston/story-server/fs');
-  return createFsMediaStore({ dir });
-}
-
-function createAuth(): AuthAdapter & { usingDevPasscode: boolean } {
-  const passcode = process.env.SITE_KIT_ADMIN_PASSCODE;
-  const secret = process.env.SITE_KIT_SESSION_SECRET;
-  if (passcode && secret) return Object.assign(createPasscodeAuth({ passcode, secret }), { usingDevPasscode: false });
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('Set SITE_KIT_ADMIN_PASSCODE and SITE_KIT_SESSION_SECRET before running the demo in production.');
+async function createAuth(config: SiteKitConfig, database: Database | null): Promise<AuthAdapter & { usingDevPasscode: boolean }> {
+  const { passcode, secret } = config.auth;
+  if (!(passcode && secret) && config.production) {
+    throw new Error('Set SITE_KIT_ADMIN_PASSCODE and SITE_KIT_SESSION_SECRET before starting a production server (see env.example).');
   }
-  return Object.assign(createPasscodeAuth({ passcode: passcode ?? DEV_PASSCODE, secret: secret ?? randomBytes(32).toString('hex') }), { usingDevPasscode: !passcode });
+  // With a database, sign-in attempts are counted there, so the limit holds across instances.
+  const rateLimiter = database
+    ? (await import('@rcweston/story-server/postgres')).createPostgresRateLimiter({ pool: database.sql })
+    : undefined;
+  const auth = createPasscodeAuth({
+    passcode: passcode ?? DEV_PASSCODE,
+    secret: secret ?? randomBytes(32).toString('hex'),
+    ...(rateLimiter ? { rateLimiter } : {}),
+  });
+  return Object.assign(auth, { usingDevPasscode: !passcode });
 }
 
 const SEED = { kind: 'seed', ref: 'content/seed.ts' };
 
-/** Publishes the seed stories, saves the drafts and sets the Work order, once, on an empty store. */
+/**
+ * Publishes the seed stories, saves the drafts and sets the Work order, once,
+ * on an empty store. The Work order it sets marks the store as seeded, so
+ * deleting every story doesn't bring the samples back on the next start.
+ */
 async function seedStore(store: DocumentStore, site: DemoSiteData): Promise<void> {
-  if ((await store.list()).length > 0) return;
+  if ((await store.list()).length > 0 || (await site.stores['work-order'].get('stories'))) return;
   const save = (content: Story, parentDocumentId: string | null, source = SEED) =>
     store.saveDraft({ slug: content.slug, content: withSeedPhoto(content), parentDocumentId, source });
   const publish = (slug: string, documentId: string, expectedPublishedDocumentId: string | null = null) =>
@@ -96,33 +91,79 @@ export interface DemoBackend {
   auth: AuthAdapter;
   /** True when the passcode is the development default. */
   usingDevPasscode: boolean;
+  /** Storage that won't last, in plain sentences. */
+  warnings: string[];
+  /** Closes the database. */
+  close(): Promise<void>;
 }
 
-async function createBackend(): Promise<DemoBackend> {
-  const pool = await createDatabase();
-  const [store, media] = await Promise.all([createStore(pool), createMedia()]);
-  const site = createSiteData({
-    modules: SITE_DATA_MODULES,
-    sql: pool ?? undefined,
-    config: { 'site-resources': { pages: SITE_PAGES, resources: [] } },
-    services: { documents: store, media, mediaVisibility: 'public' },
-  });
-  if (pool) await site.migrate();
-  await putSeedMedia(media);
-  await seedStore(store, site);
-  const auth = createAuth();
-  const story = createStoryHandlers({
-    store,
-    media,
-    auth,
-    basePath: STORY_BASE,
-    mediaPolicy: createMediaPolicy({ basePath: `${STORY_BASE}/media` }),
-    customBlocks: CUSTOM_BLOCK_NAMES,
-    uploadVisibility: 'public',
-    otherAddresses: () => ['admin', 'api', 'samples', 'work'],
-  });
-  const { handle } = site.handlers({ auth, basePath: SITE_BASE, revalidate: revalidatePaths });
-  return { story, store, site, siteHandler: handle, auth, usingDevPasscode: auth.usingDevPasscode };
+/** Opens storage, migrates, seeds once and builds the handlers. `backend()` keeps one per server; tests call this directly. */
+export async function createBackend(config: SiteKitConfig = readConfig()): Promise<DemoBackend> {
+  if (process.env.NEXT_PHASE === 'phase-production-build') {
+    // Pages that read stories are rendered per request; opening the database
+    // from several build workers at once would damage an embedded one.
+    throw new Error('The backend was opened during `next build`. Mark the page `export const dynamic = \'force-dynamic\'`.');
+  }
+  const plan = planStorage(config);
+  for (const warning of plan.warnings) console.warn(`[site-kit] ${warning}`);
+  console.info(`[site-kit] ${describeStorage(plan.storage, plan.media)}`);
+
+  const database = await openDatabase(plan.storage);
+  try {
+    const [store, media] = await Promise.all([openDocuments(database, { migrate: config.autoMigrate }), openMedia(plan.media)]);
+    const site = createSiteData({
+      modules: SITE_DATA_MODULES,
+      sql: database?.sql,
+      config: { 'site-resources': { pages: SITE_PAGES, resources: [] } },
+      services: { documents: store, media, mediaVisibility: 'public' },
+    });
+    if (database && config.autoMigrate) await site.migrate();
+    if (database && !config.autoMigrate) await requireMigrated(database, site);
+    if (config.seed) {
+      await putSeedMedia(media);
+      await seedStore(store, site);
+    }
+    const auth = await createAuth(config, database);
+    const story = createStoryHandlers({
+      store,
+      media,
+      auth,
+      basePath: STORY_BASE,
+      mediaPolicy: createMediaPolicy({ basePath: `${STORY_BASE}/media` }),
+      customBlocks: CUSTOM_BLOCK_NAMES,
+      uploadVisibility: 'public',
+      otherAddresses: () => ['admin', 'api', 'samples', 'work'],
+    });
+    const { handle } = site.handlers({ auth, basePath: SITE_BASE, revalidate: revalidatePaths });
+    return {
+      story, store, site, siteHandler: handle, auth, usingDevPasscode: auth.usingDevPasscode, warnings: plan.warnings,
+      close: async () => { await database?.close(); },
+    };
+  } catch (error) {
+    // A half-built backend mustn't keep the embedded database open: the retry opens it again.
+    await database?.close().catch(() => undefined);
+    throw error;
+  }
+}
+
+/** With SITE_KIT_AUTO_MIGRATE=false, a database that's behind stops the server with the command that fixes it. */
+async function requireMigrated(database: Database, site: DemoSiteData): Promise<void> {
+  const { migrate } = await import('@rcweston/story-server/postgres');
+  const pending = [
+    ...(await migrate({ client: database.sql, dryRun: true })).pending,
+    ...(await site.migrate({ dryRun: true })).pending,
+  ];
+  if (pending.length) {
+    throw new Error(`The database needs ${pending.length} migration(s) (${pending.join(', ')}). Run \`pnpm db:migrate\`, or unset SITE_KIT_AUTO_MIGRATE.`);
+  }
+}
+
+const planKey = Symbol.for('site-kit-demo.storage-plan');
+
+/** What storage the site uses and why, worked out once per server. The admin shows the warnings. */
+export function storagePlan(config: SiteKitConfig = readConfig()): StoragePlan {
+  const holder = globalThis as { [planKey]?: StoragePlan };
+  return (holder[planKey] ??= planStorage(config));
 }
 
 /** Pages read on every request here, but a host with cached pages refreshes the ones a save changed. */
@@ -131,13 +172,13 @@ async function revalidatePaths(paths: string[]) {
   for (const path of paths) revalidatePath(path);
 }
 
-// Kept on globalThis so the in-memory store survives hot reloads in `next dev`.
+// Kept on globalThis so one server opens its storage once, even across hot reloads in `next dev`.
 const globalKey = Symbol.for('site-kit-demo.backend');
 type Holder = { [globalKey]?: Promise<DemoBackend> };
 
 export function backend(): Promise<DemoBackend> {
   const holder = globalThis as Holder;
-  holder[globalKey] ??= createBackend().catch((error) => {
+  holder[globalKey] ??= createBackend(readConfig()).catch((error) => {
     delete holder[globalKey];
     throw error;
   });

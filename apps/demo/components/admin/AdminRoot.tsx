@@ -9,7 +9,7 @@ import { ADMIN_MODULES, AdminProvider, AdminShell, type AdminRouter } from '@rcw
  * The admin, mounted once for every /admin route: Next's router handed to
  * site-admin, the enabled modules, and the passcode-gated shell.
  */
-export function AdminRoot({ children }: { children: ReactNode }) {
+export function AdminRoot({ children, storageWarnings = [] }: { children: ReactNode; storageWarnings?: string[] }) {
   const pathname = usePathname();
   const router = useRouter();
   const adminRouter = useMemo<AdminRouter>(() => ({
@@ -21,6 +21,21 @@ export function AdminRoot({ children }: { children: ReactNode }) {
   return (
     <AdminProvider router={adminRouter} modules={ADMIN_MODULES}>
       <AdminShell>{children}</AdminShell>
+      {storageWarnings.length > 0 && <StorageNotice warnings={storageWarnings} />}
     </AdminProvider>
+  );
+}
+
+/** Pinned to the bottom of every admin page while saved work won't last. */
+function StorageNotice({ warnings }: { warnings: string[] }) {
+  return (
+    <div
+      role="alert"
+      data-storage-notice=""
+      className="fixed inset-x-0 bottom-0 z-50 border-t-2 border-status-warning bg-background px-4 py-2 font-sans text-sm leading-baseline text-foreground shadow-lg md:px-8"
+    >
+      <strong className="font-medium">Your changes won’t last.</strong>{' '}
+      {warnings.join(' ')}
+    </div>
   );
 }

@@ -12,6 +12,7 @@
     "typecheck": "pnpm -r typecheck",
     "test": "node --test scripts/*.test.mjs && pnpm -r test",
     "scrub": "node scripts/scrub.mjs",
+    "db:migrate": "pnpm --filter @rcweston/story-demo db:migrate",
     "credits": "pnpm --filter @rcweston/credits run self-check",
     "check": "pnpm scrub && pnpm build && pnpm typecheck && pnpm test && pnpm credits"
   },
