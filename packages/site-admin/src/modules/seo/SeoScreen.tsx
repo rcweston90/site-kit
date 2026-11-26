@@ -652,17 +652,17 @@ export function SeoScreen({ storyPath = (slug) => `/stories/${slug}`, postsUrl, 
         {staticOverrides.length > 0 ? (
           <div className="space-y-3">
             {/* Table header */}
-            <div className="grid grid-cols-[1fr_1fr_80px_80px_100px] gap-4 px-4 pb-2 border-b border-foreground-muted/20">
+            <div className="grid grid-cols-[minmax(0,1fr)_100px] sm:grid-cols-[1fr_1fr_80px_80px_100px] gap-4 px-4 pb-2 border-b border-foreground-muted/20">
               <span className="font-mono text-xs uppercase tracking-wider text-foreground-muted">
                 Path
               </span>
-              <span className="font-mono text-xs uppercase tracking-wider text-foreground-muted">
+              <span className="hidden sm:block font-mono text-xs uppercase tracking-wider text-foreground-muted">
                 Title
               </span>
-              <span className="font-mono text-xs uppercase tracking-wider text-foreground-muted">
+              <span className="hidden sm:block font-mono text-xs uppercase tracking-wider text-foreground-muted">
                 Index
               </span>
-              <span className="font-mono text-xs uppercase tracking-wider text-foreground-muted">
+              <span className="hidden sm:block font-mono text-xs uppercase tracking-wider text-foreground-muted">
                 Follow
               </span>
               <span />
@@ -671,19 +671,19 @@ export function SeoScreen({ storyPath = (slug) => `/stories/${slug}`, postsUrl, 
             {staticOverrides.map((override, index) => (
               <div
                 key={override.path}
-                className="enter-rise grid grid-cols-[1fr_1fr_80px_80px_100px] gap-4 items-center px-4 py-3 rounded-md bg-card-bg border border-foreground-muted/20"
+                className="enter-rise grid grid-cols-[minmax(0,1fr)_100px] sm:grid-cols-[1fr_1fr_80px_80px_100px] gap-4 items-center px-4 py-3 rounded-md bg-card-bg border border-foreground-muted/20"
                 style={{ ['--enter-y' as string]: '10px', animationDuration: '0.3s', animationDelay: `${index * 0.05}s` }}
               >
                 <span className="font-mono text-sm font-semibold text-foreground truncate">
                   {override.path}
                 </span>
-                <span className="font-mono text-xs text-foreground-muted truncate">
+                <span className="hidden sm:block font-mono text-xs text-foreground-muted truncate">
                   {override.title || '--'}
                 </span>
-                <span className="font-mono text-xs text-foreground-muted">
+                <span className="hidden sm:block font-mono text-xs text-foreground-muted">
                   {override.robotsIndex === false ? 'No' : 'Yes'}
                 </span>
-                <span className="font-mono text-xs text-foreground-muted">
+                <span className="hidden sm:block font-mono text-xs text-foreground-muted">
                   {override.robotsFollow === false ? 'No' : 'Yes'}
                 </span>
                 <div className="flex items-center gap-2">

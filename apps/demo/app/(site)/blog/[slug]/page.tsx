@@ -4,6 +4,7 @@ import { PageLayout } from '@/components/blog/PageLayout';
 import { formatBlogDate } from '@/components/blog/format-date';
 import { isPageVisible } from '@/lib/published';
 import { backend } from '@/lib/story';
+import { JsonLd, blogPostingSchema, pageMetadata, sitePerson } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,14 +15,19 @@ async function readPost(slug: string) {
   return (await backend()).site.reads.blog.post(slug);
 }
 
+/** Admin → SEO's override for the post, then the post itself, then the site's defaults. */
 export async function generateMetadata({ params }: Params) {
-  const post = await readPost((await params).slug);
+  const { slug } = await params;
+  const post = await readPost(slug);
   if (!post) return { title: 'Post not found' };
-  return {
+  const metadata = await pageMetadata(`/blog/${slug}`, {
     title: post.title,
     ...(post.description ? { description: post.description } : {}),
+    ...(post.image ? { image: post.image } : {}),
     ...(post.tags.length ? { keywords: post.tags } : {}),
-  };
+  });
+  // A noindexed (hidden) page has no share card to mark as an article.
+  return metadata.openGraph ? { ...metadata, openGraph: { ...metadata.openGraph, type: 'article', publishedTime: post.date } } : metadata;
 }
 
 /** One published post, with the newer and older posts under it. */
@@ -40,6 +46,7 @@ export default async function BlogPostPage({ params }: Params) {
 
   return (
     <PageLayout width="narrow">
+      <JsonLd data={blogPostingSchema(sitePerson(), { path: `/blog/${post.slug}`, title: post.title, description: post.description || undefined, date: post.date, image: post.image || undefined })} />
       <Link
         href="/blog"
         className="text-sm leading-baseline text-foreground-muted hover:text-foreground mb-minor-2 block w-fit"

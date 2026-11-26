@@ -2,10 +2,11 @@ import { notFound } from 'next/navigation';
 import { BlogClient } from '@/components/blog/BlogClient';
 import { isPageVisible } from '@/lib/published';
 import { backend } from '@/lib/story';
+import { pageMetadata } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
-export const metadata = { title: 'Posts' };
+export const generateMetadata = () => pageMetadata('/blog', { title: 'Posts', description: 'Notes from Fieldnote Studio on research, writing and the habits around the screen.' });
 
 /** Posts, unless the page is switched off in the admin. */
 export default async function BlogPage() {
