@@ -5,7 +5,8 @@ import { SITE_DATA_MODULES, createSiteData, type SiteData } from '@rcweston/site
 import type { AuthAdapter, DocumentStore, Story } from '@rcweston/story-core';
 import { seed } from '@/content/seed';
 import { CUSTOM_BLOCK_NAMES } from '@/content/blocks-registry';
-import { SITE_PAGES } from '@/content/site';
+import { SITE, SITE_PAGES } from '@/content/site';
+import { RESUME_BASE, SEO_FALLBACKS, SITE_RESOURCES } from './settings';
 import { planStorage, readConfig, type SiteKitConfig, type StoragePlan } from './config';
 import { describeStorage, openDatabase, openDocuments, openMedia, type Database } from './storage';
 import { putSeedMedia, withSeedPhoto } from './seed-media';
@@ -114,7 +115,11 @@ export async function createBackend(config: SiteKitConfig = readConfig()): Promi
     const site = createSiteData({
       modules: SITE_DATA_MODULES,
       sql: database?.sql,
-      config: { 'site-resources': { pages: SITE_PAGES, resources: [] } },
+      config: {
+        'site-resources': { pages: SITE_PAGES, resources: SITE_RESOURCES },
+        resume: { base: RESUME_BASE, downloadName: `${SITE.name} - Resume.pdf` },
+        seo: { siteUrl: config.siteUrl.toString(), fallbacks: SEO_FALLBACKS },
+      },
       services: { documents: store, media, mediaVisibility: 'public' },
     });
     if (database && config.autoMigrate) await site.migrate();

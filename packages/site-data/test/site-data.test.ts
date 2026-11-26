@@ -69,7 +69,9 @@ describe('migrations', () => {
 
   it('keeps each module inside its own number range', () => {
     const names = collectMigrations(SITE_DATA_MODULES).map((migration) => migration.name);
-    assert.deepEqual(names, ['1000_site_page_visibility.sql', '1100_site_work_order.sql', '1200_site_story_placement.sql']);
+    // Every module's files, in number order, each inside its module's range.
+    assert.deepEqual(names, SITE_DATA_MODULES.flatMap((module) => module.migrations.map((migration) => migration.name)).sort());
+    for (const name of ['1000_site_page_visibility.sql', '1100_site_work_order.sql', '1200_site_story_placement.sql']) assert.ok(names.includes(name), name);
     const stray = defineModule({ ...SITE_DATA_MODULES[1], id: 'stray', migrationRange: [2000, 2099] }) as SiteDataModule;
     assert.throws(() => collectMigrations([stray]), /outside its range 2000–2099/);
     assert.throws(() => collectMigrations([SITE_DATA_MODULES[0], { ...SITE_DATA_MODULES[1], migrationRange: [1050, 1150] } as SiteDataModule]), /overlapping/);
@@ -79,12 +81,13 @@ describe('migrations', () => {
   it('applies everything once, a second run is a no-op, and a dry run changes nothing', async () => {
     const db = new PGlite();
     try {
+      const total = collectMigrations(SITE_DATA_MODULES).length;
       const dry = await migrate({ client: db, modules: SITE_DATA_MODULES, dryRun: true });
-      assert.equal(dry.pending.length, 3);
+      assert.equal(dry.pending.length, total);
       const { rows } = await db.query<{ name: string | null }>(`SELECT to_regclass('site_data_migrations')::text AS name`);
       assert.equal(rows[0].name, null);
       const first = await migrate({ client: db, modules: SITE_DATA_MODULES });
-      assert.equal(first.applied.length, 3);
+      assert.equal(first.applied.length, total);
       const again = await migrate({ client: db, modules: SITE_DATA_MODULES });
       assert.deepEqual(again.applied, []);
       const edited = SITE_DATA_MODULES.map((module) =>

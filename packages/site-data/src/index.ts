@@ -29,4 +29,7 @@ export { siteResources, type SiteResourcesReads, type SiteResourcesStore } from 
 export { workOrder, type WorkOrderReads, type WorkOrderStore } from './modules/work-order/index.js';
 export { storyPlacement, currentPlacements, type StoryPlacement, type StoryPlacementReads, type StoryPlacementStore } from './modules/story-placement/index.js';
 export { mediaLibrary, type MediaLibraryConfig, type MediaLibraryReads } from './modules/media-library/index.js';
+export { resume, type ResumeBase, type ResumeConfig, type ResumeReads, type ResumeStore } from './modules/resume/index.js';
+export { seo, type SeoConfig, type SeoReads, type SeoStore } from './modules/seo/index.js';
+export { appearance, type AppearanceReads, type AppearanceStore } from './modules/appearance/index.js';
 export * from './client.js';

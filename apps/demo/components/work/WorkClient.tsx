@@ -1,9 +1,10 @@
 import type { WorkCard } from '@/lib/published';
 import { WorkGrid } from './WorkCards';
+import { WorkResourceLinks } from './WorkResourceLinks';
 import styles from './Work.module.css';
 
 /** Work: the headline, then every case study switched on for Work, in the order set in the admin. */
-export function WorkClient({ cards }: { cards: WorkCard[] }) {
+export function WorkClient({ cards, resumeHref = null }: { cards: WorkCard[]; resumeHref?: string | null }) {
   return (
     <div className={styles.page} data-work-list="">
       <section className={styles.intro} aria-labelledby="work-title">
@@ -19,6 +20,7 @@ export function WorkClient({ cards }: { cards: WorkCard[] }) {
         <div className={styles.switchRow}>
           <h2 id="work-archive-heading" className={styles.heading}>Projects</h2>
           {cards.length > 0 && <span className={styles.count}>{cards.length} {cards.length === 1 ? 'study' : 'studies'}</span>}
+          <WorkResourceLinks resumeHref={resumeHref} />
         </div>
         {cards.length > 0 ? (
           <WorkGrid cards={cards} />

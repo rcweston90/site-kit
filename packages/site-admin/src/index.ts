@@ -35,6 +35,9 @@ export {
 } from './modules/define.js';
 export { dashboardModule, imageLibraryModule, siteResourcesModule, storiesModule } from './modules/core.js';
 export { ADMIN_MODULES } from './registry.js';
+export { ResumeScreen, resumeModule } from './modules/resume/index.js';
+export { SeoScreen, seoModule, type SeoScreenProps } from './modules/seo/index.js';
+export { AppearanceScreen, appearanceModule } from './modules/appearance/index.js';
 
 export { Dashboard, PageVisibilitySettings, SiteResourceVisibilitySettings } from './screens/Dashboard.js';
 export { WorkScreen, storyRecordKey } from './screens/work/WorkScreen.js';

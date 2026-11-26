@@ -1,0 +1,61 @@
+/* Sunny mode: cloud shadows over the neutral theme (SunnyOverlay.tsx). */
+.sunny-shadow-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  /* Hidden, not just transparent: an opacity-0 blend layer over the whole
+     viewport still costs compositing work. Visibility flips after the
+     fade-out so the clouds still fade away. */
+  visibility: hidden;
+  transition: opacity 1.2s ease, visibility 0s linear 1.2s;
+  overflow: hidden;
+  mix-blend-mode: multiply;
+}
+
+[data-theme="sunny"] .sunny-shadow-overlay {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+/* Each layer's full-viewport track. */
+.sunny-cloud-track {
+  position: absolute;
+  inset: 0;
+  width: 200%;
+  /* Paused unless sunny, so leaving sunny freezes the clouds while they fade
+     instead of snapping them back. */
+  animation-play-state: paused;
+}
+
+.sunny-cloud-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Layer 1: large clouds, slow drift (80s cycle). */
+.sunny-cloud-track-1 {
+  animation: cloud-drift 80s linear infinite paused;
+}
+
+/* Layer 2: smaller clouds, faster drift (55s cycle). */
+.sunny-cloud-track-2 {
+  animation: cloud-drift 55s linear infinite paused;
+  animation-delay: -20s;
+}
+
+[data-theme="sunny"] .sunny-cloud-track {
+  animation-play-state: running;
+}
+
+@keyframes cloud-drift {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sunny-cloud-track { animation: none !important; }
+}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { themeAttribute } from '@rcweston/site-data/client';
 import { SiteNavigation, type SiteNavItem } from './SiteNavigation';
 import { SiteFooter } from './SiteFooter';
 
@@ -10,22 +11,33 @@ import { SITE_THEME_KEY as THEME_KEY } from './theme-script';
 const THEME_CHROME: Record<SiteTheme, string> = { default: '#F8F9FB', amber: '#FAF5F0', dark: '#0F1216' };
 const isTheme = (value: unknown): value is SiteTheme => value === 'default' || value === 'amber' || value === 'dark';
 
-function readTheme(): SiteTheme {
+/** The visitor's own pick, else the default theme set in Admin → Appearance. */
+function readTheme(fallback: SiteTheme): SiteTheme {
   try {
     const stored: unknown = JSON.parse(window.localStorage.getItem(THEME_KEY) ?? 'null');
-    return isTheme(stored) ? stored : 'default';
+    return isTheme(stored) ? stored : fallback;
   } catch {
-    return 'default';
+    return fallback;
   }
 }
 
+/** Admin → Appearance's say in the theme: where a first visit starts, and the clouds over neutral. */
+export interface SiteThemeSettings {
+  defaultTheme: SiteTheme;
+  sunny: boolean;
+}
+
+const PLAIN: SiteThemeSettings = { defaultTheme: 'default', sunny: false };
+
 /**
  * The public pages' frame: skip link, navigation, the page, and the footer
- * with its theme switch. The theme is kept in this browser.
+ * with its theme switch. A visitor's pick is kept in their browser; until
+ * they make one, the default theme from Admin → Appearance applies.
  */
-export function SiteChrome({ nav, children }: { nav: SiteNavItem[]; children: ReactNode }) {
-  const [theme, setTheme] = useState<SiteTheme>('default');
-  useEffect(() => setTheme(readTheme()), []);
+export function SiteChrome({ nav, appearance = PLAIN, children }: { nav: SiteNavItem[]; appearance?: SiteThemeSettings; children: ReactNode }) {
+  const { defaultTheme, sunny } = appearance;
+  const [theme, setTheme] = useState<SiteTheme>(defaultTheme);
+  useEffect(() => setTheme(readTheme(defaultTheme)), [defaultTheme]);
 
   const applyTheme = useCallback((next: SiteTheme) => {
     setTheme(next);
@@ -40,10 +52,11 @@ export function SiteChrome({ nav, children }: { nav: SiteNavItem[]; children: Re
     const root = document.documentElement;
     root.removeAttribute('data-admin-theme-active');
     root.style.colorScheme = theme === 'dark' ? 'dark' : 'light';
-    if (theme === 'default') root.removeAttribute('data-theme');
-    else root.setAttribute('data-theme', theme);
+    const attribute = themeAttribute(theme, sunny);
+    if (attribute) root.setAttribute('data-theme', attribute);
+    else root.removeAttribute('data-theme');
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', THEME_CHROME[theme]);
-  }, [theme]);
+  }, [theme, sunny]);
 
   return (
     <>

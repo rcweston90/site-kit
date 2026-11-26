@@ -1,0 +1,25 @@
+.links { display: flex; flex-wrap: wrap; align-items: center; gap: var(--rhythm-half); }
+
+.link {
+  display: inline-flex;
+  min-block-size: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-hover);
+  border-radius: 10px;
+  gap: 6px;
+  padding-inline: var(--rhythm-half);
+  background: transparent;
+  color: var(--foreground);
+  white-space: nowrap;
+  font: 500 14px/24px var(--font-sans);
+  text-decoration: none;
+}
+.link > svg { flex-shrink: 0; }
+@media (hover: hover) {
+  .link[href]:hover { background: color-mix(in srgb, var(--foreground) 5%, transparent); }
+}
+.link:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+@media (max-width: 599px) {
+  .link { padding-inline: 10px; }
+}

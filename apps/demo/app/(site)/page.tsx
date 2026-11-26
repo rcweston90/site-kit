@@ -2,8 +2,11 @@ import { Home, Portrait } from '@/components/home/Home';
 import { ContactStripHeader, type StripPhoto } from '@/components/home/ContactStripHeader';
 import { RoleLockup } from '@/components/home/RoleLockup';
 import { isPageVisible, workCards, type WorkCard } from '@/lib/published';
+import { JsonLd, pageMetadata, personSchema, sitePerson } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
+
+export const generateMetadata = () => pageMetadata('/');
 
 /** The header's photographs: the covers of the first published studies, in the saved order. */
 function stripPhotos(work: WorkCard[]): StripPhoto[] {
@@ -16,10 +19,13 @@ function stripPhotos(work: WorkCard[]): StripPhoto[] {
 export default async function HomePage() {
   const [work, workVisible] = await Promise.all([workCards(), isPageVisible('/work')]);
   return (
+    <>
+    <JsonLd data={personSchema(sitePerson())} />
     <Home
       work={work}
       workHref={workVisible ? '/work' : null}
       header={<ContactStripHeader shots={stripPhotos(work)} portrait={<Portrait bare />} professionalRecord={<RoleLockup treatment="stack" mobileStatementFirst />} />}
     />
+    </>
   );
 }

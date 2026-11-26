@@ -12,9 +12,11 @@ const names = (groups: ReturnType<typeof buildAdminNav>) => groups.map((group) =
 test('the nav is built from the enabled modules, empty groups left out', () => {
   assert.deepEqual(names(buildAdminNav(ADMIN_MODULES, config)), [
     ['Overview', ['Dashboard']],
+    ['Publishing', ['Resume']],
     ['Portfolio', ['Work', 'Image library']],
+    ['Site Settings', ['Appearance', 'SEO']],
   ]);
-  const [, portfolio] = buildAdminNav(ADMIN_MODULES, config);
+  const [, , portfolio] = buildAdminNav(ADMIN_MODULES, config);
   assert.deepEqual(portfolio.items.map((item) => item.href), ['/admin/stories', '/admin/image-library']);
 });
 
@@ -26,12 +28,13 @@ test('a module lands in its group at its slot; custom links follow, external one
   ]);
   assert.deepEqual(names(groups), [
     ['Overview', ['Dashboard']],
-    ['Publishing', ['Home', 'Posts']],
+    ['Publishing', ['Home', 'Posts', 'Resume']],
     ['Portfolio', ['Work', 'Image library']],
+    ['Site Settings', ['Appearance', 'SEO']],
     ['Tools', ['Style guide']],
   ]);
-  assert.equal(groups[3].items[0].href, '/style-guide');
-  assert.equal(groups[3].items[0].external, true);
+  assert.equal(groups[4].items[0].href, '/style-guide');
+  assert.equal(groups[4].items[0].external, true);
 });
 
 test('child routes belong to the closest item; the dashboard matches only itself', () => {
