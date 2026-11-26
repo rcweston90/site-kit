@@ -1,0 +1,7 @@
+/* The home page's shots carousel, fitted to the letter composition. */
+.reel { width: 100%; min-width: 0; }
+.reel [aria-roledescription='carousel'] { outline-offset: 6px; }
+.reel [aria-roledescription='carousel']:focus-visible { outline: 2px solid var(--accent-primary); }
+.reel [aria-label='Slideshow controls'] button { min-width: 44px; min-height: 44px; }
+.reel button:disabled { opacity: .45; cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) { .reel [aria-roledescription='slide'] { transition: none !important; } }

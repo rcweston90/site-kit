@@ -77,6 +77,9 @@ importers:
       remark-gfm:
         specifier: 4.0.1
         version: 4.0.1
+      sharp:
+        specifier: 0.35.5
+        version: 0.35.5(@types/node@22.20.7)
     devDependencies:
       '@tailwindcss/postcss':
         specifier: 4.1.18
@@ -241,6 +244,9 @@ importers:
       pg:
         specifier: ^8.16.0
         version: 8.23.1
+      sharp:
+        specifier: 0.35.5
+        version: 0.35.5(@types/node@22.20.7)
 
   packages/story-core:
     devDependencies:
@@ -3011,8 +3017,7 @@ snapshots:
 
   '@fontsource-variable/geist@5.3.0': {}
 
-  '@img/colour@1.1.0':
-    optional: true
+  '@img/colour@1.1.0': {}
 
   '@img/sharp-darwin-arm64@0.35.5':
     optionalDependencies:
@@ -5506,8 +5511,7 @@ snapshots:
       extend-shallow: 2.0.1
       kind-of: 6.0.3
 
-  semver@7.8.6:
-    optional: true
+  semver@7.8.6: {}
 
   sharp@0.35.5(@types/node@22.20.7):
     dependencies:
@@ -5541,7 +5545,6 @@ snapshots:
       '@img/sharp-win32-ia32': 0.35.5
       '@img/sharp-win32-x64': 0.35.5
       '@types/node': 22.20.7
-    optional: true
 
   source-map-js@1.2.4: {}
 

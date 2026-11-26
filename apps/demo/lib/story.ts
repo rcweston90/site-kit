@@ -9,6 +9,7 @@ import { SITE_PAGES } from '@/content/site';
 import { planStorage, readConfig, type SiteKitConfig, type StoragePlan } from './config';
 import { describeStorage, openDatabase, openDocuments, openMedia, type Database } from './storage';
 import { putSeedMedia, withSeedPhoto } from './seed-media';
+import { seedShots } from './seed-shots';
 
 /**
  * The site's backend, built from `lib/config.ts`:
@@ -122,6 +123,7 @@ export async function createBackend(config: SiteKitConfig = readConfig()): Promi
     if (config.seed) {
       await putSeedMedia(media);
       await seedStore(store, site);
+      await seedShots(site.stores['shots'], media);
     }
     const auth = await createAuth(config, database);
     const story = createStoryHandlers({

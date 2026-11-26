@@ -34,6 +34,7 @@ export {
   type AdminStat,
 } from './modules/define.js';
 export { dashboardModule, imageLibraryModule, siteResourcesModule, storiesModule } from './modules/core.js';
+export { shotsModule, ShotsScreen, shotRecordKey, Reorder } from './modules/shots/index.js';
 export { ADMIN_MODULES } from './registry.js';
 
 export { Dashboard, PageVisibilitySettings, SiteResourceVisibilitySettings } from './screens/Dashboard.js';

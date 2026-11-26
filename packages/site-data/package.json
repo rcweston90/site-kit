@@ -45,10 +45,14 @@
     "reading-time": "1.5.0"
   },
   "peerDependencies": {
-    "pg": "^8.11"
+    "pg": "^8.11",
+    "sharp": ">=0.33"
   },
   "peerDependenciesMeta": {
     "pg": {
+      "optional": true
+    },
+    "sharp": {
       "optional": true
     }
   },
@@ -57,6 +61,7 @@
     "@types/mdast": "4.0.4",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.15.0",
-    "pg": "^8.16.0"
+    "pg": "^8.16.0",
+    "sharp": "0.35.5"
   }
 }
