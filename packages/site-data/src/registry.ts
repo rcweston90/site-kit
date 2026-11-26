@@ -12,6 +12,9 @@ import { resume } from './modules/resume/index.js';
 import { seo } from './modules/seo/index.js';
 import { appearance } from './modules/appearance/index.js';
 import { shots } from './modules/shots/index.js';
+import { home } from './modules/home/index.js';
+import { community } from './modules/community/index.js';
+import { showreel } from './modules/showreel/index.js';
 
 export const SITE_DATA_MODULES = [
   siteResources,
@@ -22,6 +25,9 @@ export const SITE_DATA_MODULES = [
   seo,
   appearance,
   shots,
+  home,
+  community,
+  showreel,
 ] as const;
 
 export type SiteDataModules = typeof SITE_DATA_MODULES;

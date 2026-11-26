@@ -1,12 +1,14 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { ADMIN_MODULES } from '../src/registry.ts';
+import { dashboardModule, imageLibraryModule, siteResourcesModule, storiesModule } from '../src/modules/core.ts';
 import { defineAdminModule } from '../src/modules/define.ts';
 import { buildAdminNav, findAdminNavGroup, findCurrentAdminNavItem } from '../src/shell/navigation.ts';
 import { adminRecordTitle, adminTitle } from '../src/title/index.ts';
 import { copySlug, fullOrder, nextWorkSort, sortStoryRows, type StoryRow } from '../src/screens/work/model.ts';
 
 const config = { adminBase: '/admin' };
+// The modules every admin has; ones a port adds are tested beside their screens.
+const ADMIN_MODULES = [dashboardModule, storiesModule, imageLibraryModule, siteResourcesModule];
 const names = (groups: ReturnType<typeof buildAdminNav>) => groups.map((group) => [group.label, group.items.map((item) => item.name)]);
 
 test('the nav is built from the enabled modules, empty groups left out', () => {

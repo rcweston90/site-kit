@@ -39,6 +39,9 @@ export { ADMIN_MODULES } from './registry.js';
 export { ResumeScreen, resumeModule } from './modules/resume/index.js';
 export { SeoScreen, seoModule, type SeoScreenProps } from './modules/seo/index.js';
 export { AppearanceScreen, appearanceModule } from './modules/appearance/index.js';
+export { homeModule, HomeScreen, HomeHeaderImages, InlineRichText } from './modules/home/index.js';
+export { communityModule, CommunityScreen } from './modules/community/index.js';
+export { showreelModule, ShowreelScreen } from './modules/showreel/index.js';
 
 export { Dashboard, PageVisibilitySettings, SiteResourceVisibilitySettings } from './screens/Dashboard.js';
 export { WorkScreen, storyRecordKey } from './screens/work/WorkScreen.js';

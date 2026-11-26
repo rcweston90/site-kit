@@ -27,3 +27,13 @@ export const HOME = {
     'Leave the system simpler than you found it.',
   ],
 } as const;
+
+/** The letter's shipped copy, as Admin → Home edits it: the first paragraph is the margin note. */
+export const HOME_ABOUT = {
+  tagline: HOME.tagline,
+  bio: [
+    'Currently designing research tools at [Fieldnote Studio](https://example.com/fieldnote), where small teams turn what customers say into what they build next.',
+    ...HOME.letter,
+  ],
+  fastFacts: [...HOME.howIWork],
+};

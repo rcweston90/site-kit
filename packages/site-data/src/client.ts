@@ -11,6 +11,9 @@ export * from './modules/resume/model.js';
 export * from './modules/seo/model.js';
 export * from './modules/appearance/model.js';
 export * from './modules/shots/model.js';
+export * from './modules/home/model.js';
+export * from './modules/community/model.js';
+export * from './modules/showreel/model.js';
 
 /** Where the handlers are mounted unless you say otherwise. */
 export const DEFAULT_SITE_DATA_BASE_PATH = '/api/site';

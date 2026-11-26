@@ -4,7 +4,7 @@ What visitors see, all under `app/(site)` and `app/stories`. It is the same layo
 
 | Route | What it shows | Reads |
 | --- | --- | --- |
-| `/` | The header (name, profiles, a strip of the first published covers, the role and the statement), a letter, Selected work, experience and education, and the ethos | `workCards()`, `isPageVisible('/work')` |
+| `/` | The header (name, profiles, three photographs set in Admin → Home, the role and the statement), the letter from Admin → Home, Selected work, experience and education, and the ethos | `workCards()`, `isPageVisible('/work')`, `site.reads.home` |
 | `/work` | The Work introduction and every listed, published story as a card, in the saved order | `workCards()`; answers 404 when Work is hidden |
 | `/shots` | Every visible shot as a wall-to-wall collage, and a viewer (Previous / Next, ← →, Esc) | `site.reads['shots'].photos()`; answers 404 when Shots is hidden |
 | `/stories/<slug>` | A published story in the reader; an old address redirects to the new one | `@rcweston/story-server` through `backend()` |
@@ -34,3 +34,10 @@ What visitors see, all under `app/(site)` and `app/stories`. It is the same layo
 1. Add `{ path: '/notes', label: 'Notes' }` to `SITE_PAGES` in `content/site.ts`. It appears in the dashboard's Page visibility list and in the nav.
 2. Add `app/(site)/notes/page.tsx`, starting with `if (!(await isPageVisible('/notes'))) notFound();` and `export const dynamic = 'force-dynamic';`.
 3. Read the module's data through `(await backend()).site.reads['notes']`.
+
+## Home, Community and Showreel
+
+- **Home.** The letter (tagline, paragraphs, "What I do") and the header's three photographs come from the `home` module; `content/home.ts` holds the shipped letter (`HOME_ABOUT`). Each header slot is a photo from the library, an upload, or the library's photo for that slot. The library is `homeLibrary()` in `lib/publishing.ts`: drawn stand-ins (`content/home-header.ts`) and then the published covers.
+- **The Shots slot.** The original played its photo reel between the header and the letter, its shots turned by three (`[...shots.slice(3), ...shots.slice(0, 3)]`). `app/(site)/page.tsx` reads them with `shotsPhotos()` (`lib/publishing.ts`), which calls `site.reads.shots.photos()` when a Shots module is registered and returns `[]` otherwise, and hands them to `shotsReel(photos)`, which renders nothing until wired: its marked `SHOTS SLOT` line becomes `return <ShotsReel shots={turned} galleryHref="/shots" />;` plus the import. The header's library already follows: with shots present, "Choose from Shots" offers them and the strip's three defaults are the first three shots, as in the original; without, drawn stand-ins take their place.
+- **Community** (`/community`) is in `SITE_PAGES`, so it can be hidden like Work. `content/community.ts` is its shipped copy, with one hidden talk; `components/community/CommunityPageView.tsx` draws both the page and the admin's preview.
+- **Showreel** (`/showreel`) plays the reel set in Admin → Showreel: an uploaded MP4 or WebM, or a Figma deck in a frame. Until one is set it plays `public/samples/showreel.webm`, a fictional clip that `sh scripts/make-showreel.sh` draws on your machine with ffmpeg (the repo keeps no video files, so the file is git-ignored); without it, nothing plays until a reel is set. It is a site resource, so the dashboard can switch it off; a "View demo reel" link on Work should check `site.reads['site-resources'].resourceVisibility()` for `showreel` and point at `/showreel`.

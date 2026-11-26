@@ -33,4 +33,7 @@ export { resume, type ResumeBase, type ResumeConfig, type ResumeReads, type Resu
 export { seo, type SeoConfig, type SeoReads, type SeoStore } from './modules/seo/index.js';
 export { appearance, type AppearanceReads, type AppearanceStore } from './modules/appearance/index.js';
 export { shots, configureShots, createMemoryShotsStore, createPostgresShotsStore, ingestImage, ingestWithoutSharp, readImageSize, type IngestImage, type IngestedImage, type NewShot, type ShotsConfig, type ShotsReads, type ShotsStore, type StoredShot } from './modules/shots/index.js';
+export { home, type HomeReads, type HomeStore } from './modules/home/index.js';
+export { community, type CommunityReads, type CommunityStore } from './modules/community/index.js';
+export { showreel, type ShowreelReads, type ShowreelStore } from './modules/showreel/index.js';
 export * from './client.js';
