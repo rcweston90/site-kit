@@ -1,0 +1,31 @@
+/* The viewer is a dark panel in every theme, but Button draws its keycap from
+   the page's tokens, which would make a light key in the light and amber
+   themes. Inside the viewer those tokens take the panel's values, so the key
+   reads like the dark theme's: a face a step lighter than the panel, an
+   on-panel outline and edge, and hover sinking the face to the panel colour.
+   The focus ring takes the panel accent (blue is 2.6:1 on the light theme's
+   panel; the panel accent clears 3:1 in every theme). */
+.viewer {
+  --background: var(--surface-panel);
+  --card-bg: color-mix(in srgb, var(--on-panel) 8%, var(--surface-panel));
+  --foreground: var(--on-panel);
+  --foreground-muted: var(--on-panel-muted);
+  --border: color-mix(in srgb, var(--on-panel) 12%, transparent);
+  --border-hover: color-mix(in srgb, var(--on-panel) 24%, transparent);
+  --shadow-xs: 0 1px 2px color-mix(in srgb, var(--surface-panel-elevated) 60%, transparent);
+  --shadow-sm: 0 1px 3px color-mix(in srgb, var(--surface-panel-elevated) 70%, transparent);
+  --accent-primary: var(--on-panel-accent);
+
+  background: var(--surface-panel);
+  color: var(--on-panel);
+}
+
+/* The viewer fades in; each photo settles in as it changes (none with
+   reduced motion). */
+.viewer { animation: viewer-in 0.2s linear both; }
+.photo { animation: photo-in 0.22s cubic-bezier(0.4, 0, 0.2, 1) both; }
+@keyframes viewer-in { from { opacity: 0; } }
+@keyframes photo-in { from { opacity: 0; transform: scale(0.985); } }
+@media (prefers-reduced-motion: reduce) {
+  .photo { animation: none; }
+}

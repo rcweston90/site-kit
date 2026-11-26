@@ -11,6 +11,7 @@ import { workOrder } from './modules/work-order/index.js';
 import { resume } from './modules/resume/index.js';
 import { seo } from './modules/seo/index.js';
 import { appearance } from './modules/appearance/index.js';
+import { shots } from './modules/shots/index.js';
 
 export const SITE_DATA_MODULES = [
   siteResources,
@@ -20,6 +21,7 @@ export const SITE_DATA_MODULES = [
   resume,
   seo,
   appearance,
+  shots,
 ] as const;
 
 export type SiteDataModules = typeof SITE_DATA_MODULES;

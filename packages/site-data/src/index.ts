@@ -32,4 +32,5 @@ export { mediaLibrary, type MediaLibraryConfig, type MediaLibraryReads } from '.
 export { resume, type ResumeBase, type ResumeConfig, type ResumeReads, type ResumeStore } from './modules/resume/index.js';
 export { seo, type SeoConfig, type SeoReads, type SeoStore } from './modules/seo/index.js';
 export { appearance, type AppearanceReads, type AppearanceStore } from './modules/appearance/index.js';
+export { shots, configureShots, createMemoryShotsStore, createPostgresShotsStore, ingestImage, ingestWithoutSharp, readImageSize, type IngestImage, type IngestedImage, type NewShot, type ShotsConfig, type ShotsReads, type ShotsStore, type StoredShot } from './modules/shots/index.js';
 export * from './client.js';

@@ -12,7 +12,7 @@ const names = (groups: ReturnType<typeof buildAdminNav>) => groups.map((group) =
 test('the nav is built from the enabled modules, empty groups left out', () => {
   assert.deepEqual(names(buildAdminNav(ADMIN_MODULES, config)), [
     ['Overview', ['Dashboard']],
-    ['Publishing', ['Resume']],
+    ['Publishing', ['Shots', 'Resume']],
     ['Portfolio', ['Work', 'Image library']],
     ['Site Settings', ['Appearance', 'SEO']],
   ]);
@@ -28,7 +28,7 @@ test('a module lands in its group at its slot; custom links follow, external one
   ]);
   assert.deepEqual(names(groups), [
     ['Overview', ['Dashboard']],
-    ['Publishing', ['Home', 'Posts', 'Resume']],
+    ['Publishing', ['Home', 'Posts', 'Shots', 'Resume']],
     ['Portfolio', ['Work', 'Image library']],
     ['Site Settings', ['Appearance', 'SEO']],
     ['Tools', ['Style guide']],
