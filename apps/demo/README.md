@@ -9,6 +9,8 @@ pnpm build
 pnpm --filter @rcweston/story-demo dev
 ```
 
+For a step-by-step walkthrough aimed at designers, see [the guide](../../docs/guide.md).
+
 Open http://localhost:3000 for the site and http://localhost:3000/admin for the admin. Under `pnpm dev` the passcode is `studio`.
 
 On first start the demo writes its sample stories into an empty store: five published (one of them hidden from Work), two drafts, and one draft restored from before its last publish, so the editor offers to bring the published version's changes in. It never seeds a store that has been seeded before.

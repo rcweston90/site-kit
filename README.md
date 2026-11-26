@@ -23,6 +23,8 @@ pnpm --filter @rcweston/story-demo dev   # http://localhost:3000, admin at /admi
 pnpm db:migrate                          # apply migrations yourself, when SITE_KIT_AUTO_MIGRATE=false
 ```
 
+New to this? [docs/guide.md](docs/guide.md) walks a designer through getting a copy, writing case studies and posts, choosing a database and putting the site online.
+
 ## Small packages
 
 | Package | What it does | Depends on |
