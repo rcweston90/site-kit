@@ -37,6 +37,10 @@ With auto-migrate off, a server whose database is behind stops and names the com
 
 **Serverless hosts.** Their disk is read-only or thrown away, so set a database URL and a bucket there. If the demo starts on such a host with local storage, or can't write its data folder, it says so in the server log and in a bar along the bottom of every admin page, and (when the folder can't be written at all) keeps changes in memory so the site still runs.
 
+## Photos
+
+The sample case studies ship with drawn covers so the demo works offline. To use real photographs, open `public/samples/photos/manifest.json`: it has one slot per sample story. Save a cover (about 1600 × 1000) and a smaller card copy (about 800 × 500) in that folder, put their file names in the slot's `file` and `card`, and fill in `credit` (photographer, profile link, photo page link, license). On the next start the story's banner, its Work card and its admin thumbnail all use the photo. Use only photos you have the rights to, such as ones under the Unsplash License, and avoid faces, brands and logos.
+
 ## Production build
 
 ```sh

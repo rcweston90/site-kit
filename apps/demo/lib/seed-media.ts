@@ -9,19 +9,29 @@ import { seedFiles, seedMedia } from '@/content/seed';
  * same route as uploads and the image library lists them. Run on every start,
  * it writes only the pictures the store doesn't have yet.
  *
- * None ship, but when public/samples/photos/manifest.json lists photographs
- * saved beside it, a story with one gets it as its cover (and a smaller copy
+ * public/samples/photos/manifest.json has one slot per sample story. None ship
+ * with files, but when a slot names photographs saved beside it, a story with one gets it as its cover (and a smaller copy
  * for cards) in place of the drawn stand-in.
  */
 
 const PUBLIC = join(process.cwd(), 'public');
 const PHOTOS = join(PUBLIC, 'samples', 'photos');
 
+export interface SeedPhotoCredit {
+  photographer: string;
+  profileUrl: string;
+  photoUrl: string;
+  license: string;
+}
+
 export interface SeedPhoto {
   slug: string;
+  /** The cover's file name in public/samples/photos; empty keeps the drawn stand-in. */
   file: string;
+  /** A smaller copy for cards and admin thumbnails. */
   card: string;
   alt: string;
+  credit?: SeedPhotoCredit;
 }
 
 function readPhotos(): SeedPhoto[] {
@@ -29,13 +39,17 @@ function readPhotos(): SeedPhoto[] {
   if (!existsSync(manifest)) return [];
   try {
     const parsed = JSON.parse(readFileSync(manifest, 'utf8')) as { photos?: SeedPhoto[] };
-    return (parsed.photos ?? []).filter((photo) => existsSync(join(PHOTOS, photo.file)) && existsSync(join(PHOTOS, photo.card)));
+    return (parsed.photos ?? []).filter((photo) => Boolean(photo.file && photo.card) && existsSync(join(PHOTOS, photo.file)) && existsSync(join(PHOTOS, photo.card)));
   } catch {
     return [];
   }
 }
 
 const photos = readPhotos();
+
+/** Credits for the photographs in use, for a credits page or a caption. */
+export const seedPhotoCredits = (): Array<SeedPhotoCredit & { slug: string }> =>
+  photos.flatMap((photo) => (photo.credit?.photographer ? [{ slug: photo.slug, ...photo.credit }] : []));
 
 export async function putSeedMedia(media: MediaStore): Promise<void> {
   const put = async (key: string, bytes: Uint8Array, contentType: string) => {

@@ -1,0 +1,89 @@
+{
+  "$comment": "One slot per sample case study. Save a photo (about 1600x1000, under 250 KB) and a smaller card copy (about 800x500) in this folder, put their file names in file and card, and fill in credit. Slots with no files keep the drawn stand-in cover. Use only photos you have the rights to, such as ones under the Unsplash License, and avoid faces, brands and logos.",
+  "photos": [
+    {
+      "slug": "field-notes",
+      "file": "",
+      "card": "",
+      "alt": "Note cards fanned across a desk",
+      "credit": {
+        "photographer": "",
+        "profileUrl": "",
+        "photoUrl": "",
+        "license": "Unsplash License"
+      }
+    },
+    {
+      "slug": "quiet-onboarding",
+      "file": "",
+      "card": "",
+      "alt": "A phone resting on pale linen",
+      "credit": {
+        "photographer": "",
+        "profileUrl": "",
+        "photoUrl": "",
+        "license": "Unsplash License"
+      }
+    },
+    {
+      "slug": "transit-map",
+      "file": "",
+      "card": "",
+      "alt": "A transit map pinned to a wall",
+      "credit": {
+        "photographer": "",
+        "profileUrl": "",
+        "photoUrl": "",
+        "license": "Unsplash License"
+      }
+    },
+    {
+      "slug": "clinic-booking",
+      "file": "",
+      "card": "",
+      "alt": "A quiet clinic waiting room",
+      "credit": {
+        "photographer": "",
+        "profileUrl": "",
+        "photoUrl": "",
+        "license": "Unsplash License"
+      }
+    },
+    {
+      "slug": "button-audit",
+      "file": "",
+      "card": "",
+      "alt": "Rows of buttons on a pale surface",
+      "credit": {
+        "photographer": "",
+        "profileUrl": "",
+        "photoUrl": "",
+        "license": "Unsplash License"
+      }
+    },
+    {
+      "slug": "pricing-page",
+      "file": "",
+      "card": "",
+      "alt": "Price tags on a shop counter",
+      "credit": {
+        "photographer": "",
+        "profileUrl": "",
+        "photoUrl": "",
+        "license": "Unsplash License"
+      }
+    },
+    {
+      "slug": "archive-search",
+      "file": "",
+      "card": "",
+      "alt": "Library shelves with archive boxes",
+      "credit": {
+        "photographer": "",
+        "profileUrl": "",
+        "photoUrl": "",
+        "license": "Unsplash License"
+      }
+    }
+  ]
+}
