@@ -44,8 +44,10 @@ import {
   SessionEndedDialog,
   explainFailure,
   markSessionEnded,
+  useDraftAutosave,
   useLeaveGuard,
   useSaveShortcut,
+  whenHistorySettled,
 } from '@rcweston/save-kit';
 import { mediaDisplayLabel } from './StoryBlockEditor.js';
 import StoryInspector from './StoryInspector.js';
@@ -414,6 +416,15 @@ export default function StoryEditor({
   const [continuousError, setContinuousError] = useState<string | null>(null);
   const continuousErrorRef = useRef<string | null>(null);
   const [inlineDirty, setInlineDirty] = useState(false);
+  /** Bumped on each keystroke in an inline field, so autosave waits for a pause there too. */
+  const [inlineRevision, setInlineRevision] = useState(0);
+  /** Why autosave is waiting (what the server would refuse), or null. */
+  const [autosavePaused, setAutosavePaused] = useState<string | null>(null);
+  /** The inline text an autosave last wrote into the story, so typing back to
+   *  it reads as saved. */
+  const autosavedInlineRef = useRef<{ path: string; value: string } | null>(null);
+  /** Where the Back link goes once the draft has saved itself. */
+  const [leaveTo, setLeaveTo] = useState<string | null>(null);
   // A structure change's status line ("Deleted — ⌘Z to undo") lasts exactly as
   // long as the story it produced: the next edit, undo or save replaces it.
   const [notice, setNotice] = useState<{ text: string; story: Story } | null>(null);
@@ -867,16 +878,21 @@ export default function StoryEditor({
     onSelect: setSelectedId,
     onTextInput: (path, value) => dispatch({ type: 'edit', story: updateStoryField(editor.story, path, value), history: 'merge' }),
     onTextDraftChange: (path, value, changed, resolvePath) => {
-      pendingInlineRef.current = { path: [...path], value, changed, resolvePath };
-      setInlineDirty(changed);
+      const autosaved = autosavedInlineRef.current;
+      const unsaved = changed && !(autosaved && autosaved.path === JSON.stringify(path) && autosaved.value === value);
+      pendingInlineRef.current = { path: [...path], value, changed: unsaved, resolvePath };
+      setInlineDirty(unsaved);
+      setInlineRevision((revision) => revision + 1);
     },
     onTextEditStart: () => {
       pendingInlineRef.current = null;
+      autosavedInlineRef.current = null;
       setInlineDirty(false);
       dispatch({ type: 'inline-start' });
     },
     onTextEditEnd: () => {
       pendingInlineRef.current = null;
+      autosavedInlineRef.current = null;
       setInlineDirty(false);
       dispatch({ type: 'inline-commit' });
     },
@@ -929,32 +945,41 @@ export default function StoryEditor({
     ui: EDITOR_UI,
   };
 
-  /** Appends a new version (every save is kept for safekeeping) and returns it,
-   *  or null when validation, a conflict or the request stopped it. */
-  const saveContent = async (edited: Story, submittedStory: Story): Promise<StoryDocument | null> => {
-    if (!response) return null;
+  /** Saves a version and returns it, or null when validation, a conflict or
+   *  the request stopped it. An explicit save (⌘S, Save, Publish, a move)
+   *  keeps a version of its own; an autosave folds into the working one, and
+   *  never moves the selection or announces a problem the author didn't ask
+   *  about: it waits, and the status line says why. */
+  const saveContent = async (edited: Story, submittedStory: Story, { autosave = false } = {}): Promise<StoryDocument | null> => {
+    const base = responseRef.current ?? response;
+    if (!base) return null;
     // Media the canvas measured keeps its real shape from now on, so readers
     // get the right frame on first paint.
     const content = withMeasuredAspects(edited);
     const problems = validateEditorDraft(content, slug);
     if (problems.length > 0) {
-      setSelectedId(problems[0].target);
       const messages = [...new Set(problems.map((problem) => problem.message))];
+      if (autosave) {
+        setAutosavePaused(messages[0] ?? null);
+        return null;
+      }
+      setSelectedId(problems[0].target);
       setValidationErrors(messages);
       dispatch({ type: 'save-error', message: `Fix ${messages.length === 1 ? 'one thing' : `${messages.length} things`} before saving` });
       return null;
     }
+    setAutosavePaused(null);
     setValidationErrors([]);
     dispatch({ type: 'save-start' });
     try {
-      const next = await transport.saveDraft({ slug, content, parentDocumentId: response.documents[0]?.id ?? null });
+      const next = await transport.saveDraft({ slug, content, parentDocumentId: base.documents[0]?.id ?? null, ...(autosave ? { autosave } : {}) });
       const document = next.documents[0];
       if (!document) throw new Error('The draft wasn’t saved. Try again.');
       // Publishing straight after a save reads this before React re-renders.
       responseRef.current = next;
       setResponse(next);
       setConflict(null);
-      dispatch({ type: 'save-success', story: document.content, submittedStory, version: document.version });
+      dispatch({ type: 'save-success', story: document.content, submittedStory, version: document.version, ...(autosave ? { autosave } : {}) });
       return document;
     } catch (reason) {
       if (isConflict(reason)) {
@@ -969,7 +994,7 @@ export default function StoryEditor({
       }
       // An ended session asks the host's sign-in over the page and saves
       // again once the author is back.
-      if (endedSession(reason)) markSessionEnded(() => void saveContent(edited, submittedStory));
+      if (endedSession(reason)) markSessionEnded(() => void saveContent(edited, submittedStory, { autosave }));
       dispatch({ type: 'save-error', message: storyFailure(reason, 'The draft wasn’t saved. Try again.') });
       return null;
     }
@@ -1170,6 +1195,72 @@ export default function StoryEditor({
     void saveCurrentDraft();
   });
 
+  /**
+   * Autosave, as for posts: a second after the last change the draft saves
+   * itself, folding into the working version. Nothing moves under the caret:
+   * focus stays, the canvas isn't replaced and undo is untouched. Text still
+   * being typed in a field on the document canvas waits until the field is
+   * left, because putting it into the story would redraw the canvas around
+   * it; in the block editor it saves as it's typed.
+   */
+  const autosaveInline = !continuousMode && inlineDirty;
+  const canAutosave = Boolean(response) && (dirty || autosaveInline)
+    && editor.saveState !== 'saving' && editor.saveState !== 'error'
+    && !publishing && !conflict && !continuousError && !recovery.offer;
+  const canAutosaveRef = useRef(false);
+  const autosavePausedRef = useRef<string | null>(null);
+  useEffect(() => {
+    canAutosaveRef.current = canAutosave;
+    autosavePausedRef.current = autosavePaused;
+  });
+  const autosaveDraft = () => {
+    if (saveInFlightRef.current || publishInFlightRef.current || continuousErrorRef.current || !responseRef.current) return;
+    let story = editor.story;
+    const pending = pendingInlineRef.current;
+    if (!continuousMode && pending?.changed) {
+      const path = pending.resolvePath ? pending.resolvePath(editor.story) : pending.path;
+      if (path) {
+        story = updateStoryField(editor.story, path, pending.value);
+        // The field keeps its caret: it doesn't redraw while focused.
+        dispatch({ type: 'edit', story, history: 'merge' });
+        pendingInlineRef.current = { ...pending, changed: false };
+        autosavedInlineRef.current = { path: JSON.stringify(pending.path), value: pending.value };
+        setInlineDirty(false);
+      }
+    }
+    if (JSON.stringify(story) === JSON.stringify(editor.savedStory)) return;
+    const request = saveContent(normalizeStoryForSave(story), story, { autosave: true });
+    saveInFlightRef.current = request;
+    void request.finally(() => {
+      if (saveInFlightRef.current === request) saveInFlightRef.current = null;
+    });
+  };
+  const autosaveRevision = useMemo(() => ({}), [editor.story, inlineRevision]); // eslint-disable-line react-hooks/exhaustive-deps
+  useDraftAutosave({ eligible: canAutosave, revision: autosaveRevision, save: autosaveDraft, flush: leaveTo !== null });
+
+  // Back to the list: once the draft has saved itself (straight away, not
+  // after the usual pause), and after save-kit's leave guard has tidied the
+  // history, or its Back would undo the navigation.
+  useEffect(() => {
+    if (leaveTo === null || editor.saveState === 'saving') return;
+    if (hasUnsavedChanges && canAutosave && !autosavePaused) return;
+    const go = () => (navigate ? navigate(leaveTo) : window.location.assign(leaveTo));
+    if (hasUnsavedChanges) {
+      setLeaveTo(null);
+      // The server would refuse this draft as it stands: ask, as before.
+      if (autosavePaused && window.confirm(LEAVE_STORY_MESSAGE)) go();
+      // Otherwise the save failed, and the status line says why: stay.
+      return;
+    }
+    let cancelled = false;
+    void whenHistorySettled().then(() => {
+      if (cancelled) return;
+      setLeaveTo(null);
+      go();
+    });
+    return () => { cancelled = true; };
+  }, [autosavePaused, canAutosave, editor.saveState, hasUnsavedChanges, leaveTo, navigate]);
+
   // A file dropped anywhere but an upload target would make the browser open
   // it in place of the editor, taking unsaved work with it. Media slots and
   // the settings drop zone claim their drops first (defaultPrevented); every
@@ -1271,7 +1362,9 @@ export default function StoryEditor({
       ? 'Saving…'
       : editor.saveState === 'error'
         ? editor.message ?? 'Couldn’t save'
-        : activeNotice ?? historyNotice ?? (hasUnsavedChanges ? 'Unsaved changes' : latestVersion ? 'Saved' : 'Not saved yet');
+        : activeNotice ?? historyNotice ?? (hasUnsavedChanges
+          ? autosavePaused ? `Autosave is waiting: ${autosavePaused.replace(/\.$/, '')}` : 'Unsaved changes'
+          : latestVersion ? 'Saved' : 'Not saved yet');
   const publicationStatus = publishedVersion === null ? 'Not published' : isPublishedCurrent ? 'Live' : 'Live version is older';
   // Phones have no room beside the title, so there the status drops to a strip
   // under the bar, and only when it says something the buttons don't: an
@@ -1640,6 +1733,13 @@ export default function StoryEditor({
                 title={backLink.label}
                 onClickCapture={(event) => {
                   if (!(hasUnsavedChangesRef.current || pendingInlineRef.current?.changed)) return;
+                  // Unsaved work saves itself first, then the link is followed.
+                  if (canAutosaveRef.current && !autosavePausedRef.current && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    setLeaveTo(backLink.href);
+                    return;
+                  }
                   if (!window.confirm(LEAVE_STORY_MESSAGE)) { event.preventDefault(); event.stopPropagation(); }
                 }}
                 className={chromeStyles.editorPart4}

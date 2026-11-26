@@ -48,7 +48,7 @@ const canPublish = readiness.errors.length === 0;
 
 | Interface | What it does |
 | --- | --- |
-| `DocumentStore` | Append-only versions per slug, a publication pointer, renames and redirects. A save whose parent isn't the latest fails with `DraftConflictError`; a stale publish fails with `PublicationConflictError`. |
+| `DocumentStore` | Numbered versions per slug, a publication pointer, renames and redirects. A save whose parent isn't the latest fails with `DraftConflictError`; a stale publish fails with `PublicationConflictError`. An autosave (`autosave: true`) on top of an unpublished autosave rewrites it in place (`isRewritableAutosave`); every other save adds a version, and a published version never changes. |
 | `MediaStore` | Put, get (with byte ranges), head, delete and list objects by key. |
 | `MediaPolicy` | Upload size and type limits, how a key is built and the URL a browser loads it from. |
 | `AuthAdapter` | Reads the session from a `Request` and decides who may edit or view protected media. |

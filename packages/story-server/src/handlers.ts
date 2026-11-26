@@ -308,11 +308,14 @@ export function createStoryHandlers(options: StoryHandlerOptions): StoryHandlers
     const problems = validateStoryDraft(body.content, slug);
     if (problems.length > 0) throw new InvalidStoryError(problems);
     const restoredFrom = typeof body.restoredFrom === 'string' ? body.restoredFrom : null;
+    // A restore is always its own version; only the editor's own saves fold.
+    const autosave = body.autosave === true && !restoredFrom;
     await store.saveDraft({
       slug,
       content: body.content as Story,
       parentDocumentId: (body.parentDocumentId as string | null | undefined) ?? null,
       source: restoredFrom ? { kind: 'restore', ref: restoredFrom, commit } : { kind: 'editor', ref: slug, commit },
+      ...(autosave ? { autosave } : {}),
     });
     await notify('saveDraft', () => revalidator?.saved?.(slug));
     return json(await editorState(slug), 201);

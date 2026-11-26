@@ -142,10 +142,28 @@ export interface RenameResult {
   publishedDocumentId: string | null;
 }
 
+/** The `ref` an autosaved version carries, with kind `editor`. */
+export const STORY_AUTOSAVE_REF = 'autosave';
+
 /**
- * Append-only and hash-addressed. Saving never rewrites a version: it adds
- * the next one, and fails with `DraftConflictError` when `parentDocumentId`
- * isn't the latest. The publication is a separate pointer to one version.
+ * Whether an autosave may fold into `latest` rather than add a version: only
+ * when `latest` was itself autosaved and readers aren't seeing it.
+ */
+export function isRewritableAutosave(
+  latest: Pick<StoryDocument, 'id' | 'sourceKind' | 'sourceRef'> | null,
+  publishedDocumentId: string | null,
+): boolean {
+  return Boolean(latest) && latest!.sourceKind === 'editor' && latest!.sourceRef === STORY_AUTOSAVE_REF && latest!.id !== publishedDocumentId;
+}
+
+/**
+ * Versioned and hash-addressed. Saving adds the next version, and fails with
+ * `DraftConflictError` when `parentDocumentId` isn't the latest. The one
+ * exception is an autosave (`autosave: true`) on top of an earlier autosave
+ * nobody has published: it rewrites that version in place (same id, new
+ * content and checksum), so typing doesn't leave a version per pause. An
+ * explicit save, a restore or a rename always adds one. The publication is a
+ * separate pointer to one version, and a published version never changes.
  */
 export interface DocumentStore {
   list(): Promise<StorySummary[]>;
@@ -158,6 +176,8 @@ export interface DocumentStore {
     content: Story;
     parentDocumentId: string | null;
     source: SourceMeta;
+    /** Saved on its own while the author types. See `STORY_AUTOSAVE_REF`. */
+    autosave?: boolean;
   }): Promise<StoryDocument>;
   /** Fails with `PublicationConflictError` when `expectedPublishedDocumentId` is stale. */
   publish(input: {
@@ -305,7 +325,8 @@ export interface StoryErrorBody {
  */
 export interface EditorTransport {
   load(slug: string, options?: { signal?: AbortSignal }): Promise<StoryEditorState>;
-  saveDraft(input: { slug: string; content: Story; parentDocumentId: string | null }): Promise<StoryEditorState>;
+  /** `autosave` marks a save the editor made on its own; see `STORY_AUTOSAVE_REF`. */
+  saveDraft(input: { slug: string; content: Story; parentDocumentId: string | null; autosave?: boolean }): Promise<StoryEditorState>;
   publish(input: { slug: string; documentId: string; expectedPublishedDocumentId: string | null }): Promise<StoryEditorState>;
   unpublish(slug: string): Promise<StoryEditorState>;
   rename(input: { from: string; to: string; expectedLatestDocumentId: string | null }): Promise<StoryEditorState>;

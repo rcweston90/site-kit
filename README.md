@@ -27,7 +27,7 @@ Everything in the video and the screenshots below is made up for the demo: Lena 
 
 ## The story CMS
 
-Long-form stories with chapters and rich blocks, edited in place on the real page, saved as append-only versions and published by pointer. Storage, media and sign-in sit behind adapters, so it runs on Postgres or in memory, keeps uploads on S3-compatible storage or local disk, and mounts in any framework that speaks web `Request` and `Response`.
+Long-form stories with chapters and rich blocks, edited in place on the real page, saved as versions (autosaves fold into one working version) and published by pointer. Storage, media and sign-in sit behind adapters, so it runs on Postgres or in memory, keeps uploads on S3-compatible storage or local disk, and mounts in any framework that speaks web `Request` and `Response`.
 
 | Package | What it does | Depends on |
 | --- | --- | --- |

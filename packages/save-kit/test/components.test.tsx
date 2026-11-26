@@ -179,3 +179,37 @@ test('whenHistorySettled: a page that leaves after its last save goes after the 
   assert.deepEqual(order, ['back landed', 'navigate']);
   await page.unmount();
 });
+
+test('useLeaveGuard: a link with a part that checks unsaved work itself is left to it', async () => {
+  function Page() {
+    useLeaveGuard(true);
+    return (
+      <>
+        <a href="/elsewhere" id="guarded"><span data-unsaved-guarded="">Back</span></a>
+        <a href="/elsewhere" id="plain"><span>Other</span></a>
+      </>
+    );
+  }
+  const page = await render(<Page />);
+  const confirm = window.confirm;
+  let asked = 0;
+  window.confirm = () => { asked++; return false; };
+  try {
+    const click = (id: string) => {
+      const event = new window.MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
+      document.querySelector(`#${id} span`)!.dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    // jsdom doesn't navigate; stop the click once it has passed the guard.
+    const stop = (event: Event) => event.preventDefault();
+    document.addEventListener('click', stop);
+    click('guarded');
+    assert.equal(asked, 0, 'the marked part decides');
+    assert.equal(click('plain'), true);
+    assert.equal(asked, 1, 'any other link still asks');
+    document.removeEventListener('click', stop);
+  } finally {
+    window.confirm = confirm;
+    await page.unmount();
+  }
+});

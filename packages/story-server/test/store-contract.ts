@@ -9,6 +9,7 @@ import {
   AddressTakenError,
   DraftConflictError,
   PublicationConflictError,
+  STORY_AUTOSAVE_REF,
   StoryMovedError,
   contentSha256,
   type DocumentStore,
@@ -69,6 +70,56 @@ export function documentStoreContract(name: string, harness: StoreHarness) {
       content.title = 'Changed after saving';
       saved.content.title = 'Changed on the copy';
       assert.equal((await store.latest('field-notes'))?.content.title, sampleStory('field-notes').title);
+    });
+
+    it('folds an autosave into the working autosave, and keeps every other save its own version', async () => {
+      const { second } = await saveTwo();
+      // The first autosave after an explicit save starts a version of its own.
+      const working = await store.saveDraft({ slug: 'field-notes', content: editedStory('field-notes', 'typing'), parentDocumentId: second.id, source, autosave: true });
+      assert.equal(working.version, 3);
+      assert.equal(working.parentDocumentId, second.id);
+      assert.equal(working.sourceKind, 'editor');
+      assert.equal(working.sourceRef, STORY_AUTOSAVE_REF);
+
+      // The next one rewrites it: same id and parent, new content and checksum.
+      const typed = editedStory('field-notes', 'typing more');
+      const folded = await store.saveDraft({ slug: 'field-notes', content: typed, parentDocumentId: working.id, source, autosave: true });
+      assert.equal(folded.id, working.id);
+      assert.equal(folded.version, 3);
+      assert.equal(folded.parentDocumentId, second.id);
+      assert.equal(folded.createdAt, working.createdAt);
+      assert.ok(Date.parse(folded.updatedAt) >= Date.parse(working.updatedAt));
+      assert.equal(folded.contentSha256, contentSha256(typed));
+      assert.deepEqual((await store.versions('field-notes')).map((document) => document.version), [3, 2, 1]);
+      assert.deepEqual((await store.latest('field-notes'))?.content, typed);
+      const [summary] = await store.list();
+      assert.equal(summary?.latestDocumentId, working.id);
+      assert.equal(summary?.title, typed.title);
+
+      // An explicit save always adds a version, and the next autosave starts another.
+      const explicit = await store.saveDraft({ slug: 'field-notes', content: editedStory('field-notes', 'saved'), parentDocumentId: working.id, source });
+      assert.equal(explicit.version, 4);
+      const after = await store.saveDraft({ slug: 'field-notes', content: editedStory('field-notes', 'after'), parentDocumentId: explicit.id, source, autosave: true });
+      assert.equal(after.version, 5);
+
+      // A stale autosave is a conflict, like any save.
+      await assert.rejects(
+        store.saveDraft({ slug: 'field-notes', content: editedStory('field-notes', 'stale'), parentDocumentId: explicit.id, source, autosave: true }),
+        DraftConflictError,
+      );
+    });
+
+    it('never rewrites a published autosave', async () => {
+      const first = await store.saveDraft({ slug: 'field-notes', content: sampleStory('field-notes'), parentDocumentId: null, source, autosave: true });
+      await store.publish({ slug: 'field-notes', documentId: first.id, expectedPublishedDocumentId: null });
+      const next = await store.saveDraft({ slug: 'field-notes', content: editedStory('field-notes', 'after publish'), parentDocumentId: first.id, source, autosave: true });
+      assert.equal(next.version, 2);
+      const published = await store.published('field-notes');
+      assert.equal(published.status, 'published');
+      assert.deepEqual(published.status === 'published' && published.document.content, sampleStory('field-notes'));
+      // Published versions still pass their checksum check when published again.
+      await store.publish({ slug: 'field-notes', documentId: next.id, expectedPublishedDocumentId: first.id });
+      await store.publish({ slug: 'field-notes', documentId: first.id, expectedPublishedDocumentId: next.id });
     });
 
     it('refuses a draft whose parent is not the latest version', async () => {

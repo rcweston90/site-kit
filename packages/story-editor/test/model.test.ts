@@ -316,3 +316,30 @@ test('uploads are checked by type, size and signature before they leave the brow
   assert.equal(matchesStoryUploadSignature('image/png', new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])), true);
   assert.equal(matchesStoryUploadSignature('image/png', new Uint8Array([0, 0, 0, 0])), false);
 });
+
+test('an autosave leaves the canvas, the inline edit and undo exactly as they were', async () => {
+  const { createEditorDraftState, editorDraftReducer, isStoryDirty } = await import('../src/model.ts');
+  const { story: fixture } = await import('./fixtures.ts');
+  const base = fixture();
+  let state = createEditorDraftState(base);
+  state = editorDraftReducer(state, { type: 'inline-start' });
+  const typed = { ...base, title: 'Typed' };
+  state = editorDraftReducer(state, { type: 'edit', story: typed, history: 'merge' });
+  state = editorDraftReducer(state, { type: 'save-start' });
+  // The server's copy differs (it tidies and measures): it never replaces what's on screen.
+  const tidied = { ...typed, summary: `${typed.summary ?? ''} ` };
+  const saved = editorDraftReducer(state, { type: 'save-success', story: tidied, submittedStory: typed, version: 2, autosave: true });
+  assert.equal(saved.story, typed, 'the same story object, so the canvas doesn’t redraw');
+  assert.equal(saved.inlineBase, state.inlineBase, 'the edit in progress can still be undone in one step');
+  assert.equal(saved.saveState, 'saved');
+  assert.equal(saved.message, null);
+  assert.equal(isStoryDirty(saved), false, 'what was typed is the baseline, so nothing saves twice');
+
+  // Typing during the save keeps the newer text unsaved, quietly.
+  const during = editorDraftReducer(editorDraftReducer(state, { type: 'edit', story: { ...typed, title: 'Typed more' }, history: 'merge' }),
+    { type: 'save-success', story: tidied, submittedStory: typed, version: 2, autosave: true });
+  assert.equal(during.story.title, 'Typed more');
+  assert.equal(during.saveState, 'idle');
+  assert.equal(during.message, null);
+  assert.equal(isStoryDirty(during), true);
+});

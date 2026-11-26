@@ -98,7 +98,7 @@ In the admin, **Appearance** sets the default theme, the accent colour and the t
 1. In the admin, open **Work** and press **New case study**.
 2. Give it a title and, if you like, the company it was for, then press **Create case study**. Its web address is made from the title, and you can change it later.
 3. You land on the story page itself. Click any text to edit it. The toolbar adds blocks: chapters, images, quotes, comparisons, metrics, credits.
-4. Save with ⌘S (Ctrl+S on Windows). Saving keeps a draft; readers still see the published version.
+4. The draft saves itself a second after you stop typing, and the line next to the title says Saved. ⌘S (Ctrl+S on Windows) keeps a version of its own you can come back to. Either way it's a draft: readers still see the published version.
 5. When it's ready, press **Publish**. The checklist next to it tells you if anything is missing, like a cover image or a summary.
 
 Back in **Work**, drag rows to set their order on the public Work page, and use the switch to hide a story without unpublishing it.

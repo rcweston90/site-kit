@@ -103,8 +103,10 @@ The editor reads failures from either kind of transport: the error classes story
 
 Saving uses `@rcweston/save-kit`:
 
-- The bar shows Saved, Unsaved changes, Saving and Retry. ⌘S (Ctrl+S) saves.
-- Leaving with unsaved changes asks first, both for the back link and for closing the tab.
+- The draft saves itself a second after the last change (`useDraftAutosave`), as posts do. Autosaves fold into one working version (`autosave: true` on `saveDraft`); ⌘S (Ctrl+S), Save, Publish and an address change each keep a version of their own. An autosave never moves the caret, redraws the canvas or touches undo. Text in a field on the document canvas (a caption, the hero title) saves once you leave the field; in the block editor it saves as you type.
+- A draft the server would refuse (no title, say) waits, and the status line says why, instead of jumping to the problem.
+- The bar shows Saved, Unsaved changes, Saving and Retry.
+- The back link saves what's unsaved, then leaves. Closing the tab with unsaved changes still asks first.
 - Unsaved edits are kept in the browser. After a reload the editor offers them back, and ⌘Z takes the restore back.
 - A save always names the version it builds on (`parentDocumentId`), so two tabs can never overwrite each other silently.
 
@@ -122,7 +124,7 @@ The editor's stylesheet uses the same token contract as the reader (`tokens.css`
 
 ## Testing
 
-`pnpm test` mounts the editor in jsdom against a fake transport: it loads, an edit marks the story unsaved, ⌘S saves through the transport, a conflict and an ended session read as plain messages, a moved story follows its new address and publishing reaches the transport. Continuous writing is a ProseMirror view, which needs real layout that jsdom lacks; its conversions, history and image grouping are tested through the model in `test/model.test.ts`.
+`pnpm test` mounts the editor in jsdom against a fake transport: it loads, an edit marks the story unsaved, the draft autosaves after a pause without leaving the field, ⌘S saves through the transport, Back saves before leaving, a conflict and an ended session read as plain messages, a moved story follows its new address and publishing reaches the transport. Continuous writing is a ProseMirror view, which needs real layout that jsdom lacks; its conversions, history and image grouping are tested through the model in `test/model.test.ts`.
 
 ## Licence
 

@@ -1,17 +1,20 @@
 /**
  * The document store, in memory. Same behaviour as the Postgres store
- * (append-only versions, parent-pointer conflicts, a separate publication
- * pointer, renames that continue the story under the new address), for
- * demos, tests and local prototypes. Nothing survives a restart.
+ * (numbered versions, autosaves that fold into the working one,
+ * parent-pointer conflicts, a separate publication pointer, renames that
+ * continue the story under the new address), for demos, tests and local
+ * prototypes. Nothing survives a restart.
  */
 
 import {
   DraftConflictError,
   PublicationConflictError,
   STORY_SCHEMA_VERSION,
+  STORY_AUTOSAVE_REF,
   StoryMovedError,
   contentSha256,
   isLatestDocumentParent,
+  isRewritableAutosave,
   storyDocumentId,
   type DocumentStore,
   type PublishedLookup,
@@ -155,7 +158,7 @@ export function createMemoryDocumentStore(options: MemoryDocumentStoreOptions = 
       return found ? withPublished(found) : null;
     },
 
-    saveDraft({ slug, content, parentDocumentId, source }) {
+    saveDraft({ slug, content, parentDocumentId, source, autosave = false }) {
       return exclusive(() => {
         const problems = validateStoryDraft(content, slug);
         if (problems.length > 0) throw new InvalidStoryError(problems);
@@ -163,13 +166,23 @@ export function createMemoryDocumentStore(options: MemoryDocumentStoreOptions = 
         if (movedTo) throw new StoryMovedError(movedTo);
         const latest = latestOf(slug);
         if (!isLatestDocumentParent(parentDocumentId, latest?.id ?? null)) throw new DraftConflictError();
+        if (autosave && latest && isRewritableAutosave(latest, publications.get(slug)?.documentId ?? null)) {
+          // Fold into the working autosave rather than add a version per pause.
+          Object.assign(latest, {
+            content: clone(content),
+            contentSha256: contentSha256(content),
+            sourceCommit: source.commit ?? latest.sourceCommit,
+            updatedAt: now().toISOString(),
+          });
+          return withPublished(latest);
+        }
         const document = insert(slug, {
           version: (latest?.version ?? 0) + 1,
           content,
           contentSha256: contentSha256(content),
           parentDocumentId,
-          sourceKind: source.kind,
-          sourceRef: source.ref,
+          sourceKind: autosave ? 'editor' : source.kind,
+          sourceRef: autosave ? STORY_AUTOSAVE_REF : source.ref,
           sourceCommit: source.commit ?? '',
         });
         return withPublished(document);

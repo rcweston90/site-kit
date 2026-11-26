@@ -10,10 +10,12 @@
 import {
   DraftConflictError,
   PublicationConflictError,
+  STORY_AUTOSAVE_REF,
   STORY_SCHEMA_VERSION,
   StoryMovedError,
   contentSha256,
   isLatestDocumentParent,
+  isRewritableAutosave,
   storyDocumentId,
   type DocumentStore,
   type PublishedLookup,
@@ -178,7 +180,7 @@ export function createPostgresDocumentStore({ pool }: PostgresDocumentStoreOptio
       });
     },
 
-    async saveDraft({ slug, content, parentDocumentId, source }) {
+    async saveDraft({ slug, content, parentDocumentId, source, autosave = false }) {
       const problems = validateStoryDraft(content, slug);
       if (problems.length > 0) throw new InvalidStoryError(problems);
       try {
@@ -188,9 +190,31 @@ export function createPostgresDocumentStore({ pool }: PostgresDocumentStoreOptio
           // saving versions nobody can reach.
           const moved = await movedTo(tx, slug);
           if (moved) throw new StoryMovedError(moved);
-          const latest = await tx.query('SELECT id, version FROM story_documents WHERE slug = $1 ORDER BY version DESC LIMIT 1', [slug]);
-          const latestRow = latest.rows[0] as { id: string; version: number | string } | undefined;
+          const latest = await tx.query(
+            `SELECT d.id, d.version, d.source_kind, d.source_ref, p.document_id AS published_document_id
+               FROM story_documents d LEFT JOIN story_publications p ON p.slug = d.slug
+              WHERE d.slug = $1 ORDER BY d.version DESC LIMIT 1`,
+            [slug],
+          );
+          const latestRow = latest.rows[0] as {
+            id: string; version: number | string; source_kind: string; source_ref: string; published_document_id: string | null;
+          } | undefined;
           if (!isLatestDocumentParent(parentDocumentId, latestRow?.id ?? null)) throw new DraftConflictError();
+          if (autosave && latestRow && isRewritableAutosave(
+            { id: latestRow.id, sourceKind: latestRow.source_kind, sourceRef: latestRow.source_ref },
+            latestRow.published_document_id,
+          )) {
+            // Fold into the working autosave rather than add a version per pause.
+            const { rows } = await tx.query(
+              `UPDATE story_documents
+                  SET content = $2::jsonb, content_sha256 = $3, source_commit = COALESCE($4, source_commit), updated_at = clock_timestamp()
+                WHERE id = $1
+                RETURNING *, false AS published`,
+              [latestRow.id, JSON.stringify(content), contentSha256(content), source.commit ?? null],
+            );
+            if (!rows[0]) throw new Error('The autosave update returned no row.');
+            return mapDocument(rows[0]);
+          }
           const version = Number(latestRow?.version ?? 0) + 1;
           return insertDocument(tx, {
             id: storyDocumentId(slug, version),
@@ -198,8 +222,8 @@ export function createPostgresDocumentStore({ pool }: PostgresDocumentStoreOptio
             version,
             content,
             contentSha256: contentSha256(content),
-            sourceKind: source.kind,
-            sourceRef: source.ref,
+            sourceKind: autosave ? 'editor' : source.kind,
+            sourceRef: autosave ? STORY_AUTOSAVE_REF : source.ref,
             sourceCommit: source.commit ?? '',
             parentDocumentId,
           });

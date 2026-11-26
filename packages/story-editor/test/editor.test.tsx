@@ -197,3 +197,110 @@ test('a story that moved follows its new address through navigate', async () => 
     assert.deepEqual(visited, ['/edit/field-notes-renamed']);
   } finally { unmount(); }
 });
+
+const pause = (ms: number) => act(async () => { await new Promise((resolve) => setTimeout(resolve, ms)); });
+
+async function typeInTitle(container: HTMLElement, value: string) {
+  const field = [...container.querySelectorAll<HTMLElement>('[role="textbox"][contenteditable]')].find((node) => node.getAttribute('aria-label') === 'Story title')
+    ?? [...container.querySelectorAll<HTMLElement>('[role="textbox"][contenteditable]')].find((node) => node.textContent === story().title);
+  assert.ok(field, 'the story title is editable on the page');
+  if (dom.window.document.activeElement !== field) await act(async () => { field.focus(); });
+  field.textContent = value;
+  await act(async () => { field.dispatchEvent(new dom.window.Event('input', { bubbles: true })); });
+  return field;
+}
+
+test('the draft saves itself a second after typing stops, without leaving the field', async () => {
+  const { transport, calls } = fakeTransport(editorState());
+  const { container, unmount } = await mount(<StoryEditor continuousMode={false} slug="field-notes-that-travel" transport={transport} initialState={editorState()} />);
+  try {
+    const field = await typeInTitle(container, 'Field notes, typed');
+    await pause(300);
+    assert.equal(calls.filter((call) => call.method === 'saveDraft').length, 0, 'nothing saves mid-sentence');
+    assert.match(text(container), /Unsaved changes/);
+    await pause(1000);
+    await settle();
+    const saves = calls.filter((call) => call.method === 'saveDraft').map((call) => call.input as { content: Story; parentDocumentId: string | null; autosave?: boolean });
+    assert.equal(saves.length, 1);
+    assert.equal(saves[0]!.autosave, true);
+    assert.equal(saves[0]!.content.title, 'Field notes, typed');
+    assert.equal(saves[0]!.parentDocumentId, 'doc-1');
+    assert.equal(dom.window.document.activeElement, field, 'the caret stays where the author is typing');
+    assert.doesNotMatch(text(container), /Unsaved changes/);
+    assert.equal(saveButton(container)?.textContent?.trim(), 'Saved');
+
+    // Typing on saves again, on top of the version it just saved.
+    await typeInTitle(container, 'Field notes, typed on');
+    await pause(1200);
+    await settle();
+    const next = calls.filter((call) => call.method === 'saveDraft').map((call) => call.input as { content: Story; parentDocumentId: string | null; autosave?: boolean });
+    assert.equal(next.length, 2);
+    assert.equal(next[1]!.content.title, 'Field notes, typed on');
+    assert.equal(next[1]!.parentDocumentId, 'doc-2');
+    assert.equal(next[1]!.autosave, true);
+
+    // Leaving the field commits the same text: nothing more to save.
+    await act(async () => { field.blur(); });
+    await pause(1200);
+    await settle();
+    assert.equal(calls.filter((call) => call.method === 'saveDraft').length, 2);
+    assert.match(text(container), /Saved/);
+  } finally { unmount(); }
+});
+
+test('⌘S still saves a version of its own', async () => {
+  const { transport, calls } = fakeTransport(editorState());
+  const { container, unmount } = await mount(<StoryEditor continuousMode={false} slug="field-notes-that-travel" transport={transport} initialState={editorState()} />);
+  try {
+    await editTitle(container, 'Field notes, kept');
+    await pressSaveShortcut();
+    const save = calls.find((call) => call.method === 'saveDraft')?.input as { autosave?: boolean } | undefined;
+    assert.ok(save);
+    assert.equal(save.autosave, undefined);
+  } finally { unmount(); }
+});
+
+test('a draft the server would refuse waits, and the status line says why', async () => {
+  const { transport, calls } = fakeTransport(editorState());
+  const { container, unmount } = await mount(<StoryEditor continuousMode={false} slug="field-notes-that-travel" transport={transport} initialState={editorState()} />);
+  try {
+    const field = await typeInTitle(container, '');
+    await pause(1200);
+    await settle();
+    assert.equal(calls.filter((call) => call.method === 'saveDraft').length, 0);
+    assert.match(text(container), /Autosave is waiting: Give the story a title/);
+    assert.equal(dom.window.document.activeElement, field, 'no jump to the problem the author is fixing');
+    await typeInTitle(container, 'Field notes, titled');
+    await pause(1200);
+    await settle();
+    assert.equal(calls.filter((call) => call.method === 'saveDraft').length, 1);
+    assert.doesNotMatch(text(container), /Autosave is waiting/);
+  } finally { unmount(); }
+});
+
+test('Back saves what was just typed, then leaves', async () => {
+  const visited: string[] = [];
+  const { transport, calls } = fakeTransport(editorState());
+  const confirm = dom.window.confirm;
+  let asked = 0;
+  dom.window.confirm = () => { asked++; return false; };
+  const { container, unmount } = await mount(
+    <StoryEditor continuousMode={false} slug="field-notes-that-travel" transport={transport} initialState={editorState()}
+      navigate={(href) => visited.push(href)} backLink={{ href: '/admin/stories', label: 'Work' }} />,
+  );
+  try {
+    await editTitle(container, 'Field notes, then back');
+    const back = [...container.querySelectorAll<HTMLElement>('[data-unsaved-guarded]')][0];
+    assert.ok(back, 'the bar has a Back link');
+    await act(async () => { back.click(); });
+    await pause(50);
+    await settle();
+    await pause(50);
+    await settle();
+    assert.equal(asked, 0, 'no “leave without saving?” question');
+    const save = calls.find((call) => call.method === 'saveDraft')?.input as { content: Story; autosave?: boolean } | undefined;
+    assert.equal(save?.content.title, 'Field notes, then back');
+    assert.equal(save?.autosave, true);
+    assert.deepEqual(visited, ['/admin/stories']);
+  } finally { dom.window.confirm = confirm; unmount(); }
+});

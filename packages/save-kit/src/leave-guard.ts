@@ -53,7 +53,10 @@ function install() {
     // A modified click opens a new tab; this page stays.
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
     if (activeSources().some((source) => source.ignoreWithin && anchor.closest(`[${source.ignoreWithin}]`))) return;
-    if (anchor.hasAttribute(GUARDED_LINK_ATTRIBUTE)) return;
+    // The link, or a part of it, checks for unsaved work itself (a Back link
+    // that saves first, say).
+    const marked = (event.target as Element | null)?.closest?.(`[${GUARDED_LINK_ATTRIBUTE}]`);
+    if (anchor.hasAttribute(GUARDED_LINK_ATTRIBUTE) || (marked && anchor.contains(marked))) return;
     // A link to a part of this same page (#section) doesn't leave it.
     const target = new URL(anchor.href, window.location.href);
     if (target.origin === window.location.origin && target.pathname === window.location.pathname && target.search === window.location.search) return;

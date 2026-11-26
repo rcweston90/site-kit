@@ -39,7 +39,9 @@ export type EditorDraftAction =
   | { type: 'undo' }
   | { type: 'redo' }
   | { type: 'save-start' }
-  | { type: 'save-success'; story: Story; submittedStory: Story; version: number }
+  /** `autosave`: the editor saved on its own while the author kept working.
+   *  The canvas and its undo history stay exactly as they are. */
+  | { type: 'save-success'; story: Story; submittedStory: Story; version: number; autosave?: boolean }
   | { type: 'save-error'; message: string }
   | { type: 'load-version'; story: Story; version: number }
   | { type: 'reset'; story: Story; message?: string };
@@ -133,6 +135,17 @@ export function editorDraftReducer(state: EditorDraftState, action: EditorDraftA
       // Either way undo and redo survive the save, as in any doc editor: ⌘Z
       // after ⌘S steps back, and the story reads as unsaved again.
       const changedDuringSave = JSON.stringify(state.story) !== JSON.stringify(action.submittedStory);
+      if (action.autosave) {
+        // What was typed is the baseline, not the server's tidied copy: never
+        // swap the story (or the canvas) under the caret, and never leave a
+        // difference that would make the next autosave save the same thing.
+        return {
+          ...state,
+          savedStory: structuredClone(action.submittedStory),
+          saveState: changedDuringSave ? 'idle' : 'saved',
+          message: null,
+        };
+      }
       if (changedDuringSave) {
         return {
           ...state,

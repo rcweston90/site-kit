@@ -48,6 +48,26 @@ describe('handlers, end to end through the memory transport', () => {
     assert.deepEqual(stories.map((story) => [story.slug, story.latestVersion]), [['field-notes', 2]]);
   });
 
+  it('folds the editor\'s autosaves into one working version, and never a restore', async () => {
+    const transport = createMemoryTransport();
+    const first = await transport.saveDraft({ slug: 'field-notes', content: sampleStory('field-notes'), parentDocumentId: null });
+    const typing = await transport.saveDraft({ slug: 'field-notes', content: editedStory('field-notes', 'typing'), parentDocumentId: first.documents[0].id, autosave: true });
+    assert.deepEqual(typing.documents.map((document) => [document.version, document.sourceRef]), [[2, 'autosave'], [1, 'field-notes']]);
+    const more = await transport.saveDraft({ slug: 'field-notes', content: editedStory('field-notes', 'more'), parentDocumentId: typing.documents[0].id, autosave: true });
+    assert.deepEqual(more.documents.map((document) => document.version), [2, 1]);
+    assert.deepEqual(more.story, editedStory('field-notes', 'more'));
+
+    // A restore that claims to be an autosave still adds its own version.
+    const response = await transport.fetch('/api/story/stories/field-notes/drafts', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ content: sampleStory('field-notes'), parentDocumentId: more.documents[0].id, restoredFrom: first.documents[0].id, autosave: true }),
+    });
+    assert.equal(response.status, 201);
+    const restored = await response.json();
+    assert.deepEqual(restored.documents.map((document: { version: number; sourceKind: string }) => [document.version, document.sourceKind]), [[3, 'restore'], [2, 'editor'], [1, 'editor']]);
+  });
+
   it('refuses an invalid draft with its problems listed', async () => {
     const transport = createMemoryTransport();
     await assert.rejects(

@@ -135,7 +135,8 @@ export function createFetchTransport(options: FetchTransportOptions = {}): Story
       call<{ stories: StorySummary[] }>(routePaths.list(), { signal }, (value) => Array.isArray((value as { stories?: unknown }).stories))
         .then((value) => value.stories),
     load: (slug, { signal } = {}) => call<StoryEditorState>(routePaths.load(slug), { signal }, isEditorState),
-    saveDraft: ({ slug, content, parentDocumentId }) => state(routePaths.saveDraft(slug), { content, parentDocumentId }),
+    saveDraft: ({ slug, content, parentDocumentId, autosave }) =>
+      state(routePaths.saveDraft(slug), autosave ? { content, parentDocumentId, autosave } : { content, parentDocumentId }),
     publish: ({ slug, documentId, expectedPublishedDocumentId }) =>
       state(routePaths.publish(slug), { documentId, expectedPublishedDocumentId }),
     unpublish: (slug) => state(routePaths.unpublish(slug), {}),
